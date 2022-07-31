@@ -287,7 +287,8 @@ public struct SQLColumnValuePredicate<C: SQLColumn>: SQLPredicate {
     }
   }
   
-  public func generateLike<Base>(for column: String, with value: SQLiteValueType,
+  public func generateLike<Base>(for column: String,
+                                 with value: SQLiteValueType,
                                  prefix: String, suffix: String,
                                  into builder: inout SQLBuilder<Base>)
   {

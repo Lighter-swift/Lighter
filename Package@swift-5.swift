@@ -20,7 +20,21 @@ var package = Package(
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter")
+    .target(name: "Lighter"),
+
+    
+    // MARK: - Plugin Support
+    
+    // The CodeGenAST is a small and hacky helper lib that can format/render
+    // Swift source code.
+    .target(name    : "LighterCodeGenAST",
+            path    : "Plugins/Libraries/LighterCodeGenAST",
+            exclude : [ "README.md" ]),
+    
+    
+    // MARK: - Tests
+    
+    .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ])
   ]
 )
 
