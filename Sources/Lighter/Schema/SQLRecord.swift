@@ -3,8 +3,6 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
-import struct SQLite3Schema.Schema
-
 /**
  * A `SQLRecord` is an abstract protocol representing a set of columns fetched
  * from a database.
