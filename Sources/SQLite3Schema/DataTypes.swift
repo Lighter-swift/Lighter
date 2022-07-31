@@ -119,7 +119,7 @@ extension Schema {
         // E.g. one can (and the OGo schema does) use own datatype names, e.g.
         // `CREATE TABLE B ( col MYTYPE );` works!
         case .custom(let s): // according to SQLite rules!
-          #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+          #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.5)
           return s.withCString { cstr in
             if strcasestr(cstr, "INT")  != nil { return .integer }
             if strcasestr(cstr, "CHAR") != nil { return .text }

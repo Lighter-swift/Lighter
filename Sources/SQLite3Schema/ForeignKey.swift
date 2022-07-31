@@ -218,7 +218,7 @@ fileprivate extension Schema.ForeignKey.Action {
       case "r", "R": self = .restrict
       case "c", "C": self = .cascade
       case "s", "S":
-        #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+        #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.5)
         if strcasestr(cstr, "NULL") != nil {
           self = .setNull
         }
