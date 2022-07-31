@@ -25,3 +25,20 @@ jobs:
         run: swift build -c debug
       - name: Build Swift Release Package
         run: swift build -c release
+      #- name: Run Tests
+      #  run: swift test
+  nextstep:
+    runs-on: macos-latest
+    steps:
+      - name: Select latest available Xcode
+        uses: maxim-lobanov/setup-xcode@v1.2.1
+        with:
+          xcode-version: 13.3
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Build Swift Debug Package
+        run: swift build -c debug
+      - name: Build Swift Release Package
+        run: swift build -c release
+      #- name: Run Tests
+      #  run: swift test
