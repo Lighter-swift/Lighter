@@ -3,8 +3,6 @@ name: Build and Test
 on:
   push:
   pull_request:
-  schedule:
-    - cron: "0 9 * * 9"
 
 jobs:
   linux:
