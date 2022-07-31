@@ -4,9 +4,15 @@
 //
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
-import func Darwin.strcasestr
+  #if swift(>=5.6)
+    import func Darwin.strcasestr
+  #else
+    import func Darwin.strstr
+  #endif
+#elseif canImport(Glibc)
+  import func Glibc.strstr
 #else
-import Foundation // using `NSString.contains`...
+  import Foundation
 #endif
 
 extension Schema {
@@ -132,15 +138,15 @@ extension Schema {
             return .numeric
           }
           #else // Linux etc, strcasestr not exposed in Swift
-          let lc = s.uppercased()
-          if lc.contains("INT")  { return .integer }
-          if lc.contains("CHAR") { return .text }
-          if lc.contains("CLOB") { return .text }
-          if lc.contains("TEXT") { return .text }
-          if lc.contains("BLOB") { return .blob }
-          if lc.contains("REAL") { return .real }
-          if lc.contains("FLOA") { return .real }
-          if lc.contains("DOUB") { return .real }
+          let uc = s.uppercased()
+          if nil != strstr(uc, "INT")  { return .integer }
+          if nil != strstr(uc, "CHAR") { return .text }
+          if nil != strstr(uc, "CLOB") { return .text }
+          if nil != strstr(uc, "TEXT") { return .text }
+          if nil != strstr(uc, "BLOB") { return .blob }
+          if nil != strstr(uc, "REAL") { return .real }
+          if nil != strstr(uc, "FLOA") { return .real }
+          if nil != strstr(uc, "DOUB") { return .real }
           return .numeric
           #endif
       }

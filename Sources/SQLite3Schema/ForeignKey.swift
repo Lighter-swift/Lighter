@@ -3,6 +3,18 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  #if swift(>=5.6)
+    import func Darwin.strcasestr
+  #else
+    import func Darwin.strstr
+  #endif
+#elseif canImport(Glibc)
+  import func Glibc.strstr
+#else
+  import Foundation
+#endif
+
 extension Schema {
   
   /**
@@ -219,26 +231,26 @@ fileprivate extension Schema.ForeignKey.Action {
       case "c", "C": self = .cascade
       case "s", "S":
         #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.6)
-        if strcasestr(cstr, "NULL") != nil {
-          self = .setNull
-        }
-        else if strcasestr(cstr, "DEFAULT") != nil {
-          self = .setDefault
-        }
-        else {
-          assertionFailure(
-            "Unexpected action: \(String(cString: cstr))")
-          return nil
-        }
+          if strcasestr(cstr, "NULL") != nil {
+            self = .setNull
+          }
+          else if strcasestr(cstr, "DEFAULT") != nil {
+            self = .setDefault
+          }
+          else {
+            assertionFailure(
+              "Unexpected action: \(String(cString: cstr))")
+            return nil
+          }
         #else // Linux etc
-        let s = String(cString: cstr).uppercased() // no strcasestr on Linux
-        if      s.contains("NULL")    { self = .setNull    }
-        else if s.contains("DEFAULT") { self = .setDefault }
-        else {
-          assertionFailure(
-            "Unexpected action: \(String(cString: cstr))")
-          return nil
-        }
+          let s = String(cString: cstr).uppercased() // no strcasestr on Linux
+          if      strstr(s, "NULL")    != nil { self = .setNull    }
+          else if strstr(s, "DEFAULT") != nil { self = .setDefault }
+          else {
+            assertionFailure(
+              "Unexpected action: \(String(cString: cstr))")
+            return nil
+          }
         #endif
       default:
         assertionFailure("Unexpected action: \(String(cString: cstr))")
