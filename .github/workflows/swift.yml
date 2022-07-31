@@ -1,0 +1,42 @@
+name: Build and Test
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 9 * * 9"
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - swift:5.6.1-bionic
+          - swift:5.6.2-focal
+    container: ${{ matrix.image }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Build Swift Debug Package
+        run: swift build -c debug
+      - name: Build Swift Release Package
+        run: swift build -c release
+      - name: Run Tests
+        run: swift test
+  nextstep:
+    runs-on: macos-latest
+    steps:
+      - name: Select latest available Xcode
+        uses: maxim-lobanov/setup-xcode@v1.2.1
+        with:
+          xcode-version: 13
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Build Swift Debug Package
+        run: swift build -c debug
+      - name: Build Swift Release Package
+        run: swift build -c release
+      - name: Run Tests
+        run: swift test
