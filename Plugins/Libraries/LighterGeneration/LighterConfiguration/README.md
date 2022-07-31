@@ -1,14 +1,14 @@
-<h2>Lighter Code Generation AST
+<h2>Lighter Configuration
   <img src="https://zeezide.com/img/lighter/Lighter256.png"
        align="right" width="64" height="64" />
 </h2>
 
-A very simplistic AST for code generation purposes within Enlighter.
+A litte weird set of structures to support the override based configuration
+system.
+Should be reworked.
 
-This is not supposed to represent full Swift at all, just what is used
-within the code generation plugins.
-
-Pretty hacky, close your eyes when looking at this particular code.
+The basic idea is that the all the values can be nil to allow stacking.
+I.e. multiple `LighterConfiguration` objects can be merged together.
 
 
 ### Who

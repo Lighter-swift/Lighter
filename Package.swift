@@ -31,10 +31,20 @@ var package = Package(
             path    : "Plugins/Libraries/LighterCodeGenAST",
             exclude : [ "README.md" ]),
     
+    // This library contains all the code generation, to be used by different
+    // clients.
+    .target(name         : "LighterGeneration",
+            dependencies : [ "LighterCodeGenAST", "SQLite3Schema" ],
+            path         : "Plugins/Libraries/LighterGeneration",
+            exclude      : [ "README.md", "LighterConfiguration/README.md" ]),
+
     
     // MARK: - Tests
     
-    .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ])
+    .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ]),
+    .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
+    .testTarget(name: "LighterOperationGenTests",
+                dependencies: [ "LighterGeneration" ])
   ]
 )
 
