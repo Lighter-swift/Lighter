@@ -75,9 +75,9 @@ var package = Package(
             .writeToPackageDirectory(reason:
               "The plugin needs access to generate the source file.")
           ]
-        ),
-        dependencies: [ "sqlite2swift" ],
-        path: "Plugins/GenerateCodeForSQLite"
+      ),
+      dependencies: [ "sqlite2swift" ],
+      path: "Plugins/GenerateCodeForSQLite"
     ),
 
     
