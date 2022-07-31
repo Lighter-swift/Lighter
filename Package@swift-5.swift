@@ -8,11 +8,19 @@ var package = Package(
   platforms: [ .macOS(.v10_14), .iOS(.v12) ],
   
   products: [
-    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
+    .library(name: "Lighter",         targets: [ "Lighter"       ]),
+    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ])
   ],
   
   targets: [
-    .target(name: "SQLite3Schema", exclude: [ "README.md" ])
+    // A small library used to fetch schema information from SQLite3 databases.
+    .target(name: "SQLite3Schema", exclude: [ "README.md" ]),
+    
+    // Lighter is a shared lib providing common protocols used by Enlighter
+    // generated models and such.
+    // Note that Lighter isn't that useful w/o code generation (i.e. as a
+    // standalone lib).
+    .target(name: "Lighter")
   ]
 )
 
@@ -25,5 +33,8 @@ package.targets += [
 ]
 package.targets
   .first(where: { $0.name == "SQLite3Schema" })?
+  .dependencies.append("SQLite3")
+package.targets
+  .first(where: { $0.name == "Lighter" })?
   .dependencies.append("SQLite3")
 #endif // not-Darwin
