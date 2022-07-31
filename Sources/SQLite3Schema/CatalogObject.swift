@@ -159,7 +159,7 @@ fileprivate extension Schema.CatalogObject {
     guard let stmt = sqliteMasterFetchStatement else { return nil }
     
     if let s = sqlite3_column_text(stmt, 0) {
-      #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+      #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.6)
       if      strcasecmp(s, "table")   == 0 { type = .table   }
       else if strcasecmp(s, "view")    == 0 { type = .view    }
       else if strcasecmp(s, "index")   == 0 { type = .index   }
@@ -168,7 +168,7 @@ fileprivate extension Schema.CatalogObject {
         assertionFailure("Unsupported catalog object: \(String(cString: s))")
         return nil
       }
-      #else // no strcasecmp exposed on Linux
+      #else // no strcasecmp exposed on Linux, casting issues on macOS
       switch String(cString: s).lowercased() {
         case "table"   : type = .table
         case "view"    : type = .view
