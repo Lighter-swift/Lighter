@@ -8,8 +8,8 @@ var package = Package(
   platforms: [ .macOS(.v10_14), .iOS(.v12) ],
   
   products: [
-    .library(name: "Lighter",         targets: [ "Lighter"       ]),
-    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ])
+    .library(name: "Lighter",       targets: [ "Lighter"       ]),
+    .library(name: "SQLite3Schema", targets: [ "SQLite3Schema" ])
   ],
   
   targets: [
@@ -44,7 +44,15 @@ var package = Package(
     .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ]),
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
-                dependencies: [ "LighterGeneration" ])
+                dependencies: [ "LighterGeneration" ]),
+    
+    
+    // MARK: - Internal Tool for Generating Variadics
+        
+    .target(name         : "GenerateInternalVariadics",
+            dependencies : [ "LighterCodeGenAST", "LighterGeneration" ],
+            path         : "Plugins/Tools/GenerateInternalVariadics",
+            exclude      : [ "README.md" ])
   ]
 )
 
