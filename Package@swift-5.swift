@@ -9,7 +9,8 @@ var package = Package(
   
   products: [
     .library(name: "Lighter",         targets: [ "Lighter"       ]),
-    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ])
+    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
+    .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ])
   ],
   
   targets: [
@@ -20,7 +21,47 @@ var package = Package(
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter")
+    .target(name: "Lighter"),
+
+    
+    // MARK: - Plugin Support
+    
+    // The CodeGenAST is a small and hacky helper lib that can format/render
+    // Swift source code.
+    .target(name    : "LighterCodeGenAST",
+            path    : "Plugins/Libraries/LighterCodeGenAST",
+            exclude : [ "README.md" ]),
+    
+    // This library contains all the code generation, to be used by different
+    // clients.
+    .target(name         : "LighterGeneration",
+            dependencies : [ "LighterCodeGenAST", "SQLite3Schema" ],
+            path         : "Plugins/Libraries/LighterGeneration",
+            exclude      : [ "README.md", "LighterConfiguration/README.md" ]),
+
+    
+    // MARK: - Tests
+    
+    .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ]),
+    .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
+    .testTarget(name: "LighterOperationGenTests",
+                dependencies: [ "LighterGeneration" ]),
+    
+    
+    // MARK: - sqlite2swift
+
+    .target(name         : "sqlite2swift",
+            dependencies : [ "LighterGeneration" ],
+            path         : "Plugins/Tools/sqlite2swift",
+            exclude      : [ "README.md" ]),
+
+    
+    // MARK: - Internal Tool for Generating Variadics
+        
+    .target(name         : "GenerateInternalVariadics",
+            dependencies : [ "LighterCodeGenAST", "LighterGeneration" ],
+            path         : "Plugins/Tools/GenerateInternalVariadics",
+            exclude      : [ "README.md" ])
   ]
 )
 

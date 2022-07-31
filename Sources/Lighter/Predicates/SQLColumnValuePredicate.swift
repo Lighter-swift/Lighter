@@ -287,7 +287,8 @@ public struct SQLColumnValuePredicate<C: SQLColumn>: SQLPredicate {
     }
   }
   
-  public func generateLike<Base>(for column: String, with value: SQLiteValueType,
+  public func generateLike<Base>(for column: String,
+                                 with value: SQLiteValueType,
                                  prefix: String, suffix: String,
                                  into builder: inout SQLBuilder<Base>)
   {
@@ -336,7 +337,7 @@ public struct SQLColumnValuePredicate<C: SQLColumn>: SQLPredicate {
       case let v as Double:
         builder.append("\(castColumn) LIKE '\(prefix)\(v)\(suffix)'")
       
-      case is [ UInt8 ]: // TODO
+      case is [ UInt8 ]: // Later
         fatalError("BLOB LIKE not supported yet!")
       
       default:
