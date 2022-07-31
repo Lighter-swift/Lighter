@@ -8,8 +8,14 @@ var package = Package(
   platforms: [ .macOS(.v10_15), .iOS(.v13) ],
   
   products: [
-    .library(name: "Lighter",       targets: [ "Lighter"       ]),
-    .library(name: "SQLite3Schema", targets: [ "SQLite3Schema" ])
+    .library(name: "Lighter",         targets: [ "Lighter"       ]),
+    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
+
+    .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ]),
+    
+    .plugin(name: "Enlighter",        targets: [ "Enlighter"     ]),
+    .plugin(name: "Generate Code for SQLite",
+            targets: [ "Generate Code for SQLite" ])
   ],
   
   targets: [
@@ -46,6 +52,34 @@ var package = Package(
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
     
+    
+    // MARK: - Plugins and supporting Tools
+
+    .executableTarget(name         : "sqlite2swift",
+                      dependencies : [ "LighterGeneration" ],
+                      path         : "Plugins/Tools/sqlite2swift",
+                      exclude      : [ "README.md" ]),
+
+    .plugin(name: "Enlighter", capability: .buildTool(),
+            dependencies: [ "sqlite2swift" ]),
+    
+    .plugin(
+      name: "Generate Code for SQLite",
+      capability: .command(
+        intent: .custom(
+          verb: "sqlite2swift",
+          description:
+            "Generate Swift code for SQLite DBs into the Sources directory."
+          ),
+          permissions: [
+            .writeToPackageDirectory(reason:
+              "The plugin needs access to generate the source file.")
+          ]
+        ),
+        dependencies: [ "sqlite2swift" ],
+        path: "Plugins/GenerateCodeForSQLite"
+    ),
+
     
     // MARK: - Internal Plugin for Generating Variadics
     

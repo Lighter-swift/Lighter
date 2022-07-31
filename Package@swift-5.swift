@@ -8,8 +8,9 @@ var package = Package(
   platforms: [ .macOS(.v10_14), .iOS(.v12) ],
   
   products: [
-    .library(name: "Lighter",       targets: [ "Lighter"       ]),
-    .library(name: "SQLite3Schema", targets: [ "SQLite3Schema" ])
+    .library(name: "Lighter",         targets: [ "Lighter"       ]),
+    .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
+    .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ])
   ],
   
   targets: [
@@ -46,6 +47,14 @@ var package = Package(
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
     
+    
+    // MARK: - sqlite2swift
+
+    .target(name         : "sqlite2swift",
+            dependencies : [ "LighterGeneration" ],
+            path         : "Plugins/Tools/sqlite2swift",
+            exclude      : [ "README.md" ]),
+
     
     // MARK: - Internal Tool for Generating Variadics
         
