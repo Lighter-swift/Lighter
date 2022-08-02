@@ -89,7 +89,14 @@ public final class Fancifier {
     /// `"My Table"`  => `My_Table`
     /// `"my column"` => `my_column`
     public var spaceReplacementStringForIDs : String? = "_"
-    
+
+    /// `"My-Table"`  => `My_Table`
+    /// `"my-column"` => `my_column`
+    public var minusReplacementStringForIDs : String? = "_"
+    /// `"My/Table"`  => `My__Table`
+    /// `"my/column"` => `my__column`
+    public var slashReplacementStringForIDs : String? = "__"
+
     /// `person` => `Person`
     public var capitalizeRecordNames     = true
     /// `PersonId` => `personId`
@@ -344,26 +351,94 @@ public final class Fancifier {
       }
     }
   }
+  
+  // Replaces spaces in SQL identifiers with `_`,
+  // e.g. `A Long Table` becomes `A_Long_Table`.
+  private func replaceSpecificIDCharacters(in name: String) -> String {
+    var name = name
+    if let s = options.spaceReplacementStringForIDs {
+      name = name.replacingOccurrences(of: " ", with: s)
+    }
+    if let s = options.minusReplacementStringForIDs {
+      name = name.replacingOccurrences(of: "-", with: s)
+    }
+    if let s = options.slashReplacementStringForIDs {
+      name = name.replacingOccurrences(of: "/", with: s)
+    }
+    return name
+  }
+  
+  /// Cleanup database name
+  private func fancifyDatabaseName(_ name: String) -> String {
+    if let name = options.forceDatabaseName { return name }
+    var name = name
+    if options.dropDatabaseFileExtensions,
+       let idx = name.firstIndex(of: "."), idx != name.startIndex
+    {
+      name = String(name[..<idx])
+    }
+    
+    name = replaceSpecificIDCharacters(in: name)
+
+    if options.capitalizeDatabaseName, let c0 = name.first, c0.isLowercase {
+      name = c0.uppercased() + name.dropFirst()
+    }
+    if options.camelCaseDatabaseName {
+      name = name.makeCamelCase(upperFirst: false)
+    }
+    return makeValidSwiftIdentifier(from: name)
+  }
+
+  private func fancifyEntityName(_ name: String) -> String {
+    var name = name
+    
+    // ZADDRESS => Address
+    if options.capitalizeAndDeZAllUpperRecordNames,
+       name.hasPrefix("Z") && !name.hasPrefix("Z_"), // "Z", not "Z_"
+       name.uppercased() == name // Those are always uppercased, check that
+    {
+      name = name.dropFirst().lowercased().upperFirst
+    }
+
+    name = replaceSpecificIDCharacters(in: name)
+
+    // Make sure that the record and property names are valid Swift
+    // identifiers, e.g. `A Long Table` becomes `ALongTable`.
+    name = makeValidSwiftIdentifier(from: name)
+    
+    if options.capitalizeRecordNames, let c0 = name.first, c0.isLowercase {
+      name = c0.uppercased() + name.dropFirst()
+    }
+    if options.camelCaseRecordNames {
+      name = name.makeCamelCase(upperFirst: false)
+    }
+    if options.singularizeRecordNames {
+      name = name.singularized
+    }
+    
+    return name
+  }
+  
+  // Reference Names (as in `db.persons.find(10)` or
+  // `select(from: \.people)`).
+  // Derived from cleaned up entity name.
+  private func referenceNameForEntityName(_ name: String) -> String {
+    var refName = name
+    if options.decapitalizeRecordReferenceName,
+        let c0 = refName.first, c0.isUppercase
+    {
+      refName = c0.lowercased() + refName.dropFirst() // Person => person
+    }
+    if options.pluralizeRecordReferenceName {
+      refName = refName.pluralized // person => persons
+    }
+    return refName
+  }
 
   private func performNameCleanup(_ db: DatabaseInfo) {
     
     // Cleanup database name
-    db.name = {
-      if let name = options.forceDatabaseName { return name }
-      var name = db.name
-      if options.dropDatabaseFileExtensions,
-         let idx = name.firstIndex(of: "."), idx != name.startIndex
-      {
-        name = String(name[..<idx])
-      }
-      if options.capitalizeDatabaseName, let c0 = name.first, c0.isLowercase {
-        name = c0.uppercased() + name.dropFirst()
-      }
-      if options.camelCaseDatabaseName {
-        name = name.makeCamelCase(upperFirst: false)
-      }
-      return makeValidSwiftIdentifier(from: name)
-    }()
+    db.name = fancifyDatabaseName(db.name)
     
     
     // Walk over entities
@@ -372,55 +447,9 @@ public final class Fancifier {
     var refNames    = Set<String>()
     var rawNames    = Set<String>()
     for entity in db.entities {
-      var name = entity.name
-      
-      // ZADDRESS => Address
-      if options.capitalizeAndDeZAllUpperRecordNames,
-         name.hasPrefix("Z") && !name.hasPrefix("Z_"), // "Z", not "Z_"
-         name.uppercased() == name // Those are always uppercased, check that
-      {
-        name = name.dropFirst().lowercased().upperFirst
-      }
-
-      // Replaces spaces in SQL identifiers with `_`,
-      // e.g. `A Long Table` becomes `A_Long_Table`.
-      if let s = options.spaceReplacementStringForIDs {
-        name = name.replacingOccurrences(of: " ", with: s)
-      }
-      
-      // Make sure that the record and property names are valid Swift
-      // identifiers, e.g. `A Long Table` becomes `ALongTable`.
-      name = makeValidSwiftIdentifier(from: name)
-      
-      if options.capitalizeRecordNames, let c0 = name.first, c0.isLowercase {
-        name = c0.uppercased() + name.dropFirst()
-      }
-      if options.camelCaseRecordNames {
-        name = name.makeCamelCase(upperFirst: false)
-      }
-      if options.singularizeRecordNames {
-        name = name.singularized
-      }
-      
-      entity.name = dedupe(name, using: &entityNames)
-      
-      
-      // Reference Names (as in `db.persons.find(10)` or
-      // `select(from: \.people)`).
-      // Derived from cleaned up entity name.
-      
-      var refName = entity.name
-      if options.decapitalizeRecordReferenceName,
-          let c0 = refName.first, c0.isUppercase
-      {
-        refName = c0.lowercased() + refName.dropFirst() // Person => person
-      }
-      if options.pluralizeRecordReferenceName {
-        refName = refName.pluralized // person => persons
-      }
-      
-      entity.referenceName = dedupe(refName, using: &refNames)
-
+      entity.name = dedupe(fancifyEntityName(entity.name), using: &entityNames)
+      entity.referenceName =
+        dedupe(referenceNameForEntityName(entity.name), using: &refNames)
 
       // Raw Names (as in `sqlite3_person_update(10)`
       // Derived from cleaned up entity name.
@@ -464,9 +493,7 @@ public final class Fancifier {
           name = name.dropFirst().lowercased()
         }
 
-        if let s = options.spaceReplacementStringForIDs {
-          name = name.replacingOccurrences(of: " ", with: s)
-        }
+        name = replaceSpecificIDCharacters(in: name)
         name = makeValidSwiftIdentifier(from: name)
         
         if options.decapitalizePropertyNames, let c0 = name.first,
@@ -485,51 +512,6 @@ public final class Fancifier {
   
   private func findRelationships(_ db: DatabaseInfo) {
     for sourceEntity in db.entities {
-      /*
-       this isn't sound yet.
-       
-       So:
-          Address {
-            ownerId  => person(id)
-            personId => person(id)
-          }
-       
-       New:
-         db.addresses.fetch(for: person)
-         db.addresses.fetch(forOwner: person)
-         db.person.find(for: address)
-         db.person.findOwner(for: address)
-       - no need for "name"
-       - just the target entity and the qualifying parameter
-
-       Old:
-       Wanted finds:
-         findPerson(for record: Address) -> Person? // use personId
-         findOwner (for record: Address) -> Person? // use ownerId
-       Cross table is fine (source is in parameter and name is source prop):
-         findPerson(for record: Note)    -> Person? // use personId
-         findOwner (for record: Note)    -> Person? // use ownerId
-       
-       Wanted fetches:
-         fetchAddresses(for      record: Person) // use personId
-         fetchAddresses(forOwner record: Person) // use ownerId
-       => why? because:
-          - external name match: address.person_id == person.person_id
-          - table_id match:      address.person_id == person.id
-          - tableId match:       address.personid  == person.id
-          - primary key doesn't help, destination usually is the pkey
-       Cross table is fine:
-         fetchAddresses(for      record: Company) // use companyId
-         fetchAddresses(forOwner record: Company) // use ownerId
-       
-       For toOne we just take the property name, strip of Id suffixes and
-       uppercase. Should be unique.
-       Is this ever wrong? :thinking:
-       
-       For toMany we need to find the "primary" property which doesn't require
-       the ugly extra `for` qualifier.
-       */
-      
       // Always the same: `Addresses`, in plural if requested.
       let toManyName = options.pluralizeRecordReferenceName
           ? sourceEntity.name.pluralized.upperFirst
