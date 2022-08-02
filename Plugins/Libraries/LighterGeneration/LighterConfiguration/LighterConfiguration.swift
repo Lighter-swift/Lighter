@@ -59,6 +59,21 @@ public struct LighterConfiguration: Equatable {
     )
 }
 
+import struct Foundation.Data
+import struct Foundation.URL
+
+public extension LighterConfiguration {
+  
+  init(contentsOf url: URL, for target: String, stem: String? = nil) throws {
+    let file = try ConfigFile(contentsOf: url, for: target, stem: stem)
+    self.init(section: file.root)
+  }
+  init(data: Data, for target: String, stem: String? = nil) throws {
+    let file = try ConfigFile(data: data, for: target, stem: stem)
+    self.init(section: file.root)
+  }
+}
+
 extension LighterConfiguration: CustomStringConvertible {
   
   public var description: String {

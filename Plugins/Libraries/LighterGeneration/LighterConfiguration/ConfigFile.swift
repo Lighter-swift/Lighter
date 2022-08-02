@@ -49,11 +49,8 @@ public final class ConfigFile {
   let target : JSONDict?
   let stem   : JSONDict?
   
-  public init(contentsOf url: URL, for target: String? = nil,
-              stem: String? = nil)
-    throws
+  public init(data: Data, for target: String? = nil, stem: String? = nil) throws
   {
-    let data = try Data(contentsOf: url)
     let json = try JSONSerialization.jsonObject(with: data) as? JSONDict ?? [:]
     
     let targetJSON = target.flatMap { json[$0]        as? JSONDict }
@@ -62,6 +59,12 @@ public final class ConfigFile {
     self.json   = json
     self.target = targetJSON
     self.stem   = stemJSON
+  }
+  public convenience init(contentsOf url: URL, for target: String? = nil,
+                          stem: String? = nil)
+    throws
+  {
+    try self.init(data: try Data(contentsOf: url), for: target, stem: stem)
   }
   
   
