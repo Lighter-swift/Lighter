@@ -520,10 +520,15 @@ public final class Fancifier {
       var names                   = Set<String>()
       var hadPrimaryToOneForType  = Set<String>()
       var hadPrimaryToManyForType = Set<String>()
-      let foreignKeyCount = sourceEntity.properties.reduce(0) {
-        $0 + (($1.foreignKey != nil) ? 1 : 0)
+      var foreignKeyCount = 0
+      var destinationTableToForeignKeyCounts = [ String : Int ]()
+      for property in sourceEntity.properties {
+        guard let fkey = property.foreignKey else { continue }
+        let old = destinationTableToForeignKeyCounts[fkey.destinationTable] ?? 0
+        destinationTableToForeignKeyCounts[fkey.destinationTable] = old + 1
+        foreignKeyCount += 1
       }
-      
+
       // first we collect all, but assign the same name to them.
       for sourceProperty in sourceEntity.properties {
         guard let foreignKey = sourceProperty.foreignKey else { continue }
@@ -563,15 +568,19 @@ public final class Fancifier {
           // This can be removed if hit
           assert(isPrimaryToOne) // would be ok, but we haven't seen this :-)
         }
-        else if foreignKeyCount == 1 { // there is only one, so we are good
+        else if
+          (destinationTableToForeignKeyCounts[destinationEntity.externalName]
+           ?? 0) < 2
+        {
           isPrimaryToOne = true
         }
         else {
           isPrimaryToOne = isForeignKeyPrimary(
             sourceProperty, destination: destinationEntity, destinationProperty)
           
-          // This can be removed if hit
-          assert(isPrimaryToOne) // would be ok, but we haven't seen this :-)
+          #if false // Happens in Northwind for Orders.shipVia => Shippers.id
+          assert(isPrimaryToOne)
+          #endif
         }
         if isPrimaryToOne {
           hadPrimaryToOneForType.insert(destinationEntity.name)
