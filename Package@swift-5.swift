@@ -46,8 +46,6 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    .testTarget(name: "FiveThirtyEightTests",
-                dependencies: [ "LighterGeneration" ]),
 
     
     // MARK: - sqlite2swift
@@ -63,7 +61,14 @@ var package = Package(
     .target(name         : "GenerateInternalVariadics",
             dependencies : [ "LighterCodeGenAST", "LighterGeneration" ],
             path         : "Plugins/Tools/GenerateInternalVariadics",
-            exclude      : [ "README.md" ])
+            exclude      : [ "README.md" ]),
+    
+    
+    // MARK: - Environment specific tests
+    .testTarget(name: "FiveThirtyEightTests",
+                dependencies: [ "LighterGeneration" ]),
+    .testTarget(name: "NorthwindTests",
+                dependencies: [ "LighterGeneration" ])
   ]
 )
 
