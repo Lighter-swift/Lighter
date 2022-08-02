@@ -68,10 +68,12 @@ public extension LighterConfiguration {
     self.init(section: file.root)
   }
 
-  init(contentsOf url: URL, for target: String, stem: String? = nil) throws {
+  init(contentsOf url: URL, for target: String? = nil, stem: String? = nil)
+    throws
+  {
     self.init(file: try ConfigFile(contentsOf: url, for: target, stem: stem))
   }
-  init(data: Data, for target: String, stem: String? = nil) throws {
+  init(data: Data, for target: String? = nil, stem: String? = nil) throws {
     self.init(file: try ConfigFile(data: data, for: target, stem: stem))
   }
   init(json: JSONDict, for target: String? = nil, stem: String? = nil) {
