@@ -117,6 +117,8 @@ public extension Schema.CatalogObject {
       else if rc != SQLITE_ROW  { return nil }
 
       if let object = Schema.CatalogObject(stmt) {
+        // E.g. the internal `sqlite_sequence` is exposed in the catalog.
+        guard !object.name.hasPrefix("sqlite_") else { continue }
         objects.append(object)
       }
       else {
