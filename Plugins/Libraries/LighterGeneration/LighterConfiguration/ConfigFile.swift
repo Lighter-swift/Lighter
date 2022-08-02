@@ -48,17 +48,23 @@ public final class ConfigFile {
   let json   : JSONDict
   let target : JSONDict?
   let stem   : JSONDict?
-  
-  public init(data: Data, for target: String? = nil, stem: String? = nil) throws
-  {
-    let json = try JSONSerialization.jsonObject(with: data) as? JSONDict ?? [:]
-    
+
+  public init(json: JSONDict, for target: String? = nil, stem: String? = nil) {
     let targetJSON = target.flatMap { json[$0]        as? JSONDict }
     let stemJSON   = stem.flatMap   { targetJSON?[$0] as? JSONDict }
     
     self.json   = json
     self.target = targetJSON
     self.stem   = stemJSON
+  }
+
+  public convenience init(data: Data, for target: String? = nil,
+                          stem: String? = nil) throws
+  {
+    self.init(
+      json: try JSONSerialization.jsonObject(with: data) as? JSONDict ?? [:],
+      for: target, stem: stem
+    )
   }
   public convenience init(contentsOf url: URL, for target: String? = nil,
                           stem: String? = nil)

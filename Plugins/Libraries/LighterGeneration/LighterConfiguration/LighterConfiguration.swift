@@ -63,14 +63,19 @@ import struct Foundation.Data
 import struct Foundation.URL
 
 public extension LighterConfiguration {
-  
-  init(contentsOf url: URL, for target: String, stem: String? = nil) throws {
-    let file = try ConfigFile(contentsOf: url, for: target, stem: stem)
+
+  init(file: ConfigFile) {
     self.init(section: file.root)
   }
+
+  init(contentsOf url: URL, for target: String, stem: String? = nil) throws {
+    self.init(file: try ConfigFile(contentsOf: url, for: target, stem: stem))
+  }
   init(data: Data, for target: String, stem: String? = nil) throws {
-    let file = try ConfigFile(data: data, for: target, stem: stem)
-    self.init(section: file.root)
+    self.init(file: try ConfigFile(data: data, for: target, stem: stem))
+  }
+  init(json: JSONDict, for target: String? = nil, stem: String? = nil) {
+    self.init(file: ConfigFile(json: json, for: target, stem: stem))
   }
 }
 
