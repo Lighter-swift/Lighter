@@ -67,21 +67,31 @@ extension String {
 
   /// `person_address`  => `personAddress`  (w/o upperFirst)
   /// `person_address`  => `PersonAddress`  (w/  upperFirst)
+  /// `person__address` => `Person_Address`  (w/  upperFirst)
   /// `Person Address`  => `PersonAddress`
   /// `_private_column` => `_privateColumn` (w/o upperFirst)
+  /// - Parameters:
+  ///   - upperFirst: Whether to upper the first letter.
   func makeCamelCase(upperFirst: Bool) -> String {
     guard !self.isEmpty else { return "" }
     var newChars = [ Character ]()
     
     var isFirst   = true
     var upperNext = upperFirst
-    for c in self {
+    for ( idx, c ) in zip(indices, self) {
       defer { if isFirst { isFirst = false } }
+      
       switch c {
-        case " ", "_": // skip and upper next
-          if isFirst && c == "_" { newChars.append(c) }
+        case " ": // skip and upper next
           upperNext = !isFirst || upperFirst
-          continue
+
+        case "_": // skip and upper next
+          let idx1 = index(after: idx)
+          if isFirst || (idx1 < endIndex && self[idx1] == "_") {
+            newChars.append(c)
+          }
+          upperNext = !isFirst || upperFirst
+        
         case "a"..."z":
           if upperNext {
             if let uc = c.uppercased().first { newChars.append(uc) }
@@ -91,6 +101,7 @@ extension String {
           else {
             newChars.append(c)
           }
+        
         default:
           upperNext = false
           newChars.append(c)

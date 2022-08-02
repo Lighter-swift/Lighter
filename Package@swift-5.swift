@@ -46,7 +46,9 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    
+    .testTarget(name: "FiveThirtyEightTests",
+                dependencies: [ "LighterGeneration" ]),
+
     
     // MARK: - sqlite2swift
 

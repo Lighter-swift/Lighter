@@ -331,11 +331,12 @@ extension EnlighterASTGenerator {
     return ( statement, didRecurse )
   }
 
-  private func generateBindStatementsForProperties<C>(_ properties: C)
-               -> [ Statement ]
-    where C: Collection, C.Element == EntityInfo.Property,
-          C.Index == Array.Index
+  private func generateBindStatementsForProperties(
+    _ properties: [ EntityInfo.Property ]
+  ) -> [ Statement ]
   {
+    // Note: Was sometimes crashing at runtime when using generics (and nesting
+    //       became deep). Hence the array instead of the array slice.
     guard !properties.isEmpty else {
       return [ .return(.call(try: true, name: "execute")) ]
     }
@@ -343,13 +344,6 @@ extension EnlighterASTGenerator {
     var didRecurse = false
     var statements = [ Statement ]()
     for ( idx, property ) in zip(properties.indices, properties) {
-#if DEBUG && false
-      print("WARNING: DEBUG HACK IS ON \(#function)", idx)
-      var property = property
-      //property.propertyType = .date
-      //property.propertyType = .uint8Array
-      property.propertyType = .date
-#endif
       if didRecurse { break }
 
       let ( statement, didNewRecurse ) = generateBindStatementForProperty(
@@ -357,7 +351,7 @@ extension EnlighterASTGenerator {
         index: index(for: property.name),
         trailer: {
           generateBindStatementsForProperties(
-            properties[properties.index(after: idx)...]
+            Array(properties[properties.index(after: idx)...])
           )
         }
       )
