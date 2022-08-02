@@ -343,13 +343,6 @@ extension EnlighterASTGenerator {
     var didRecurse = false
     var statements = [ Statement ]()
     for ( idx, property ) in zip(properties.indices, properties) {
-#if DEBUG && false
-      print("WARNING: DEBUG HACK IS ON \(#function)", idx)
-      var property = property
-      //property.propertyType = .date
-      //property.propertyType = .uint8Array
-      property.propertyType = .date
-#endif
       if didRecurse { break }
 
       let ( statement, didNewRecurse ) = generateBindStatementForProperty(
