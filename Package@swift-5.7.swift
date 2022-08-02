@@ -51,7 +51,9 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    
+    .testTarget(name: "FiveThirtyEightTests",
+                dependencies: [ "LighterGeneration" ]),
+
     
     // MARK: - Plugins and supporting Tools
 
