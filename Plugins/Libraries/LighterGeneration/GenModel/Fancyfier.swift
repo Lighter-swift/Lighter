@@ -536,14 +536,14 @@ public final class Fancifier {
         guard let destinationEntity =
                 db[externalName: foreignKey.destinationTable] else
         {
-          assertionFailure("Missing entity for foreign-key dest: \(foreignKey)")
+          print("WARN: Missing entity for foreign-key dest: \(foreignKey)")
           continue
         }
         
         guard let destinationProperty =
               destinationEntity[externalName: foreignKey.destinationColumn] else
         {
-          assertionFailure("Missing column for foreign-key dest: \(foreignKey)")
+          print("WARN: Missing column for foreign-key dest: \(foreignKey)")
           continue
         }
         
