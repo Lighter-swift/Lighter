@@ -10,17 +10,17 @@ public extension LighterConfiguration {
     public struct Selects: Equatable {
       
       public struct Config: Equatable {
-        public let columns : Int
-        public let sorts   : Int
+        public var columns : Int
+        public var sorts   : Int
         
         public var isDisabled : Bool { columns < 1 }
         
         public static let disabled = Config(columns: 0, sorts: 0)
       }
       
-      public let syncYield  : Config
-      public let syncArray  : Config
-      public let asyncArray : Config
+      public var syncYield  : Config
+      public var syncArray  : Config
+      public var asyncArray : Config
 
       public var isDisabled : Bool {
         syncYield.isDisabled && syncArray.isDisabled && asyncArray.isDisabled
@@ -41,8 +41,8 @@ public extension LighterConfiguration {
     
     public struct Updates: Equatable {
       
-      public let keyBased       : Int
-      public let predicateBased : Int
+      public var keyBased       : Int
+      public var predicateBased : Int
       
       public var isDisabled : Bool { keyBased < 1 && predicateBased < 1 }
       public static let disabled = Updates(keyBased: 0, predicateBased: 0)
@@ -53,9 +53,9 @@ public extension LighterConfiguration {
       }
     }
 
-    public let selects : Selects
-    public let updates : Updates
-    public let inserts : Int
+    public var selects : Selects
+    public var updates : Updates
+    public var inserts : Int
     
     public var isDisabled : Bool {
       selects.isDisabled && updates.isDisabled && inserts < 1

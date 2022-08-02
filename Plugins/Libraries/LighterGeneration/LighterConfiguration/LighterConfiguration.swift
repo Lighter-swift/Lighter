@@ -34,10 +34,10 @@ public struct LighterConfiguration: Equatable {
   
   public static let filename = "Lighter.json"
   
-  public let codeStyle       : CodeGenerator.Configuration
-  public let embeddedLighter : EmbeddedLighter
-  public let swiftMapping    : Fancifier.Options
-  public let codeGeneration  : EnlighterASTGenerator.Options
+  public var codeStyle       : CodeGenerator.Configuration
+  public var embeddedLighter : EmbeddedLighter
+  public var swiftMapping    : Fancifier.Options
+  public var codeGeneration  : EnlighterASTGenerator.Options
   
   public var isEmpty : Bool { false }
   
