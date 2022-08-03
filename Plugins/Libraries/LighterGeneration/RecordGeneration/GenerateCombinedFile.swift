@@ -67,6 +67,7 @@ extension EnlighterASTGenerator {
     if options.rawFunctions == .attachToRecordType {
       unit.extensions += database.entities.map { entity in
         Extension(extendedType: globalTypeRef(of: entity),
+                  typeFunctions: generateRawTypeFunctions(for: entity),
                   functions: generateRawFunctions(for: entity))
       }
     }
