@@ -10,31 +10,32 @@ extension EnlighterASTGenerator {
   func indexName(for propertyName: String) -> String {
     options.propertyIndexPrefix + propertyName
   }
+  
+  private func typeString(for property: EntityInfo.Property) -> String {
+    switch type(for: property) {
+      case                  .name(let name)   : return name
+      case .optional(       .name(let name))  : return name + "?"
+      case           .array(.name(let name))  : return "[ \(name) ]"
+      case .optional(.array(.name(let name))) : return "[ \(name) ]?"
+      default:
+        fatalError(
+          "Unsupported type for property \(property): \(type(for: property))"
+        )
+    }
+  }
 
   /// `MappedColumn<Person, Int?>`
   private func mappedColumnTypeName(for property : EntityInfo.Property,
                                     in    entity : EntityInfo) -> String
   {
-    let typeString : String // Grmpf
-    switch type(for: property) {
-      case .name          (let name)  : typeString = name
-      case .optional(.name(let name)) : typeString = name + "?"
-      default:
-        fatalError("Unsupported type for column \(property)!")
-    }
+    let typeString = typeString(for: property) // Hmmm
     return "\(api.mappedColumnType)<\(globalName(of: entity)), \(typeString)>"
   }
   
   private func makeMappedColumn(for property : EntityInfo.Property,
                                 in    entity : EntityInfo) -> Expression
   {
-    let typeString : String // Grmpf
-    switch type(for: property) {
-      case .name          (let name)  : typeString = name
-      case .optional(.name(let name)) : typeString = name + "?"
-      default:
-        fatalError("Unsupported type for column \(property)!")
-    }
+    let typeString = typeString(for: property) // Hmmm
     
     // This assumes that the destination of the ForeignKey is indeed not
     // itself an fkey?

@@ -71,7 +71,7 @@ final class FiveThirtyEightTests: XCTestCase {
       options  : .init()
     )
     let unit = gen.generateCombinedFile(moduleFileName: nil)
-    #if true
+    #if false
       print("UNIT:")
       print("  Structures: #\(unit.structures.count)")
       print("  Functions:  #\(unit.functions.count)")

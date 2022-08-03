@@ -51,8 +51,6 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    .testTarget(name: "FiveThirtyEightTests",
-                dependencies: [ "LighterGeneration" ]),
 
     
     // MARK: - Plugins and supporting Tools
@@ -104,7 +102,14 @@ var package = Package(
       ),
       dependencies: [ "GenerateInternalVariadics" ],
       path: "Plugins/WriteInternalVariadics"
-    )
+    ),
+    
+    
+    // MARK: - Environment specific tests
+    .testTarget(name: "FiveThirtyEightTests",
+                dependencies: [ "LighterGeneration" ]),
+    .testTarget(name: "NorthwindTests",
+                dependencies: [ "LighterGeneration" ])
   ]
 )
 

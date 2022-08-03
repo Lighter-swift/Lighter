@@ -138,73 +138,91 @@ extension EnlighterASTGenerator {
                  in entity: EntityInfo) -> Expression
   {
     let name = property.name
-    
+
+    /// Self.schema.personId.defaultValue
+    let defaultValue = options.useLighter
+      ? Expression.variablePath([
+          "Self", api.recordSchemaVariableName, name, "defaultValue"
+        ])
+      : nonOptionalDefaultValue(for: property)
+
     switch property.propertyType {
       case .custom(let type):
       return property.isNotNull
-        ? grabCustomValue   (for: name, type: type)
-        : grabOptCustomValue(for: name, type: type)
+        ? grabCustomValue   (for: name, type: type, defaultValue: defaultValue)
+        : grabOptCustomValue(for: name, type: type, defaultValue: defaultValue)
 
       case .integer:
         return property.isNotNull
-          ? grabIntColumnValue   (for: name)
-          : grabOptIntColumnValue(for: name)
+          ? grabIntColumnValue   (for: name, defaultValue: defaultValue)
+          : grabOptIntColumnValue(for: name, defaultValue: defaultValue)
       case .string:
         return property.isNotNull
           ? grabColumnValue   (for: name, type: "text",
-                               map: .raw("String.init(cString:)"))
+                               map: .raw("String.init(cString:)"),
+                               defaultValue: defaultValue)
           : grabOptColumnValue(for: name, type: "text",
-                               map: .raw("String.init(cString:)"))
+                               map: .raw("String.init(cString:)"),
+                               defaultValue: defaultValue)
       case .double:
         return property.isNotNull
-          ? grabDoubleColumnValue   (for: property.name)
-          : grabOptDoubleColumnValue(for: property.name)
+          ? grabDoubleColumnValue   (for: property.name, defaultValue: defaultValue)
+          : grabOptDoubleColumnValue(for: property.name, defaultValue: defaultValue)
       case .uint8Array:
         return property.isNotNull
           ? grabColumnValue   (for: name, type: "blob",
-                               map: blobMap(for: name, type: "[ UInt8 ]"))
+                               map: blobMap(for: name, type: "[ UInt8 ]"),
+                               defaultValue: defaultValue)
           : grabOptColumnValue(for: name, type: "blob",
-                               map: blobMap(for: name, type: "[ UInt8 ]"))
+                               map: blobMap(for: name, type: "[ UInt8 ]"),
+                               defaultValue: defaultValue)
       case .data:
         return property.isNotNull
           ? grabColumnValue   (for: name, type: "blob",
-                               map: blobMap(for: name, type: "Data"))
+                               map: blobMap(for: name, type: "Data"),
+                               defaultValue: defaultValue)
           : grabOptColumnValue(for: name, type: "blob",
-                               map: blobMap(for: name, type: "Data"))
+                               map: blobMap(for: name, type: "Data"),
+                               defaultValue: defaultValue)
 
       // derived
       case .bool:
         return property.isNotNull
-          ? grabBoolColumnValue   (for: name)
-          : grabOptBoolColumnValue(for: name)
+          ? grabBoolColumnValue   (for: name, defaultValue: defaultValue)
+          : grabOptBoolColumnValue(for: name, defaultValue: defaultValue)
 
       case .date:
         return property.isNotNull
-          ? grabDateColumnValue(for: name)
-          : grabOptDateColumnValue(for: name)
+          ? grabDateColumnValue(for: name, defaultValue: defaultValue)
+          : grabOptDateColumnValue(for: name, defaultValue: defaultValue)
       case .uuid:
         return property.isNotNull
-          ? grabUUIDColumnValue(for: name)
-          : grabOptUUIDColumnValue(for: name)
+          ? grabUUIDColumnValue(for: name, defaultValue: defaultValue)
+          : grabOptUUIDColumnValue(for: name, defaultValue: defaultValue)
 
       case .url:
         return property.isNotNull
           ? grabColumnValue   (for: name, type: "text",
-                               map: stringMap(initPrefix: "URL(string: "))
+                               map: stringMap(initPrefix: "URL(string: "),
+                               defaultValue: defaultValue)
           : grabOptColumnValue(for: name, type: "text",
-                               map: stringMap(initPrefix: "URL(string: "))
+                               map: stringMap(initPrefix: "URL(string: "),
+                               defaultValue: defaultValue)
       case .decimal: // always use `String`, sole one w/ potential precision
         return property.isNotNull
           ? grabColumnValue   (for: name, type: "text",
-                               map: stringMap(initPrefix: "Decimal(string: "))
+                               map: stringMap(initPrefix: "Decimal(string: "),
+                               defaultValue: defaultValue)
           : grabOptColumnValue(for: name, type: "text",
-                               map: stringMap(initPrefix: "Decimal(string: "))
+                               map: stringMap(initPrefix: "Decimal(string: "),
+                               defaultValue: defaultValue)
     }
   }
 
   // init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
   //   throws
-  fileprivate func grabCustomValue(for propertyName: String, type: String)
+  fileprivate func grabCustomValue(for propertyName: String, type: String,
+                                   defaultValue: Expression)
                    -> Expression
   {
     .conditional(
@@ -216,10 +234,11 @@ extension EnlighterASTGenerator {
         ]),
         to: .int
       ),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
-  fileprivate func grabOptCustomValue(for propertyName: String, type: String)
+  fileprivate func grabOptCustomValue(for propertyName: String, type: String,
+                                      defaultValue: Expression)
                    -> Expression
   {
     .conditional(
@@ -231,12 +250,13 @@ extension EnlighterASTGenerator {
         ]),
         to: .int
       ),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
 
   // This one needs a cast to `Int` (returns `Int64`)
-  fileprivate func grabIntColumnValue(for propertyName: String) -> Expression {
+  fileprivate func grabIntColumnValue(for propertyName: String,
+                                      defaultValue: Expression) -> Expression {
     .conditional(
       makeNullIndexCheck(for: propertyName),
       .cast(
@@ -244,19 +264,22 @@ extension EnlighterASTGenerator {
               .variable("statement"), index(for: propertyName)),
         to: .int
       ),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
-  fileprivate func grabDoubleColumnValue(for propertyName: String) -> Expression
+  fileprivate func grabDoubleColumnValue(for propertyName: String,
+                                         defaultValue: Expression) -> Expression
   {
     .conditional(
       makeNullIndexCheck(for: propertyName),
      .call(name: "sqlite3_column_double",
            .variable("statement"), index(for: propertyName)),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
-  fileprivate func grabBoolColumnValue(for propertyName: String) -> Expression {
+  fileprivate func grabBoolColumnValue(for propertyName: String,
+                                       defaultValue: Expression) -> Expression
+  {
     .conditional(
       makeNullIndexCheck(for: propertyName),
       .compare(
@@ -265,7 +288,7 @@ extension EnlighterASTGenerator {
         operator: .notEqual,
         rhs: .integer(0)
       ),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
 
@@ -278,7 +301,8 @@ extension EnlighterASTGenerator {
     )
   }
   
-  fileprivate func grabOptIntColumnValue(for propertyName: String) -> Expression
+  fileprivate func grabOptIntColumnValue(for propertyName: String,
+                                         defaultValue: Expression) -> Expression
   {
     .conditional(
       makeIndexCheck(for: propertyName),
@@ -292,10 +316,11 @@ extension EnlighterASTGenerator {
         .nil
       ),
       // not provided, use default
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
-  fileprivate func grabOptBoolColumnValue(for propertyName: String) -> Expression
+  fileprivate func grabOptBoolColumnValue(for propertyName: String,
+                                          defaultValue: Expression) -> Expression
   {
     .conditional(
       makeIndexCheck(for: propertyName),
@@ -310,11 +335,12 @@ extension EnlighterASTGenerator {
         .nil
       ),
       // not provided, use default
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
 
-  fileprivate func grabOptDoubleColumnValue(for propertyName: String)
+  fileprivate func grabOptDoubleColumnValue(for propertyName: String,
+                                            defaultValue: Expression)
                    -> Expression
   {
     let idx = index(for: propertyName)
@@ -326,7 +352,7 @@ extension EnlighterASTGenerator {
         .nil
       ),
       // not provided, use default
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
 
@@ -335,7 +361,8 @@ extension EnlighterASTGenerator {
   /// and `NULL`, that is passed along to the optional property as `nil`.
   fileprivate func grabOptColumnValue(for propertyName: String,
                                       type: String,
-                                      map: @autoclosure () -> Expression)
+                                      map: @autoclosure () -> Expression,
+                                      defaultValue: Expression)
                    -> Expression
   {
     return .conditional(
@@ -344,7 +371,7 @@ extension EnlighterASTGenerator {
                 .call(name: "sqlite3_column_\(type)",
                       .variable("statement"), index(for: propertyName)),
                map: map()),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
   /// This applies the default value if the index check fails (i.e. the
@@ -352,7 +379,8 @@ extension EnlighterASTGenerator {
   /// OR if the value is `NULL` in the result!
   fileprivate func grabColumnValue(for propertyName: String,
                                    type: String,
-                                   map: @autoclosure () -> Expression)
+                                   map: @autoclosure () -> Expression,
+                                   defaultValue: Expression)
                    -> Expression
   {
     .nilCoalesce(
@@ -364,7 +392,7 @@ extension EnlighterASTGenerator {
                  map: map()),
         .nil
       ),
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
 
@@ -378,7 +406,8 @@ extension EnlighterASTGenerator {
               + "count: Int(sqlite3_column_bytes(statement, \(index)))) }")
   }
   
-  fileprivate func grabDateColumnValue(for propertyName: String) -> Expression {
+  fileprivate func grabDateColumnValue(for propertyName: String,
+                                       defaultValue: Expression) -> Expression {
     .nilCoalesce(
       .conditional(
         makeNullIndexCheck(for: propertyName),
@@ -387,16 +416,17 @@ extension EnlighterASTGenerator {
       ),
       
       // it is not in range or NULL, or parsed as nil, use default
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
-  fileprivate func grabOptDateColumnValue(for propertyName: String)
+  fileprivate func grabOptDateColumnValue(for propertyName: String,
+                                          defaultValue: Expression)
                    -> Expression
   {
     .conditional(
       makeIndexCheck(for: propertyName),
-      dateValue(for: propertyName),   // can also return nil
-      defaultValue(for: propertyName) // it is not in range, use default
+      dateValue(for: propertyName), // can also return nil
+      defaultValue                  // it is not in range, use default
     )
   }
 
@@ -428,7 +458,8 @@ extension EnlighterASTGenerator {
     )
   }
 
-  fileprivate func grabUUIDColumnValue(for propertyName: String) -> Expression {
+  fileprivate func grabUUIDColumnValue(for propertyName: String,
+                                       defaultValue: Expression) -> Expression {
     .nilCoalesce(
       .conditional(
         makeNullIndexCheck(for: propertyName),
@@ -436,14 +467,17 @@ extension EnlighterASTGenerator {
         .nil // this is going to be coalesced below:
       ),
       // it is not in range or NULL, or parsed as nil, use default
-      defaultValue(for: propertyName)
+      defaultValue
     )
   }
-  fileprivate func grabOptUUIDColumnValue(for propertyName: String) -> Expression {
+  fileprivate func grabOptUUIDColumnValue(for propertyName: String,
+                                          defaultValue: Expression)
+                   -> Expression
+  {
     .conditional(
       makeIndexCheck(for: propertyName),
-      uuidValue(for: propertyName),   // can also return nil
-      defaultValue(for: propertyName) // it is not in range, use default
+      uuidValue(for: propertyName), // can also return nil
+      defaultValue                  // it is not in range, use default
     )
   }
 
@@ -502,15 +536,5 @@ extension EnlighterASTGenerator {
   /// This can still return nil!
   func uuidFormatterMap() -> Expression {
     stringMap(initPrefix: "UUID(uuidString: ", initSuffix: ")")
-  }
-
-
-  // MARK: - Default Value Access
-  
-  /// Self.schema.personId.defaultValue
-  fileprivate func defaultValue(for propertyName: String) -> Expression {
-    .variablePath([
-      "Self", api.recordSchemaVariableName, propertyName, "defaultValue"
-    ])
   }
 }
