@@ -200,7 +200,7 @@ extension EnlighterASTGenerator {
                   defaultValue: .nil)
           ),
           statements: [
-            .raw("self.code    = code)"),
+            .raw("self.code    = code"),
             .raw("self.message = message.flatMap(String.init(cString:))")
           ]
         ),
