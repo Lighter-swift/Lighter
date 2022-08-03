@@ -27,7 +27,7 @@ final class ASTRecordInitGenerationTests: XCTestCase {
       builder.generateFunctionDefinition(s)
       return builder.source
     }()
-    // print("GOT:\n-----\n\(source)\n-----")
+    //print("GOT:\n-----\n\(source)\n-----")
     
     XCTAssertTrue(source.contains(
       "let indices = indices ?? Self.Schema.lookupColumnIndices"))
@@ -63,5 +63,35 @@ final class ASTRecordInitGenerationTests: XCTestCase {
     XCTAssertTrue(source.contains(
       "indices.idx_id >= 0) && (indices.idx_id < argc) && (sqlite3_column_type"))
     XCTAssertTrue(source.contains("nil) : Self.schema.personId.defaultValue"))
+  }
+  
+  func testRawPersonStatementInit() throws {
+    let dbInfo    = DatabaseInfo(name: "TestDB", schema: Fixtures.addressSchema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    //print("Fancified:", dbInfo)
+    
+    let gen = EnlighterASTGenerator(
+      database: dbInfo, filename: "Contacts.swift"
+    )
+    gen.options.useLighter = false
+    let s = gen.generateRecordStatementInit(for: try XCTUnwrap(dbInfo["Person"]))
+    
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateFunctionDefinition(s)
+      return builder.source
+    }()
+    // print("GOT:\n-----\n\(source)\n-----")
+    
+    XCTAssertTrue(source.contains(
+      "let indices = indices ?? Self.Schema.lookupColumnIndices"))
+    XCTAssertTrue(source.contains("let argc = sqlite3_column_count"))
+    XCTAssertTrue(source.contains(
+      "indices.idx_id >= 0) && (indices.idx_id < argc) && (sqlite3_column_type"))
+    
+    // no access to mapped column!
+    XCTAssertFalse(source.contains("lastname.defaultValue"))
   }
 }

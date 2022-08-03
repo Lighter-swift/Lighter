@@ -140,9 +140,11 @@ extension EnlighterASTGenerator {
     let name = property.name
 
     /// Self.schema.personId.defaultValue
-    let defaultValue = Expression.variablePath([
-      "Self", api.recordSchemaVariableName, name, "defaultValue"
-    ])
+    let defaultValue = options.useLighter
+      ? Expression.variablePath([
+          "Self", api.recordSchemaVariableName, name, "defaultValue"
+        ])
+      : nonOptionalDefaultValue(for: property)
 
     switch property.propertyType {
       case .custom(let type):
