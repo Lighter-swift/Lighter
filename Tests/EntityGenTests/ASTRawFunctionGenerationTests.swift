@@ -56,7 +56,6 @@ final class ASTRawFunctionGenerationTests: XCTestCase {
     let options   = Fancifier.Options()
     let fancifier = Fancifier(options: options)
     fancifier.fancifyDatabaseInfo(dbInfo)
-    //print("Fancified:", dbInfo)
 
     let gen = EnlighterASTGenerator(
       database: dbInfo, filename: "Contacts.swift"
@@ -87,5 +86,8 @@ final class ASTRawFunctionGenerationTests: XCTestCase {
     XCTAssertTrue(source.contains(
       "mutating func insert(into db: OpaquePointer!) -> Int32"))
     XCTAssertTrue(source.contains("self = record"))
+
+    XCTAssertTrue(source.contains("static func fetch"))
+    XCTAssertTrue(source.contains("static func find"))
   }
 }

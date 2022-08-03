@@ -13,7 +13,37 @@ extension EnlighterASTGenerator {
     guard let property = property else { return false }
     return property.propertyType == .integer
   }
+
+
+  func generateRawTypeFunctions(for entity: EntityInfo)
+       -> [ FunctionDefinition ]
+  {
+    guard options.rawFunctions == .attachToRecordType else { return [] }
+    return generateRawFetchFunctions(for: entity)
+  }
   
+  private func generateRawFetchFunctions(for entity: EntityInfo)
+               -> [ FunctionDefinition ]
+  {
+    var functions = [ FunctionDefinition ]()
+    
+    if options.generateSwiftFilters {
+      functions.append(
+        generateRawSwiftMatchFetch(for: entity, defaultFilter: true))
+    }
+    functions.append(generateRawSQLFetch(for: entity))
+  
+    // Later: support other primary keys
+    if let primaryKey = entity.properties.first(where: \.isPrimaryKey),
+       isSupportedKeyProperty(primaryKey), primaryKey.isNotNull,
+       !entity.hasCompoundPrimaryKey
+    {
+      functions.append(generateRawSQLFind(for: entity, primaryKey: primaryKey))
+    }
+    
+    return functions
+  }
+
   func generateRawFunctions(for entity: EntityInfo) -> [ FunctionDefinition ] {
     guard options.rawFunctions != .omit else { return [] }
     
@@ -27,18 +57,10 @@ extension EnlighterASTGenerator {
       if entity.canDelete { functions.append(generateRawDelete(for: entity)) }
     }
     
-    if options.generateSwiftFilters {
-      functions.append(
-        generateRawSwiftMatchFetch(for: entity, defaultFilter: true))
-    }
-    functions.append(generateRawSQLFetch(for: entity))
-    
-    // Later: support other primary keys
-    if let primaryKey = entity.properties.first(where: \.isPrimaryKey),
-       isSupportedKeyProperty(primaryKey), primaryKey.isNotNull,
-       !entity.hasCompoundPrimaryKey
-    {
-      functions.append(generateRawSQLFind(for: entity, primaryKey: primaryKey))
+    switch options.rawFunctions {
+      case .attachToRecordType, .omit: break
+      case .globalFunctions:
+        functions += generateRawFetchFunctions(for: entity)
     }
     
     if options.generateRawRelationships {
@@ -831,13 +853,13 @@ extension EnlighterASTGenerator {
    * ```
    */
   fileprivate func generateRawSQLFetch(for entity: EntityInfo)
-  -> FunctionDefinition
+                   -> FunctionDefinition
   {
     let isTypeFunc = options.rawFunctions == .attachToRecordType
     let funcName   = functionName(for: entity, operation: "fetch")
     
     let example = isTypeFunc
-    ? """
+        ? """
           let records = \(entity.name).\(funcName)(
             from : db,
             sql  : #"SELECT * FROM \(entity.externalName)"#
@@ -849,7 +871,7 @@ extension EnlighterASTGenerator {
             orderBy : "name", limit: 5
           )
           """
-    : """
+        : """
           let records = \(funcName)(
             db, sql: #"SELECT * FROM \(entity.externalName)"#
           }
