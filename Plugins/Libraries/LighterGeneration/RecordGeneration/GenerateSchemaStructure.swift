@@ -108,14 +108,21 @@ extension EnlighterASTGenerator {
     if !options.readOnly && !options.omitCreationSQL,
        let sql = entity.createSQL, !sql.isEmpty
     {
+      func cleanup(_ sql: String) -> String {
+        var trimmed = sql.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !trimmed.hasSuffix(";") { trimmed += ";" }
+        return trimmed
+      }
+      
       if entity.type == .table {
         typeVariables.append(.let(
-          "create", is: .string(sql),
+          "create", is: .string(cleanup(sql)),
           comment: "The SQL used to create the `\(entity.externalName)` table."
         ))
         if !entity.indiciesSQL.isEmpty {
           typeVariables.append(.let(
-            "createIndex", is: .string(entity.indiciesSQL.joined()),
+            "createIndex",
+            is: .string(entity.indiciesSQL.map(cleanup).joined()),
             comment:
               "The SQL used to create the indices for `\(entity.externalName)`."
           ))
@@ -123,13 +130,14 @@ extension EnlighterASTGenerator {
       }
       else {
         typeVariables.append(.let(
-          "create", is: .string(sql),
+          "create", is: .string(cleanup(sql)),
           comment: "The SQL used to create the `\(entity.externalName)` view."
         ))
       }
       if !entity.triggersSQL.isEmpty {
         typeVariables.append(.let(
-          "createTrigger", is: .string(entity.triggersSQL.joined()),
+          "createTrigger",
+          is: .string(entity.triggersSQL.map(cleanup).joined()),
           comment:
             "The SQL used to create the triggers for `\(entity.externalName)`."
         ))
