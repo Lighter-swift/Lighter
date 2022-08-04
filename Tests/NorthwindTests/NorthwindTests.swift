@@ -63,7 +63,7 @@ final class NorthwindTests: XCTestCase {
     XCTAssertEqual(schema.tables.count + schema.views.count,
                    dbInfo.entities.count)
     
-    print("Entities:", dbInfo.entities.map(\.name))
+    //print("Entities:", dbInfo.entities.map(\.name))
     XCTAssertEqual(dbInfo.entities.map(\.name), [
       "Categories", "CustomerCustomerDemo", "CustomerDemographics", "Customers",
       "Employees", "EmployeeTerritories", "OrderDetails", "Orders", "Products",
@@ -96,7 +96,7 @@ final class NorthwindTests: XCTestCase {
       options  : .init()
     )
     let unit = gen.generateCombinedFile(moduleFileName: nil)
-    #if true
+    #if false
       print("UNIT:")
       print("  Structures: #\(unit.structures.count)")
       print("  Functions:  #\(unit.functions.count)")
@@ -173,7 +173,7 @@ final class NorthwindTests: XCTestCase {
       builder.generateFunctionDefinition(funcDef)
       return builder.source
     }()
-    print("GOT:\n-----\n\(source)\n-----")
+    //print("GOT:\n-----\n\(source)\n-----")
 
     XCTAssertTrue(source.contains("{ [ UInt8 ]("))
     XCTAssertTrue(source.contains(
