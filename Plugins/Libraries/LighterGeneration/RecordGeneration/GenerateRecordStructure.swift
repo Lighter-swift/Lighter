@@ -159,11 +159,12 @@ extension EnlighterASTGenerator {
   func generateID(for primaryKeys: [ EntityInfo.Property ],
                   in entity: EntityInfo) -> ComputedPropertyDefinition
   {
-    .var(
+    let names = primaryKeys.map { $0.name }.joined(separator: ", ")
+    return .var(
       public: options.public, inlinable: options.inlinable, "id", .name("ID"),
-      comment: "Returns the compound primary key of ``\(entity.name)``",
+      comment: "Returns the compound primary key of ``\(entity.name)`` (\(names)).",
       .return(.call(name: "ID", parameters: primaryKeys.map { property in
-        ( property.name, ivar(property.name) )
+        ( nil, ivar(property.name) )
       }))
     )
   }
@@ -174,8 +175,8 @@ extension EnlighterASTGenerator {
       public: options.public, name: "ID",
       conformances: [ .name("Hashable") ],
       variables: pkeys.map { property in
-          .let(public: options.public, property.name, type(for: property),
-               comment: nil)
+        .let(public: options.public, property.name, type(for: property),
+             comment: nil)
       },
       functions: [ // the init of the compound `ID` structure
         FunctionDefinition(
