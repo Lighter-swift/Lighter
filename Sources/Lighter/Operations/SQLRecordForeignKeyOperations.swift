@@ -22,6 +22,7 @@ public extension SQLRecordFetchOperations {
    *                 in the foreign key table.
    *   - limit:      An optional limit on the results.
    */
+  @inlinable
   func fetch<FK, S>(for foreignKey: KeyPath<T.Schema, FK>,
                     in destinationRecords: S,
                     omitEmpty : Bool = false,
@@ -83,6 +84,7 @@ public extension SQLRecordFetchOperations {
    *                 in the foreign key table.
    *   - limit:      An optional limit on the results.
    */
+  @inlinable
   func fetch<FK, S>(for foreignKey: KeyPath<T.Schema, FK>,
                     in destinationsColumns: S,
                     omitEmpty : Bool = false,
@@ -127,6 +129,7 @@ public extension SQLRecordFetchOperations {
    * let addresses = try db.addresses.fetch(for: \.personId, in: person)
    * ```
    */
+  @inlinable
   func fetch<FK>(for foreignKey: KeyPath<T.Schema, FK>,
                  in destinationRecord: FK.Destination,
                  limit: Int? = nil)
@@ -157,12 +160,44 @@ public extension SQLRecordFetchOperations {
    * let addresses = try db.addresses.fetch(for: \.personId, in: person)
    * ```
    */
+  @inlinable
   func fetch<FK>(for foreignKey: KeyPath<T.Schema, FK>,
                  in destinationRecord: FK.Destination,
                  limit: Int? = nil)
          throws -> [ T ]
          where FK: SQLForeignKeyColumn, FK.T == T,
-               FK.Value == FK.DestinationColumn.Value?
+               FK.Value == FK.DestinationColumn.Value? // source is optional
+  {
+    let foreignKey = T.schema[keyPath: foreignKey]
+    let value = destinationRecord[keyPath: foreignKey.destinationColumn.keyPath]
+    
+    var builder    = SQLBuilder<T>()
+    let predicate  = foreignKey == value
+    builder.generateSelect(limit: limit, predicate: predicate)
+    
+    var records = [ T ]()
+    try operations.fetch(builder.sql, builder.bindings) { stmt, _ in
+      let record = T(stmt, indices: T.Schema.selectColumnIndices)
+      records.append(record)
+    }
+    
+    return records
+  }
+  
+  /**
+   * Fetch the records associated with the foreign key.
+   *
+   * ```swift
+   * let addresses = try db.addresses.fetch(for: \.personId, in: person)
+   * ```
+   */
+  @inlinable
+  func fetch<FK>(for foreignKey: KeyPath<T.Schema, FK>,
+                 in destinationRecord: FK.Destination,
+                 limit: Int? = nil)
+         throws -> [ T ]
+         where FK: SQLForeignKeyColumn, FK.T == T,
+               FK.Value? == FK.DestinationColumn.Value // dest is optional
   {
     let foreignKey = T.schema[keyPath: foreignKey]
     let value = destinationRecord[keyPath: foreignKey.destinationColumn.keyPath]
@@ -196,6 +231,7 @@ public extension SQLRecordFetchOperations {
    *   - record:     The record containing the foreign key.
    * - Returns:      The destination record, if found.
    */
+  @inlinable
   func findTarget<FK>(for foreignKey: KeyPath<T.Schema, FK>, in record: T)
          throws -> FK.Destination?
          where FK: SQLForeignKeyColumn, FK.T == T,
@@ -234,16 +270,55 @@ public extension SQLRecordFetchOperations {
    *   - record:     The record containing the foreign key.
    * - Returns:      The destination record, if found.
    */
+  @inlinable
   func findTarget<FK>(for foreignKey: KeyPath<T.Schema, FK>, in record: T)
          throws -> FK.Destination?
          where FK: SQLForeignKeyColumn, FK.T == T,
-               FK.Value == Optional<FK.DestinationColumn.Value>
+               FK.Value == Optional<FK.DestinationColumn.Value> // source is optional
   {
     // This is the variant where an optional foreign-key matches the
     // non-optional destination column.
     let foreignKey = T.schema[keyPath: foreignKey]
     guard let value = record[keyPath: foreignKey.keyPath] else { return nil }
 
+    var builder   = SQLBuilder<FK.Destination>()
+    let predicate = foreignKey.destinationColumn == value
+    builder.generateSelect(limit: 1, predicate: predicate)
+    
+    var record : FK.Destination? = nil
+    try operations.fetch(builder.sql, builder.bindings) { stmt, stop in
+      record = FK.Destination(stmt,
+                    indices: FK.Destination.Schema.selectColumnIndices)
+      stop = true
+    }
+    
+    return record
+  }
+  
+  /**
+   * Locate the record connected to a specific (nullable) foreign key.
+   *
+   * Example:
+   * ```swift
+   * let person = try db.addresses.findTarget(for: \.personId, in: address)
+   * ```
+   *
+   * - Parameters:
+   *   - foreignKey: KeyPath to foreign key to match (e.g. `\.personId`).
+   *   - record:     The record containing the foreign key.
+   * - Returns:      The destination record, if found.
+   */
+  @inlinable
+  func findTarget<FK>(for foreignKey: KeyPath<T.Schema, FK>, in record: T)
+         throws -> FK.Destination?
+         where FK: SQLForeignKeyColumn, FK.T == T,
+               Optional<FK.Value> == FK.DestinationColumn.Value // dest is optional
+  {
+    // This is the variant where an non-optional foreign-key matches an
+    // optional destination column (e.g. the primary can be NULL! Northwind...).
+    let foreignKey = T.schema[keyPath: foreignKey]
+    let value = record[keyPath: foreignKey.keyPath]
+    
     var builder   = SQLBuilder<FK.Destination>()
     let predicate = foreignKey.destinationColumn == value
     builder.generateSelect(limit: 1, predicate: predicate)

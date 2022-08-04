@@ -357,7 +357,27 @@ public extension SQLRecordFetchOperations
     }
   }
 
+  /**
+   * Fetch the records associated with the foreign key.
+   *
+   * ```swift
+   * let addresses = try await db.address.fetch(for: \.personId, in: person)
+   * ```
+   */
+  @inlinable
+  func fetch<FK>(for foreignKey: KeyPath<T.Schema, FK>,
+                 in destinationRecord: FK.Destination,
+                 limit: Int? = nil)
+         async throws -> [ T ]
+         where FK: SQLForeignKeyColumn, FK.T == T,
+               FK.Value? == FK.DestinationColumn.Value
+  {
+    try await runOnDatabaseQueue {
+      try fetch(for: foreignKey, in: destinationRecord, limit: limit)
+    }
+  }
   
+
   // MARK: - Source Find
   
   /**
@@ -385,10 +405,28 @@ public extension SQLRecordFetchOperations
    * let person = try await db.address.findTarget(for: \.personId, in: address)
    * ```
    */
+  @inlinable
   func findTarget<FK>(for foreignKey: KeyPath<T.Schema, FK>, in record: T)
          async throws -> FK.Destination?
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == Optional<FK.DestinationColumn.Value>
+  {
+    try await runOnDatabaseQueue { try findTarget(for: foreignKey, in: record) }
+  }
+  
+  /**
+   * Locate the record connected to a specific foreign key.
+   *
+   * Example:
+   * ```swift
+   * let person = try await db.address.findTarget(for: \.personId, in: address)
+   * ```
+   */
+  @inlinable
+  func findTarget<FK>(for foreignKey: KeyPath<T.Schema, FK>, in record: T)
+         async throws -> FK.Destination?
+         where FK: SQLForeignKeyColumn, FK.T == T,
+               Optional<FK.Value> == FK.DestinationColumn.Value
   {
     try await runOnDatabaseQueue { try findTarget(for: foreignKey, in: record) }
   }
