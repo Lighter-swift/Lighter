@@ -341,6 +341,14 @@ extension EnlighterASTGenerator {
         )
       )
     }
+    
+    let info =
+    """
+    `\(api.connectionHandlerType)`'s are used to open SQLite database connections when
+    queries are run using the `Lighter` APIs.
+    The `\(api.connectionHandlerType)` is a protocol and custom handlers
+    can be provided.
+    """
     defs.append(
       .init(
         declaration: .makeInit(public: options.public,
@@ -353,13 +361,7 @@ extension EnlighterASTGenerator {
         comment: .init(
           headline:
             "Initialize ``\(database.name)`` w/ a `\(api.connectionHandlerType)`.",
-          info:
-            """
-            `\(api.connectionHandlerType)`'s are used to open SQLite database connections when
-            queries are run using the `Lighter` APIs.
-            `\(api.connectionHandlerType)` is a protocol and custom handlers can
-            be provided.
-            """,
+          info: info,
           example:
             """
             let db = \(database.name)(\(api.connectionHandler): .simplePool(
