@@ -10,13 +10,15 @@ import Foundation
 
 final class NorthwindTests: XCTestCase {
   
-  let fm  = FileManager.default
   let url = URL(fileURLWithPath:
-    "/Users/helge/dev/Swift/Lighter/NorthwindSQLite.swift/src/create.sql"
+                  "/Users/helge/dev/Swift/Lighter/NorthwindSQLite.swift/src/create.sql"
   )
+  var hasFile: Bool {
+    FileManager.default.isReadableFile(atPath: url.path)
+  }
   
   func testLoadSchema() throws {
-    try XCTSkipUnless(fm.isReadableFile(atPath: url.path),"helge specific test")
+    try XCTSkipUnless(hasFile, "helge specific test")
     let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
     XCTAssertFalse(schema.views.isEmpty)
     XCTAssertTrue (schema.indices.isEmpty)
@@ -30,7 +32,7 @@ final class NorthwindTests: XCTestCase {
   }
   
   func testDatabaseMapping() throws {
-    try XCTSkipUnless(fm.isReadableFile(atPath: url.path),"helge specific test")
+    try XCTSkipUnless(hasFile,"helge specific test")
     let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
     let dbInfo = DatabaseInfo(name: "Northwind", schema: schema)
     XCTAssertEqual(schema.tables.count + schema.views.count,
@@ -50,7 +52,7 @@ final class NorthwindTests: XCTestCase {
   }
   
   func testFancifier() throws {
-    try XCTSkipUnless(fm.isReadableFile(atPath: url.path),"helge specific test")
+    try XCTSkipUnless(hasFile, "helge specific test")
     let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
     let dbInfo = DatabaseInfo(name: "Northwind", schema: schema)
     
@@ -77,7 +79,7 @@ final class NorthwindTests: XCTestCase {
   }
   
   func testASTGeneration() throws {
-    try XCTSkipUnless(fm.isReadableFile(atPath: url.path),"helge specific test")
+    try XCTSkipUnless(hasFile, "helge specific test")
     let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
     
     var config = LighterConfiguration.default
@@ -103,5 +105,78 @@ final class NorthwindTests: XCTestCase {
     
     XCTAssertEqual(schema.tables.count + schema.views.count + 1,
                    unit.structures.count)
+  }
+  
+  func testCompoundPrimaryKeyGeneration() throws {
+    try XCTSkipUnless(hasFile, "helge specific test")
+    let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
+    
+    var config = LighterConfiguration.default
+    config.codeGeneration.rawFunctions = .omit
+    
+    let dbInfo = DatabaseInfo(name: "FiveThirtyEight", schema: schema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    
+    let CustomerCustomerDemo = try XCTUnwrap(dbInfo["CustomerCustomerDemo"])
+    
+    let gen = EnlighterASTGenerator(
+      database : dbInfo,
+      filename : dbInfo.name.appending(".swift"),
+      options  : .init()
+    )
+    gen.options.public = true
+    
+    let structInfo = gen.generateRecordStructure(for: CustomerCustomerDemo)
+
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateStruct(structInfo)
+      return builder.source
+    }()
+    // print("GOT:\n-----\n\(source)\n-----")
+
+    XCTAssertTrue(source.contains("public struct ID : Hashable"))
+    XCTAssertTrue(source.contains(
+      "public init(_ customerID: String, _ customerTypeID: String)"))
+    XCTAssertTrue(source.contains(
+      "public var id : ID { ID(customerID, customerTypeID) }"))
+  }
+  
+  func testBlobBindGeneration() throws {
+    try XCTSkipUnless(hasFile, "helge specific test")
+    let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
+    
+    var config = LighterConfiguration.default
+    config.codeGeneration.rawFunctions = .omit
+    
+    let dbInfo = DatabaseInfo(name: "FiveThirtyEight", schema: schema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    
+    let Categories = try XCTUnwrap(dbInfo["Categories"])
+    
+    let gen = EnlighterASTGenerator(
+      database : dbInfo,
+      filename : dbInfo.name.appending(".swift"),
+      options  : .init()
+    )
+    gen.options.public = true
+    gen.options.useLighter = false
+
+    let funcDef = gen.generateRegisterSwiftMatcher(for: Categories)
+
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateFunctionDefinition(funcDef)
+      return builder.source
+    }()
+    print("GOT:\n-----\n\(source)\n-----")
+
+    XCTAssertTrue(source.contains("{ [ UInt8 ]("))
+    XCTAssertTrue(source.contains(
+      "[ UInt8 ](UnsafeRawBufferPointer(start: $0, count: Int(sqlite3_value_bytes(argv[Int(indices.idx_picture)])))) }"))
   }
 }

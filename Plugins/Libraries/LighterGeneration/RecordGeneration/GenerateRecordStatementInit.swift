@@ -403,7 +403,7 @@ extension EnlighterASTGenerator {
 
     // $0 is the blob ptr, type is `[ UInt8 ]`
     return .raw("{ \(type)(UnsafeRawBufferPointer(start: $0, "
-              + "count: Int(sqlite3_column_bytes(statement, \(index)))) }")
+              + "count: Int(sqlite3_column_bytes(statement, \(index))))) }")
   }
   
   fileprivate func grabDateColumnValue(for propertyName: String,
