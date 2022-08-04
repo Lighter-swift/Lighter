@@ -14,7 +14,6 @@ extension EnlighterASTGenerator {
     var structures             = [ Struct                     ]()
     var typeVariables          = [ Struct.InstanceVariable    ]()
     var variables              = [ Struct.InstanceVariable    ]()
-    var computedProperties     = [ ComputedPropertyDefinition ]()
     var computedTypeProperties = [ ComputedPropertyDefinition ]()
     var typeFunctions          = [ FunctionDefinition         ]()
     var functions              = [ FunctionDefinition         ]()
@@ -95,7 +94,7 @@ extension EnlighterASTGenerator {
         typeVariables.append(
           .var(public: false, "_\(name)", type, comment: comment)
         )
-        computedProperties.append(
+        computedTypeProperties.append(
           .var(public: options.public, inlinable: false,
                name, type,
                set: [ .set("_\(name)", .raw("newValue")) ],
@@ -159,7 +158,7 @@ extension EnlighterASTGenerator {
       typeVariables          : typeVariables,
       variables              : variables,
       computedTypeProperties : computedTypeProperties,
-      computedProperties     : computedProperties,
+      computedProperties     : [],
       typeFunctions          : typeFunctions,
       functions              : functions,
       comment                : generateDatabaseTypeComment()

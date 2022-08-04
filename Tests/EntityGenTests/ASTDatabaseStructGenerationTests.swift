@@ -15,7 +15,6 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     let options   = Fancifier.Options()
     let fancifier = Fancifier(options: options)
     fancifier.fancifyDatabaseInfo(dbInfo)
-    //print("Fancified:", dbInfo)
     
     let gen = EnlighterASTGenerator(
       database: dbInfo, filename: "Contacts.swift"
@@ -23,7 +22,7 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     gen.options.nestRecordTypesInDatabase = false
     gen.options.useLighter                = true
     gen.options.optionalHelpersInDatabase = false
-
+    
     let s = gen.generateDatabaseStructure()
     
     let source : String = {
@@ -48,7 +47,6 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     let options   = Fancifier.Options()
     let fancifier = Fancifier(options: options)
     fancifier.fancifyDatabaseInfo(dbInfo)
-    //print("Fancified:", dbInfo)
     
     let gen = EnlighterASTGenerator(
       database: dbInfo, filename: "Contacts.swift"
@@ -58,7 +56,7 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     gen.options.preferLighterBinds        = false
     gen.options.optionalHelpersInDatabase = true
     gen.options.nestRecordTypesInDatabase = false
-
+    
     let s = gen.generateDatabaseStructure()
     
     let source : String = {
@@ -78,20 +76,19 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     
     XCTAssertTrue(source.contains("public static func withOptCString"))
   }
-
+  
   func testAddressDBNoEmbeddedRecordStructsRaw() throws {
     let dbInfo    = DatabaseInfo(name: "TestDB", schema: Fixtures.addressSchema)
     let options   = Fancifier.Options()
     let fancifier = Fancifier(options: options)
     fancifier.fancifyDatabaseInfo(dbInfo)
-    //print("Fancified:", dbInfo)
     
     let gen = EnlighterASTGenerator(
       database: dbInfo, filename: "Contacts.swift"
     )
     gen.options.nestRecordTypesInDatabase = false
     gen.options.useLighter = false
-
+    
     let s = gen.generateDatabaseStructure()
     
     let source : String = {
@@ -109,5 +106,81 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     XCTAssertFalse(source.contains("public static let recordTypes = RecordTypes()"))
     // has not dates!:
     XCTAssertFalse(source.contains("static var dateFormatter"))
+  }
+  
+  
+  func testRawDateFormatter() throws {
+    let dbInfo    = DatabaseInfo(name: "TestDB", schema: Fixtures.addressSchema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    
+    let gen = EnlighterASTGenerator(
+      database: dbInfo, filename: "Contacts.swift"
+    )
+    gen.options.nestRecordTypesInDatabase = false
+    gen.options.useLighter = false
+    gen.options.public = true
+    
+    
+    let Person = try XCTUnwrap(dbInfo["Person"])
+    Person.properties.append(.init(
+      name: "birthDate", externalName: "birth_date",
+      propertyType: .date, columnType: .timestamp,
+      defaultValue: nil, isPrimaryKey: false, isNotNull: true
+    ))
+    
+    let s = gen.generateDatabaseStructure()
+    
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateStruct(s)
+      return builder.source
+    }()
+    //print("GOT:\n-----\n\(source)\n-----")
+    
+    XCTAssertFalse(source.contains("_dateFormatter"))
+    XCTAssertTrue(source.contains(
+      "public static var dateFormatter : DateFormatter? = {"))
+    XCTAssertTrue(source.contains(
+      #"formatter.dateFormat = "yyyy-MM-dd HH:mm:ss""#))
+  }
+  
+  func testLighterDateFormatter() throws {
+    let dbInfo    = DatabaseInfo(name: "TestDB", schema: Fixtures.addressSchema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    
+    let gen = EnlighterASTGenerator(
+      database: dbInfo, filename: "Contacts.swift"
+    )
+    gen.options.nestRecordTypesInDatabase = false
+    gen.options.useLighter = true
+    gen.options.rawFunctions = .omit
+    gen.options.public = true
+    
+    
+    let Person = try XCTUnwrap(dbInfo["Person"])
+    Person.properties.append(.init(
+      name: "birthDate", externalName: "birth_date",
+      propertyType: .date, columnType: .timestamp,
+      defaultValue: nil, isPrimaryKey: false, isNotNull: true
+    ))
+
+    let s = gen.generateDatabaseStructure()
+    
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateStruct(s)
+      return builder.source
+    }()
+    print("GOT:\n-----\n\(source)\n-----")
+    
+    XCTAssertTrue(source.contains("static var _dateFormatter : DateFormatter?"))
+    XCTAssertTrue(source.contains(
+      "public static var dateFormatter : DateFormatter? {"))
+    XCTAssertTrue(source.contains(
+      "_dateFormatter ?? Date.defaultSQLiteDateFormatter"))
   }
 }
