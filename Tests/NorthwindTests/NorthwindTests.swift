@@ -143,4 +143,40 @@ final class NorthwindTests: XCTestCase {
     XCTAssertTrue(source.contains(
       "public var id : ID { ID(customerID, customerTypeID) }"))
   }
+  
+  func testBlobBindGeneration() throws {
+    try XCTSkipUnless(hasFile, "helge specific test")
+    let schema = try SchemaLoader.buildSchemaFromURLs([ url ])
+    
+    var config = LighterConfiguration.default
+    config.codeGeneration.rawFunctions = .omit
+    
+    let dbInfo = DatabaseInfo(name: "FiveThirtyEight", schema: schema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    
+    let Categories = try XCTUnwrap(dbInfo["Categories"])
+    
+    let gen = EnlighterASTGenerator(
+      database : dbInfo,
+      filename : dbInfo.name.appending(".swift"),
+      options  : .init()
+    )
+    gen.options.public = true
+    gen.options.useLighter = false
+
+    let funcDef = gen.generateRegisterSwiftMatcher(for: Categories)
+
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateFunctionDefinition(funcDef)
+      return builder.source
+    }()
+    print("GOT:\n-----\n\(source)\n-----")
+
+    XCTAssertTrue(source.contains("{ [ UInt8 ]("))
+    XCTAssertTrue(source.contains(
+      "[ UInt8 ](UnsafeRawBufferPointer(start: $0, count: Int(sqlite3_value_bytes(argv[Int(indices.idx_picture)])))) }"))
+  }
 }
