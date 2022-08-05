@@ -156,6 +156,8 @@ public final class Fancifier {
       "Data"      : .date,
       "DECIMAL"   : .decimal,
       "decimal"   : .decimal,
+      "NUMERIC"   : .decimal,
+      "numeric"   : .decimal,
       "TIMESTAMP" : .date,
       "timestamp" : .date,
       "DATETIME"  : .date,
