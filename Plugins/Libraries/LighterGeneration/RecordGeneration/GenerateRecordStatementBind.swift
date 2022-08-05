@@ -498,15 +498,15 @@ extension EnlighterASTGenerator {
                                trailer        : [ Statement ]) -> Statement
   {
     let helperPrefix = options.optionalHelpersInDatabase
-    ? "\(database.name)." : ""
+                     ? "\(database.name)." : ""
+    let name = optional ? "stringForOptDecimal" : "stringForDecimal"
     return .return(
       .call(
         try: true,
         name       : "\(helperPrefix)withOptCString", // always use this
         parameters : [ (
           nil,
-          .call(name: "\(helperPrefix)stringForDecimal",
-                .variable(propertyName))
+          .call(name: "\(helperPrefix)\(name)", .variable(propertyName))
         ) ],
         trailing: ( [ "s" ], [
           .ifSwitch( (

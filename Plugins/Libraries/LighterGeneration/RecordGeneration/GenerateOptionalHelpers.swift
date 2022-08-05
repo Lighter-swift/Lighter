@@ -33,7 +33,7 @@ extension EnlighterASTGenerator {
   /**
    * Generate this:
    * ```swift
-   * func stringForDecimal(_ decimal: Decimal?) -> String? {
+   * func stringForOptDecimal(_ decimal: Decimal?) -> String? {
    *   guard var copy = decimal else { return nil }
    *   return NSDecimalString(&copy, Locale(identifier: "en_US_POSIX"))
    * }
@@ -42,7 +42,7 @@ extension EnlighterASTGenerator {
   func makeStringForOptDecimal() -> FunctionDefinition {
     FunctionDefinition(
       declaration: FunctionDeclaration(
-        public: options.public, name: "stringForDecimal",
+        public: options.public, name: "stringForOptDecimal",
         parameters: [
           .init(name: "decimal", type: .optional(.name("Decimal")))
         ],
