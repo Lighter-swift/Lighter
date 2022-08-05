@@ -12,13 +12,13 @@ public extension CodeGenerator {
                                 omitPublic : Bool = false)
   {
     assert(value.type != nil || value.value != nil)
-    writePropertyComment(value.comment)
 
     if let ( major, minor ) = value.minimumSwiftVersion {
       assert(major >= 5)
       writeln("#if swift(>=\(major).\(minor))")
     }
     
+    writePropertyComment(value.comment)
     appendIndent()
     if value.public && !omitPublic { append("public ") }
     if `static` { append("static ") }
