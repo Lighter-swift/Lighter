@@ -219,6 +219,6 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     XCTAssertTrue(source.contains(
       "public static let _allRecordTypes : [ any SQLRecord.Type ] = ["))
     XCTAssertTrue(source.contains(
-      "[ Person.Self, Address.Self, AFancyTestTable.self ]"))
+      "[ Person.self, Address.self, AFancyTestTable.self ]"))
   }
 }
