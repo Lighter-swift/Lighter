@@ -52,6 +52,16 @@ extension EnlighterASTGenerator {
              comment:
                "Property based access to the ``RecordTypes-swift.struct``.")
       )
+      typeVariables.append(
+        .init(public: options.public, let: true,
+              "_all\(api.recordTypeLookupTarget)",
+              type: .array(.name("any SQLRecord.Type")),
+              value: .array(database.entities.map {
+                .raw("\($0.name).Self")
+              }),
+              minimumSwiftVersion: (5, 7),
+              comment: "All RecordTypes defined in the database.")
+      )
     }
     
     // Schema version
