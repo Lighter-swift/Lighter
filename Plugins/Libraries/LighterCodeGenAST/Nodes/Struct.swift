@@ -11,7 +11,7 @@ public struct Struct {
   /**
    * An instance variable of a ``Struct``.
    */
-  public struct InstanceVariable: Equatable {
+  public struct InstanceVariable {
         
     /// Is the property public?
     public var `public` : Bool
@@ -26,18 +26,23 @@ public struct Struct {
     public var value    : Expression?
     /// A comment for the property.
     public var comment  : String?
-    
+
+    /// If set, the property is wrapped in an `#if swift(>=major.minor)`.
+    public var minimumSwiftVersion : ( major: Int, minor: Int )?
+
     /// Initialize a new instance variable node.
     public init(public: Bool = true, `let`: Bool = true, _ name: String,
                 type: TypeReference? = nil, value: Expression? = nil,
+                minimumSwiftVersion : ( major: Int, minor: Int )? = nil,
                 comment: String? = nil)
     {
-      self.public  = `public`
-      self.let     = `let`
-      self.name    = name
-      self.type    = type
-      self.value   = value
-      self.comment = comment
+      self.public              = `public`
+      self.let                 = `let`
+      self.name                = name
+      self.type                = type
+      self.value               = value
+      self.minimumSwiftVersion = minimumSwiftVersion
+      self.comment             = comment
     }
   }
 

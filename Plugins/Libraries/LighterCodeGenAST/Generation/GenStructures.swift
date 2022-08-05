@@ -13,6 +13,12 @@ public extension CodeGenerator {
   {
     assert(value.type != nil || value.value != nil)
     writePropertyComment(value.comment)
+
+    if let ( major, minor ) = value.minimumSwiftVersion {
+      assert(major >= 5)
+      writeln("#if swift(>=\(major).\(minor))")
+    }
+    
     appendIndent()
     if value.public && !omitPublic { append("public ") }
     if `static` { append("static ") }
@@ -27,6 +33,11 @@ public extension CodeGenerator {
       append(string(for: value))
     }
     appendEOL()
+
+    if let ( major, minor ) = value.minimumSwiftVersion {
+      assert(major >= 5)
+      writeln("#endif // swift(>=\(major).\(minor))")
+    }
   }
   
   /**
