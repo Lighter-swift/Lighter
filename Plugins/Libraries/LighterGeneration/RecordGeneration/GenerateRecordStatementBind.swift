@@ -67,6 +67,7 @@ extension EnlighterASTGenerator {
       }
       if hasDecimals {
         statements.append(.nestedFunction(makeStringForDecimal()))
+        statements.append(.nestedFunction(makeStringForOptDecimal()))
       }
       
       if options.uuidStorageStyle == .blob &&

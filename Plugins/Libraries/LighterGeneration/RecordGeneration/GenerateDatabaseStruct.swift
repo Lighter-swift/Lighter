@@ -505,6 +505,7 @@ extension EnlighterASTGenerator {
     }
     if hasDecimals {
       functions.append(makeStringForDecimal())
+      functions.append(makeStringForOptDecimal())
     }
     
     if options.uuidStorageStyle == .blob && hasPropertiesOfType(.uuid) {

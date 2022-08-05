@@ -30,6 +30,31 @@ extension EnlighterASTGenerator {
       ]
     )
   }
+  /**
+   * Generate this:
+   * ```swift
+   * func stringForDecimal(_ decimal: Decimal?) -> String? {
+   *   guard var copy = decimal else { return nil }
+   *   return NSDecimalString(&copy, Locale(identifier: "en_US_POSIX"))
+   * }
+   * ```
+   */
+  func makeStringForOptDecimal() -> FunctionDefinition {
+    FunctionDefinition(
+      declaration: FunctionDeclaration(
+        public: options.public, name: "stringForDecimal",
+        parameters: [
+          .init(name: "decimal", type: .optional(.name("Decimal")))
+        ],
+        returnType: .optional(.string)
+      ),
+      statements: [
+        .raw("guard var copy = decimal else { return nil }"),
+        .raw(
+          #"return NSDecimalString(&copy, Locale(identifier: "en_US_POSIX"))"#)
+      ]
+    )
+  }
 
   /**
    * Generate this:
