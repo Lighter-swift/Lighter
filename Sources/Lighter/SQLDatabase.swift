@@ -13,6 +13,11 @@ import struct Foundation.URL
  * associated protocols).
  */
 public protocol SQLDatabase: SQLDatabaseOperations {
+  
+  #if swift(>=5.7)
+    /// Returns all ``SQLRecord`` type objects associated with the database.
+    static var _allRecordTypes : [ any SQLRecord.Type ] { get }
+  #endif
 
   /**
    * Initialize a database with a ``SQLConnectionHandler``.
