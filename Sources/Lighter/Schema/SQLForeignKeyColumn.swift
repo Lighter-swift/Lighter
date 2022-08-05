@@ -30,19 +30,39 @@ public struct MappedForeignKey<T, Value, DestinationColumn>: SQLForeignKeyColumn
                DestinationColumn: SQLColumn
 {
   // the column itself doesn't need to have identity (though it has in SQLite)
-  public let externalName      : String
-  public let defaultValue      : Value
-  public let keyPath           : KeyPath<T, Value>
-  public let destinationColumn : DestinationColumn
+  public  let externalName       : String
+  public  let defaultValue       : Value
+  public  let keyPath            : KeyPath<T, Value>
+  
+  @inlinable
+  public  var destinationColumn  : DestinationColumn { _destinationColumn() }
+  
+  @usableFromInline
+  internal let _destinationColumn : () -> DestinationColumn
 
   @inlinable
   public init(externalName: String, defaultValue: Value,
               keyPath: KeyPath<T, Value>,
-              destinationColumn: DestinationColumn)
+              destinationColumn: @escaping @autoclosure () -> DestinationColumn)
   {
-    self.externalName      = externalName
-    self.defaultValue      = defaultValue
-    self.keyPath           = keyPath
-    self.destinationColumn = destinationColumn
+    self.externalName       = externalName
+    self.defaultValue       = defaultValue
+    self.keyPath            = keyPath
+    self._destinationColumn = destinationColumn
+  }
+  
+  @inlinable
+  public static func ==(lhs: Self, rhs: Self) -> Bool {
+    guard lhs.externalName      == rhs.externalName      else { return false }
+    guard lhs.defaultValue      == rhs.defaultValue      else { return false }
+    guard lhs.destinationColumn == rhs.destinationColumn else { return false }
+    guard lhs.keyPath           == rhs.keyPath           else { return false }
+    return true
+  }
+  
+  @inlinable
+  public func hash(into hasher: inout Hasher) {
+    externalName     .hash(into: &hasher)
+    destinationColumn.hash(into: &hasher)
   }
 }
