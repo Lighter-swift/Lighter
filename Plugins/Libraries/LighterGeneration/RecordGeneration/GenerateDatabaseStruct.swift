@@ -57,7 +57,7 @@ extension EnlighterASTGenerator {
               "_all\(api.recordTypeLookupTarget)",
               type: .array(.name("any SQLRecord.Type")),
               value: .array(database.entities.map {
-                .raw("\($0.name).Self")
+                .raw("\($0.name).self")
               }),
               minimumSwiftVersion: (5, 7),
               comment: "All RecordTypes defined in the database.")
