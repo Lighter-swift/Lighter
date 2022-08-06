@@ -676,9 +676,7 @@ extension EnlighterASTGenerator {
                   throws     : false, returns: .bool
                 ))
         ],
-        returnType: isTypeFunc
-          ? .optional(.array(.name(entity.name)))
-          : .optional(.array(globalTypeRef(of: entity)))
+        returnType: .optional(.array(globalTypeRef(of: entity)))
       ),
       statements: [
         .return(
@@ -756,7 +754,7 @@ extension EnlighterASTGenerator {
       ? api.recordSchemaName
       : "\(globalName(of: entity)).\(api.recordSchemaName)" // Later
     let typeName = options.rawFunctions == .attachToRecordType
-      ? entity.name
+      ? globalName(of: entity) // doesn't fly?: "Self"
       : globalName(of: entity)
     
     /// let indices = customSQL != nil
@@ -771,7 +769,7 @@ extension EnlighterASTGenerator {
             parameters: [ ( "in", .variable("statement") ) ]
           ),
           .variablePath([
-            typeName, api.recordSchemaName, "selectColumnIndices"
+            recordSchemaName, "selectColumnIndices"
           ])
         )
     )
@@ -833,9 +831,7 @@ extension EnlighterASTGenerator {
       
       letSelectColumnIndices, // let indices = ....
       // var records = [ Person ]()
-      options.rawFunctions == .attachToRecordType
-      ? .var("records", .call(name: "[ Self ]"))
-      : .var("records", .call(name: "[ \(globalName(of: entity)) ]")),
+      .var("records", .call(name: "[ \(typeName) ]")),
       fetchLoop, // while true
       .return(.variable("records"))
     ]
@@ -896,9 +892,7 @@ extension EnlighterASTGenerator {
           .init(keyword: "limit",   name: "limit",
                 type: .optional(.int), defaultValue: .nil)
         ],
-        returnType: isTypeFunc
-          ? .optional(.array(.name(entity.name)))
-          : .optional(.array(globalTypeRef(of: entity)))
+        returnType: .optional(.array(globalTypeRef(of: entity)))
       ),
       statements: fetchBody(for: entity, select: "select"),
       comment: .init(
@@ -965,8 +959,7 @@ extension EnlighterASTGenerator {
                   type: .optional(.string), defaultValue: .nil),
             .init(name: "primaryKey", type: type(for: primaryKey))
         ],
-        returnType:
-          .optional(isTypeFunc ? .name(entity.name) : globalTypeRef(of: entity))
+        returnType: .optional(globalTypeRef(of: entity))
       ),
       statements: findBody(for: entity, primaryKey: primaryKey),
       comment: .init(
@@ -1002,9 +995,6 @@ extension EnlighterASTGenerator {
     let recordSchemaName = options.rawFunctions == .attachToRecordType
       ? api.recordSchemaName
       : "\(globalName(of: entity)).\(api.recordSchemaName)" // Later
-    let typeName = options.rawFunctions == .attachToRecordType
-      ? entity.name
-      : globalName(of: entity)
     
     /// let indices = customSQL != nil
     ///   ? Person.Schema.lookupColumnIndices(in: statement)
@@ -1017,15 +1007,10 @@ extension EnlighterASTGenerator {
             name: api.lookupColumnIndices,
             parameters: [ ( "in", .variable("statement") ) ]
           ),
-          .variablePath(
-            options.rawFunctions == .attachToRecordType
-            ? [ api.recordSchemaName, "selectColumnIndices" ]
-            : [ typeName, api.recordSchemaName, "selectColumnIndices" ])
+          .variablePath([ recordSchemaName, "selectColumnIndices" ])
         )
     )
-    let entityName = options.rawFunctions == .attachToRecordType
-        ? entity.name
-        : globalName(of: entity)
+    let entityName = globalName(of: entity)
    
     /* let rc = sqlite3_step(statement)
      * if      rc == SQLITE_DONE { return nil }
