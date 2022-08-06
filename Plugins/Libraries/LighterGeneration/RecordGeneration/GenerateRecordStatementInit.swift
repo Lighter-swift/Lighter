@@ -146,6 +146,16 @@ extension EnlighterASTGenerator {
         ])
       : nonOptionalDefaultValue(for: property)
 
+    func stringGrab() -> Expression {
+      return property.isNotNull
+        ? grabColumnValue   (for: name, type: "text",
+                             map: .raw("String.init(cString:)"),
+                             defaultValue: defaultValue)
+        : grabOptColumnValue(for: name, type: "text",
+                             map: .raw("String.init(cString:)"),
+                             defaultValue: defaultValue)
+    }
+    
     switch property.propertyType {
       case .custom(let type):
       return property.isNotNull
@@ -157,13 +167,7 @@ extension EnlighterASTGenerator {
           ? grabIntColumnValue   (for: name, defaultValue: defaultValue)
           : grabOptIntColumnValue(for: name, defaultValue: defaultValue)
       case .string:
-        return property.isNotNull
-          ? grabColumnValue   (for: name, type: "text",
-                               map: .raw("String.init(cString:)"),
-                               defaultValue: defaultValue)
-          : grabOptColumnValue(for: name, type: "text",
-                               map: .raw("String.init(cString:)"),
-                               defaultValue: defaultValue)
+        return stringGrab()
       case .double:
         return property.isNotNull
           ? grabDoubleColumnValue   (for: property.name, defaultValue: defaultValue)
@@ -192,30 +196,57 @@ extension EnlighterASTGenerator {
           : grabOptBoolColumnValue(for: name, defaultValue: defaultValue)
 
       case .date:
-        return property.isNotNull
+        if options.allowFoundation {
+          return property.isNotNull
           ? grabDateColumnValue(for: name, defaultValue: defaultValue)
           : grabOptDateColumnValue(for: name, defaultValue: defaultValue)
+        }
+        else {
+          switch options.dateStorageStyle {
+            case .formatter:
+              return stringGrab()
+            case .timeIntervalSince1970:
+              return property.isNotNull
+                ? grabIntColumnValue   (for: name, defaultValue: defaultValue)
+                : grabOptIntColumnValue(for: name, defaultValue: defaultValue)
+          }
+        }
       case .uuid:
-        return property.isNotNull
-          ? grabUUIDColumnValue(for: name, defaultValue: defaultValue)
-          : grabOptUUIDColumnValue(for: name, defaultValue: defaultValue)
+        if options.allowFoundation {
+          return property.isNotNull
+            ? grabUUIDColumnValue   (for: name, defaultValue: defaultValue)
+            : grabOptUUIDColumnValue(for: name, defaultValue: defaultValue)
+        }
+        else {
+          return stringGrab()
+        }
 
       case .url:
-        return property.isNotNull
-          ? grabColumnValue   (for: name, type: "text",
-                               map: stringMap(initPrefix: "URL(string: "),
-                               defaultValue: defaultValue)
-          : grabOptColumnValue(for: name, type: "text",
-                               map: stringMap(initPrefix: "URL(string: "),
-                               defaultValue: defaultValue)
+        if options.allowFoundation {
+          return property.isNotNull
+            ? grabColumnValue   (for: name, type: "text",
+                                 map: stringMap(initPrefix: "URL(string: "),
+                                 defaultValue: defaultValue)
+            : grabOptColumnValue(for: name, type: "text",
+                                 map: stringMap(initPrefix: "URL(string: "),
+                                 defaultValue: defaultValue)
+        }
+        else {
+          return stringGrab()
+        }
       case .decimal: // always use `String`, sole one w/ potential precision
-        return property.isNotNull
-          ? grabColumnValue   (for: name, type: "text",
-                               map: stringMap(initPrefix: "Decimal(string: "),
-                               defaultValue: defaultValue)
-          : grabOptColumnValue(for: name, type: "text",
-                               map: stringMap(initPrefix: "Decimal(string: "),
-                               defaultValue: defaultValue)
+        if options.allowFoundation {
+          return property.isNotNull
+            ? grabColumnValue   (for: name, type: "text",
+                                 map: stringMap(initPrefix: "Decimal(string: "),
+                                 defaultValue: defaultValue)
+            : grabOptColumnValue(for: name, type: "text",
+                                 map: stringMap(initPrefix: "Decimal(string: "),
+                                 defaultValue: defaultValue)
+        }
+        else {
+          return stringGrab()
+        }
     }
   }
 
@@ -433,6 +464,7 @@ extension EnlighterASTGenerator {
   /// This isn't easy :-)
   // this can return nil
   fileprivate func dateValue(for propertyName: String) -> Expression {
+    assert(options.allowFoundation)
     let idx = index(for: propertyName)
     // it is not NULL and available. So check either Double or Text
     return .conditional(
@@ -444,8 +476,8 @@ extension EnlighterASTGenerator {
       
       // it is a text - this can return nil
       .flatMap(expression:
-                .call(name: "sqlite3_column_text",
-                      .variable("statement"), index(for: propertyName)),
+          .call(name: "sqlite3_column_text",
+                .variable("statement"), index(for: propertyName)),
                map: dateFormatterMap()
       ),
       

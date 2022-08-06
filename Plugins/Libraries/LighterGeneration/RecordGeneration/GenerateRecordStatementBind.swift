@@ -61,16 +61,17 @@ extension EnlighterASTGenerator {
         statements.append(.nestedFunction(
           makeWithOptBlob(name: "withOptBlob", type: .uint8Array)))
       }
-      if hasOptionalDataBinds {
+      if hasOptionalDataBinds && options.allowFoundation {
         statements.append(.nestedFunction(
           makeWithOptBlob(name: "withOptDataBlob", type: .data)))
       }
-      if hasDecimals {
+      if hasDecimals && options.allowFoundation {
         statements.append(.nestedFunction(makeStringForDecimal()))
         statements.append(.nestedFunction(makeStringForOptDecimal()))
       }
       
       if options.uuidStorageStyle == .blob &&
+         options.allowFoundation,
          entity.properties.contains(where: { $0.propertyType == .uuid })
       {
         statements.append(.nestedFunction(
@@ -236,11 +237,15 @@ extension EnlighterASTGenerator {
           statement = bindLighter(property.name,
                                   index: index, trailer: trailer())
         }
-        else {
+        else if options.allowFoundation {
           statement = bindString(
             property.name, converter: "absoluteString",
             optional: !property.isNotNull, index: index, trailer: trailer()
           )
+        }
+        else {
+          statement = bindString(property.name, optional: !property.isNotNull,
+                                 index: index, trailer: trailer())
         }
         
       case .decimal:
@@ -249,10 +254,17 @@ extension EnlighterASTGenerator {
           statement = bindLighter(property.name,
                                   index: index, trailer: trailer())
         }
-        else {
+        else if options.allowFoundation {
           statement = bindDecimal(
             property.name, optional: !property.isNotNull,
             index: index, trailer: trailer()
+          )
+        }
+        else {
+          statement = bindBaseProperty(
+            property.name, optional: !property.isNotNull, type: "double",
+            value: ivar(property.name),
+            index: index
           )
         }
         
@@ -276,11 +288,19 @@ extension EnlighterASTGenerator {
           statement = bindLighter(property.name,
                                   index: index, trailer: trailer())
         }
-        else {
+        else if options.allowFoundation {
           statement = bindBlob(
             property.name,
             optHelper: property.isNotNull
               ? nil : "\(helperPrefix)withOptDataBlob",
+            index: index, trailer: trailer()
+          )
+        }
+        else {
+          statement = bindBlob(
+            property.name,
+            optHelper:
+              property.isNotNull ? nil : "\(helperPrefix)withOptBlob",
             index: index, trailer: trailer()
           )
         }
@@ -291,16 +311,25 @@ extension EnlighterASTGenerator {
                                    index: index, trailer: trailer())
         }
         else if options.dateStorageStyle == .timeIntervalSince1970 {
-          statement = bindBaseProperty(
-            property.name,
-            optional: !property.isNotNull, type: "double",
-            value: .variablePath(
-              options.qualifiedSelf
-              ? [ "self", property.name, "timeIntervalSince1970" ]
-              : [ property.name, "timeIntervalSince1970" ]
-            ),
-            index: index
-          )
+          if options.allowFoundation {
+            statement = bindBaseProperty(
+              property.name,
+              optional: !property.isNotNull, type: "double",
+              value: .variablePath(
+                options.qualifiedSelf
+                ? [ "self", property.name, "timeIntervalSince1970" ]
+                : [ property.name, "timeIntervalSince1970" ]
+              ),
+              index: index
+            )
+          }
+          else {
+            statement = bindBaseProperty(
+              property.name, optional: !property.isNotNull, type: "int64",
+              value: .cast(ivar(property.name), to: .name("Int64")),
+              index: index
+            )
+          }
         }
         else {
           didRecurse = true
@@ -315,7 +344,7 @@ extension EnlighterASTGenerator {
           statement = bindLighter(property.name,
                                   index: index, trailer: trailer())
         }
-        else {
+        else if options.allowFoundation {
           switch options.uuidStorageStyle {
             case .text:
               statement = bindString(
@@ -326,6 +355,10 @@ extension EnlighterASTGenerator {
               statement = bindUUIDBlob(property.name,
                                        index: index, trailer: trailer())
           }
+        }
+        else {
+          statement = bindString(property.name, optional: !property.isNotNull,
+                                 index: index, trailer: trailer())
         }
     }
     
@@ -476,81 +509,107 @@ extension EnlighterASTGenerator {
                                 index          : Expression,
                                 trailer        : [ Statement ]) -> Statement
   {
-    return .return(
-      .call(
-        try: true, name: "withOptUUIDBytes",
-        parameters: [ ( nil, ivar(propertyName) ) ],
-        trailing: ( [ "rbp" ], [
-          .ifSwitch( (
-            .gtOrEq0(index), // works for `nil` as well!
-            .call(name: "sqlite3_bind_blob", .variable("statement"), index,
-                  .variable("rbp.baseAddress"), .variable("Int32(rbp.count)"),
-                  .nil) // this says: do not copy (`SQLITE_STATIC`)
-          ) ) ] +
-          trailer
+    if options.allowFoundation {
+      return .return(
+        .call(
+          try: true, name: "withOptUUIDBytes",
+          parameters: [ ( nil, ivar(propertyName) ) ],
+          trailing: ( [ "rbp" ], [
+            .ifSwitch( (
+              .gtOrEq0(index), // works for `nil` as well!
+              .call(name: "sqlite3_bind_blob", .variable("statement"), index,
+                    .variable("rbp.baseAddress"), .variable("Int32(rbp.count)"),
+                    .nil) // this says: do not copy (`SQLITE_STATIC`)
+            ) ) ] +
+                      trailer
+          )
         )
       )
-    )
+    }
+    else {
+      return bindString(propertyName, optional: false, index: index,
+                        trailer: trailer)
+    }
   }
 
   fileprivate func bindDecimal(_ propertyName : String, optional: Bool,
                                index          : Expression,
                                trailer        : [ Statement ]) -> Statement
   {
-    let helperPrefix = options.optionalHelpersInDatabase
-                     ? "\(database.name)." : ""
-    let name = optional ? "stringForOptDecimal" : "stringForDecimal"
-    return .return(
-      .call(
-        try: true,
-        name       : "\(helperPrefix)withOptCString", // always use this
-        parameters : [ (
-          nil,
-          .call(name: "\(helperPrefix)\(name)", .variable(propertyName))
-        ) ],
-        trailing: ( [ "s" ], [
-          .ifSwitch( (
-            .gtOrEq0(index), // works for `nil` as well!
-            Statement.call(name: "sqlite3_bind_text",
-                           .variable("statement"), index,
-                           .variable("s"), .integer(-1), .nil)
-          ) ) ] +
-                    trailer
+    if options.allowFoundation {
+      let helperPrefix = options.optionalHelpersInDatabase
+                       ? "\(database.name)." : ""
+      let name = optional ? "stringForOptDecimal" : "stringForDecimal"
+      return .return(
+        .call(
+          try: true,
+          name       : "\(helperPrefix)withOptCString", // always use this
+          parameters : [ (
+            nil,
+            .call(name: "\(helperPrefix)\(name)", .variable(propertyName))
+          ) ],
+          trailing: ( [ "s" ], [
+            .ifSwitch( (
+              .gtOrEq0(index), // works for `nil` as well!
+              Statement.call(name: "sqlite3_bind_text",
+                             .variable("statement"), index,
+                             .variable("s"), .integer(-1), .nil)
+            ) ) ] + trailer
+          )
         )
       )
-    )
+    }
+    else {
+      return bindString(propertyName, optional: optional, index: index,
+                        trailer: trailer)
+    }
   }
   
   fileprivate func bindDateString(_ propertyName : String, optional: Bool,
                                   index          : Expression,
                                   trailer        : [ Statement ]) -> Statement
   {
-    let helperPrefix = options.optionalHelpersInDatabase
-                     ? "\(database.name)." : ""
-    return .return(
-      .call(
-        try: true,
-        name       : "\(helperPrefix)withOptCString", // always use this
-        parameters : [ (
-          nil,
-          !optional // but still yields an optional if dateformatter is nil
-          ? .call(name: "\(database.name).dateFormatter?.string",
-                  parameters: [ ( "from", ivar(propertyName) ) ])
-          : .flatMap(expression: ivar(propertyName), map: .call(
-                  name: "\(database.name).dateFormatter?.string",
-                  parameters: [ ( "from", .raw("$0") ) ]
-            ))
-        ) ],
-        trailing: ( [ "s" ], [
-          .ifSwitch( (
-              .gtOrEq0(index), // works for `nil` as well!
-              Statement.call(name: "sqlite3_bind_text",
-                             .variable("statement"), index,
-                             .variable("s"), .integer(-1), .nil)
-          ) ) ] +
-          trailer
+    if options.allowFoundation {
+      let helperPrefix = options.optionalHelpersInDatabase
+                       ? "\(database.name)." : ""
+      return .return(
+        .call(
+          try: true,
+          name       : "\(helperPrefix)withOptCString", // always use this
+          parameters : [ (
+            nil,
+            !optional // but still yields an optional if dateformatter is nil
+            ? .call(name: "\(database.name).dateFormatter?.string",
+                    parameters: [ ( "from", ivar(propertyName) ) ])
+            : .flatMap(expression: ivar(propertyName), map: .call(
+                    name: "\(database.name).dateFormatter?.string",
+                    parameters: [ ( "from", .raw("$0") ) ]
+              ))
+          ) ],
+          trailing: ( [ "s" ], [
+            .ifSwitch( (
+                .gtOrEq0(index), // works for `nil` as well!
+                Statement.call(name: "sqlite3_bind_text",
+                               .variable("statement"), index,
+                               .variable("s"), .integer(-1), .nil)
+            ) ) ] +
+            trailer
+          )
         )
       )
-    )
+    }
+    else {
+      switch options.dateStorageStyle {
+        case .formatter:
+          return bindString(propertyName, optional: optional, index: index,
+                            trailer: trailer)
+        case .timeIntervalSince1970:
+          return bindBaseProperty(
+            propertyName, optional: optional, type: "int64",
+            value: .cast(ivar(propertyName), to: .name("Int64")),
+            index: index
+          )
+      }
+    }
   }
 }
