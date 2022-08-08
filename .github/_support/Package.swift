@@ -1,4 +1,4 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.6
 
 import PackageDescription
 
@@ -75,17 +75,16 @@ var package = Package(
             .writeToPackageDirectory(reason:
               "The plugin needs access to generate the source file.")
           ]
-        ),
-        dependencies: [ "sqlite2swift" ],
-        path: "Plugins/GenerateCodeForSQLite"
+      ),
+      dependencies: [ "sqlite2swift" ],
+      path: "Plugins/GenerateCodeForSQLite"
     ),
 
     
     // MARK: - Internal Plugin for Generating Variadics
     
     .executableTarget(name         : "GenerateInternalVariadics",
-                      dependencies : [ "LighterCodeGenAST",
-                                       "LighterGeneration" ],
+                      dependencies : [ "LighterGeneration" ],
                       path         : "Plugins/Tools/GenerateInternalVariadics",
                       exclude      : [ "README.md" ]),
     .plugin(
