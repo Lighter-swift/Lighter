@@ -22,7 +22,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Install Override Package.swift
-        run: cp .github/_support/Package.swift .github/_support/Package\\@swift-5.swift .
+        run: cp .github/_support/Package.swift .github/_support/Package\@swift-5.swift .
       - name: Build Swift Debug Package
         run: swift build -c debug
       - name: Build Swift Release Package
@@ -39,7 +39,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
       - name: Install Override Package.swift
-        run: cp .github/_support/Package.swift .github/_support/Package\\@swift-5.swift .
+        run: cp .github/_support/Package.swift .github/_support/Package\@swift-5.swift .
       - name: Build Swift Debug Package
         run: swift build -c debug
       - name: Build Swift Release Package
