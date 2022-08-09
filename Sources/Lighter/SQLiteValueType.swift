@@ -87,6 +87,49 @@ public protocol SQLiteValueType {
             index: Int32, then execute: () -> Void)
 }
 
+/**
+ * This extension allows one to use `RawRepresentable`s that have a
+ * `SQLiteValueType` as their raw value, to be `SQLiteValueType`s themselves.
+ *
+ * Example:
+ * ```swift
+ * enum BodyTypes: String, SQLiteValueType {
+ *   case planet, moon
+ * }
+ * ```
+ */
+extension RawRepresentable where Self.RawValue: SQLiteValueType {
+
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self.init(rawValue:
+      try RawValue(unsafeSQLite3StatementHandle: stmt, column: column)
+    )! // Hm, not optimal
+  }
+
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self.init(rawValue:
+      try RawValue(unsafeSQLite3ValueHandle: value)
+    )! // Hm, not optimal
+  }
+  
+  @inlinable public var sqlStringValue     : String { rawValue.sqlStringValue }
+  @inlinable public var requiresSQLBinding : Bool {
+    rawValue.requiresSQLBinding
+  }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    rawValue
+      .bind(unsafeSQLite3StatementHandle: stmt, index: index, then: execute)
+  }
+}
+
 extension Int : SQLiteValueType {
   
   @inlinable
