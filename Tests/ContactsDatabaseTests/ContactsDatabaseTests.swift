@@ -5,8 +5,10 @@
 
 import XCTest
 import Foundation
-@testable import LighterCodeGenAST
-@testable import LighterGeneration
+@testable import Lighter
 
 final class ContactsDatabaseTests: XCTestCase {
+  
+  // This doesn't contain any actual tests. It is a helper test bundle to
+  // try out the code generator.
 }
