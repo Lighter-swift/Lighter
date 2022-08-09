@@ -5,6 +5,15 @@
 
 import Foundation
 
+/**
+ * A group is a set of files that together to form a single database.
+ *
+ * E.g.:
+ * - Contacts-01.sql
+ * - Contacts-02.sql
+ * - Contacts-03.sql
+ * Will build a single "Contacts" database.
+ */
 struct EnlighterGroup: CustomStringConvertible {
   
   let stem         : String

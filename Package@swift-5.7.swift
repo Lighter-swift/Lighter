@@ -1,4 +1,4 @@
-// swift-tools-version:5.6
+// swift-tools-version:5.7
 
 import PackageDescription
 
@@ -51,7 +51,7 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    .testTarget(name: "ContactsDatabaseTests", dependencies: [ "Lighter" ]),
+    .testTarget(name: "ContactsDatabaseTests",  dependencies: [ "Lighter" ]),
 
     
     // MARK: - Plugins and supporting Tools
@@ -76,16 +76,17 @@ var package = Package(
             .writeToPackageDirectory(reason:
               "The plugin needs access to generate the source file.")
           ]
-      ),
-      dependencies: [ "sqlite2swift" ],
-      path: "Plugins/GenerateCodeForSQLite"
+        ),
+        dependencies: [ "sqlite2swift" ],
+        path: "Plugins/GenerateCodeForSQLite"
     ),
 
     
     // MARK: - Internal Plugin for Generating Variadics
     
     .executableTarget(name         : "GenerateInternalVariadics",
-                      dependencies : [ "LighterGeneration" ],
+                      dependencies : [ "LighterCodeGenAST",
+                                       "LighterGeneration" ],
                       path         : "Plugins/Tools/GenerateInternalVariadics",
                       exclude      : [ "README.md" ]),
     .plugin(
