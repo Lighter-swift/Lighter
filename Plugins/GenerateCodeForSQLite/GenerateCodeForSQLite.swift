@@ -246,32 +246,12 @@ struct GenerateCodeForSQLite: CommandPlugin {
   }
 }
 
+
+// MARK: - Xcode Support
+
 #if canImport(XcodeProjectPlugin)
 // This is mostly a copy, as the types don't match up.
-// TODO: Abstract using protocols.
-
 import XcodeProjectPlugin
-
-extension XcodePluginContext {
-  var package : XcodeProject { xcodeProject }
-}
-extension XcodeProject {
-  func targets(named targetNames: [ String ]) throws -> [ XcodeTarget ] {
-    self.targets.filter { targetNames.contains($0.name) }
-  }
-}
-extension XcodeTarget {
-  var name : String { product?.name ?? displayName }
-  
-  var directory : Path {
-    
-    for file : File in inputFiles {
-      return file.path.removingLastComponent()
-    }
-    assertionFailure("Target has no input files!")
-    return Path("/tmp/")
-  }
-}
 
 extension GenerateCodeForSQLite: XcodeCommandPlugin {
   
@@ -360,9 +340,6 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
                         configuration : EnlighterTargetConfig,
                         sqlite2swift  : PluginContext.Tool) throws
   {
-    debugLog(target.inputFiles)
-    
-    #if false
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
       resourcesPathes:
@@ -381,7 +358,6 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
     }
     debugLog("Generate target:", target.name, "#groups=\(groups.count)", groups)
       
-
     for group in groups {
       let outputPath = configuration.outputFile.flatMap {
         target.directory.appending(subpath: $0)
@@ -427,7 +403,6 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
         }
       }
     }
-    #endif
     debugLog("Finished target:", target.name)
   }
 }
