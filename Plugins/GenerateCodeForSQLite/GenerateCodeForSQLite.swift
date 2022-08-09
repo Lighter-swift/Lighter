@@ -104,7 +104,7 @@ struct GenerateCodeForSQLite: CommandPlugin {
     }
   }
   
-  private func debugLog(_ message: Any...) {
+  fileprivate func debugLog(_ message: Any...) {
     #if DEBUG || true
     let msg = message.map { String(describing: $0) }.joined(separator: " ")
             + "\n"
@@ -117,8 +117,8 @@ struct GenerateCodeForSQLite: CommandPlugin {
     #endif
   }
   
-  private func extensions(in rootJSON: [ String : Any ], target: String)
-               -> Set<String>
+  fileprivate func extensions(in rootJSON: [ String : Any ], target: String)
+                   -> Set<String>
   {
     let targetJSON = rootJSON[target] as? [ String : Any ]
     let exts1 = (targetJSON?  ["databaseExtensions"] as? [ String ])
@@ -133,7 +133,8 @@ struct GenerateCodeForSQLite: CommandPlugin {
     return Set(exts1).union(exts2)
   }
   
-  private func locateConfigFile(in context: PackagePlugin.PluginContext) -> URL?
+  fileprivate func locateConfigFile(in context: PackagePlugin.PluginContext)
+                   -> URL?
   {
     let configPath = context.package.directory
                        .appending(subpath: configFileName)
@@ -143,7 +144,7 @@ struct GenerateCodeForSQLite: CommandPlugin {
     return url
   }
   
-  private func loadConfigFile(from url: URL?) throws -> [ String : Any ] {
+  fileprivate func loadConfigFile(from url: URL?) throws -> [ String : Any ] {
     guard let url = url else { return defaultConfig }
 
     // Unfortunately we cannot reuse the `LighterConfiguration` file. Plugins
@@ -244,3 +245,190 @@ struct GenerateCodeForSQLite: CommandPlugin {
     debugLog("Finished target:", target.name)
   }
 }
+
+#if canImport(XcodeProjectPlugin)
+// This is mostly a copy, as the types don't match up.
+// TODO: Abstract using protocols.
+
+import XcodeProjectPlugin
+
+extension XcodePluginContext {
+  var package : XcodeProject { xcodeProject }
+}
+extension XcodeProject {
+  func targets(named targetNames: [ String ]) throws -> [ XcodeTarget ] {
+    self.targets.filter { targetNames.contains($0.name) }
+  }
+}
+extension XcodeTarget {
+  var name : String { product?.name ?? displayName }
+  
+  var directory : Path {
+    
+    for file : File in inputFiles {
+      return file.path.removingLastComponent()
+    }
+    assertionFailure("Target has no input files!")
+    return Path("/tmp/")
+  }
+}
+
+extension GenerateCodeForSQLite: XcodeCommandPlugin {
+  
+  func performCommand(context: XcodePluginContext, arguments: [String]) throws {
+    typealias SwiftSourceModuleTarget = XcodeTarget // compat
+    debugLog("Perform Xcode \(#fileID):", Date())
+    
+    let args = Arguments(arguments)
+    guard !args.targets.isEmpty else {
+      if args.verbose { print("No targets specified.") }
+      return debugLog("No targets specified.")
+    }
+    
+    do {
+      let tool    = try context.tool(named: "sqlite2swift")
+      let targets = try context.package.targets(named: args.targets)
+      if targets.isEmpty {
+        if args.verbose { print("No Swift targets specified:", args.targets) }
+        return debugLog("Did not find Swift targets in:", args.targets)
+      }
+      
+      let configURL = locateConfigFile(in: context)
+      let rootJSON  = try loadConfigFile(from: configURL)
+      
+      for target in targets {
+        let outputFile =
+        ((rootJSON[target.name] as? [String:Any])?["outputFile"] as? String)
+        ?? (rootJSON["outputFile"] as? String)
+        
+        let targetConfig = EnlighterTargetConfig(
+          extensions : extensions(in: rootJSON, target: target.name),
+          outputFile : outputFile,
+          verbose    : args.verbose,
+          configURL  : configURL
+        )
+        guard !targetConfig.extensions.isEmpty else {
+          if args.verbose {
+            print("Skipping \"\(target.name)\",",
+                  "has no SQL/db extensions configured.")
+          }
+          debugLog("Skipping:", target.name, "…")
+          continue
+        }
+        
+        if args.verbose {
+          print("Looking for databases/SQL in:", target.name, "…")
+        }
+        debugLog("Looking for databases/SQL in:", target.name, "…")
+        
+        try generate(context: context, target: target,
+                     configuration: targetConfig, sqlite2swift: tool)
+      }
+    }
+    catch {
+      debugLog("Catched error:", error)
+      throw error
+    }
+  }
+  
+  fileprivate func locateConfigFile(in context: XcodePluginContext) -> URL? {
+    let configPath = context.package.directory
+      .appending(subpath: configFileName)
+    let url = URL(fileURLWithPath: configPath.string)
+    let fm = FileManager.default
+    guard fm.fileExists(atPath: url.path) else { return nil }
+    return url
+  }
+
+  private func collectResources(in target: XcodeTarget,
+                                extensions: Set<String>)
+               -> Set<String>
+  {
+    var result = Set<String>()
+    for ext in extensions {
+      for file in target.inputFiles
+        where file.type == .resource && file.path.extension == ext
+      {
+        result.insert(file.path.string)
+      }
+    }
+    return result
+  }
+
+  private func generate(context       : XcodePluginContext,
+                        target        : XcodeTarget,
+                        configuration : EnlighterTargetConfig,
+                        sqlite2swift  : PluginContext.Tool) throws
+  {
+    debugLog(target.inputFiles)
+    
+    #if false
+    let groups = try EnlighterGroup.load(
+      from: URL(fileURLWithPath: target.directory.string),
+      resourcesPathes:
+        collectResources(in: target, extensions: configuration.extensions),
+      configuration: configuration
+    )
+    guard !groups.isEmpty else {
+      if configuration.verbose {
+        print("Target contains not matching files:", target.name)
+      }
+      return debugLog("Target contains not matching files:", target.name)
+    }
+
+    if configuration.verbose {
+      print("Generating \(groups.count) databases for:", target.name)
+    }
+    debugLog("Generate target:", target.name, "#groups=\(groups.count)", groups)
+      
+
+    for group in groups {
+      let outputPath = configuration.outputFile.flatMap {
+        target.directory.appending(subpath: $0)
+      } ?? target.directory.appending(subpath: group.stem + ".swift")
+      
+      let outputURL = URL(fileURLWithPath: outputPath.string)
+
+      let args : [ String ] = {
+        var args = [ String ]()
+        if configuration.verbose {
+          args.append("--verbose")
+        }
+        if !group.resourceURLs.isEmpty {
+          args.append("--has-resources")
+        }
+        args.append(configuration.configURL?.path ?? "default")
+        args.append(target.name) // required to resolve configs
+        args += group.matches.map(\.path)
+        args.append(outputURL.path)
+        return args
+      }()
+
+      let process = Process()
+      process.executableURL = URL(fileURLWithPath: sqlite2swift.path.string)
+      process.arguments = args
+      
+      if configuration.verbose {
+        print("  Starting sqlite2swift for:", group.stem)
+        print("    \(sqlite2swift.path.string)")
+        print("    Args:", args)
+      }
+      try process.run()
+      process.waitUntilExit()
+      
+      if process.terminationStatus != 0 {
+        print("  sqlite2swift failed for:", group.stem)
+        throw PluginError.toolRunFailed(
+          Int(process.terminationStatus))
+      }
+      else {
+        if configuration.verbose {
+          print("  Wrote to:", outputURL.path)
+        }
+      }
+    }
+    #endif
+    debugLog("Finished target:", target.name)
+  }
+}
+#endif // Xcode
