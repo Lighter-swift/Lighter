@@ -3,6 +3,8 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
+// Later: Rework to use String pathes by default and only resort to URLs in
+//        a canImport section.
 import struct Foundation.URL
 
 /**
@@ -77,6 +79,6 @@ public protocol SQLDatabase: SQLDatabaseOperations {
    *   - readOnly: Whether the database object should be returned read-only.
    *   - databaseFileURL: The "source" database to be copied.
    */
-  static func create(at url: URL, readOnly: Bool,
-                     copying databaseFileURL: URL) throws -> Self
+  static func bootstrap(at url: URL, readOnly: Bool,
+                        copying databaseFileURL: URL) throws -> Self
 }

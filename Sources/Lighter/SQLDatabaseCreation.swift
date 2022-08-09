@@ -3,22 +3,6 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
-import struct Foundation.URL
-
-public extension SQLDatabase {
-  
-  static func create(at url: URL, readOnly: Bool = false,
-                     copying databaseFileURL: URL) throws -> Self
-  {
-    let fm = FileManager.default
-    if fm.fileExists(atPath: url.path) {
-      return Self.init(url: url, readOnly: readOnly)
-    }
-    try fm.copyItem(at: databaseFileURL, to: url)
-    return Self.init(url: url, readOnly: readOnly)
-  }
-}
-
 /**
  * A type that holds SQL `CREATE` statements in the ``creationSQL`` property.
  */
@@ -28,9 +12,87 @@ public protocol SQLCreationStatementsHolder {
   static var creationSQL : String { get }
 }
 
+
+#if canImport(Foundation)
 import struct Foundation.URL
 import class  Foundation.FileManager
 import SQLite3
+
+public extension SQLDatabase {
+  
+  /**
+   * Create the database by copying an existing (usually resource) database
+   * to a different place.
+   *
+   * Example:
+   * ```swift
+   * let db = try ContactsDB.bootstrap(
+   *   at: url, copying: ContactsDB.module.connectionHandler.url
+   * )
+   * ```
+   *
+   * - Parameters:
+   *   - url:             The path to the destination.
+   *   - readOnly:        Whether the database should be opened read only.
+   *   - databaseFileURL: The URL of the database to be copied.
+   * - Returns:           The initialized database if successful.
+   */
+  static func bootstrap(at url: URL, readOnly: Bool = false,
+                        copying databaseFileURL: URL) throws -> Self
+  {
+    let fm = FileManager.default
+    
+    if fm.fileExists(atPath: url.path) {
+      return Self.init(url: url, readOnly: readOnly)
+    }
+    
+    let dir = databaseFileURL.deletingLastPathComponent()
+    if !fm.fileExists(atPath: dir.path) {
+      try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
+    
+    try fm.copyItem(at: databaseFileURL, to: url)
+    return Self.init(url: url, readOnly: readOnly)
+  }
+  
+  /**
+   * Create the database by copying an existing (usually resource) database
+   * to a different place.
+   *
+   * Example:
+   * ```swift
+   * let db = try ContactsDB.bootstrap(
+   *   copying: ContactsDB.module.connectionHandler.url
+   * )
+   * ```
+   *
+   * - Parameters:
+   *   - directory:       The `FileManager.SearchPathDirectory` to place the
+   *                      copy in, defaults to `applicationSupportDirectory`.
+   *   - domains:         The `FileManager.SearchPathDomainMask` to use for the
+   *                      lookup of the `directory`.
+   *                      Defaults to `userDomainMask`.
+   *   - readOnly:        Whether the database should be opened read only.
+   *   - databaseFileURL: The URL of the database to be copied.
+   * - Returns:           The initialized database if successful.
+   */
+  static func bootstrap(into directory : FileManager.SearchPathDirectory
+                                       = .applicationSupportDirectory,
+                        domains        : FileManager.SearchPathDomainMask
+                                       = .userDomainMask,
+                        readOnly: Bool = false,
+                        copying databaseFileURL: URL) throws -> Self
+  {
+    guard let dir = FileManager.default.urls(for: directory, in: domains).first
+    else {
+      fatalError("Could not get path for \(directory) directory?!")
+    }
+    
+    let url = dir.appendingPathComponent(databaseFileURL.lastPathComponent)
+    return try bootstrap(at: url, readOnly: readOnly, copying: databaseFileURL)
+  }
+}
+
 
 public extension SQLDatabase where Self: SQLCreationStatementsHolder {
   
@@ -45,24 +107,30 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
    *
    * Example:
    * ```swift
-   * let db = try Contacts.create(
+   * let db = try Contacts.bootstrap(
    *   at: destinationURL,
    *   readOnly: false
    * )
    * ```
    *
    * - Parameters:
-   *   - url: The place where the database should be created.
+   *   - url:      The place where the database should be created.
    *   - readOnly: Whether the database object should be returned read-only.
+   * - Returns:    The initialized database if successful.
    */
-  static func create(at url: URL, readOnly: Bool = false) throws -> Self {
+  static func bootstrap(at url: URL, readOnly: Bool = false) throws -> Self {
     let fm = FileManager.default
     if fm.fileExists(atPath: url.path) {
       return Self.init(url: url, readOnly: readOnly)
     }
+    
+    let dir = url.deletingLastPathComponent()
+    if !fm.fileExists(atPath: dir.path) {
+      try fm.createDirectory(at: dir, withIntermediateDirectories: true)
+    }
 
-    let flags : Int32 =
-      (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI)
+    let flags : Int32
+              = (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE | SQLITE_OPEN_URI)
     var db : OpaquePointer?
     guard sqlite3_open_v2(url.absoluteString, &db, flags, nil) == SQLITE_OK else
     {
@@ -73,20 +141,64 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
     guard sqlite3_exec(db, Self.creationSQL, nil, nil, nil) == SQLITE_OK else {
       throw SQLError(db)
     }
-
+    
     return Self(url: url, readOnly: readOnly)
   }
+  
+  /**
+   * Create or open the SQL database at the given URL.
+   *
+   * If a file already exists at the URL, the database structure is initialized
+   * with that.
+   *
+   * Otherwise the database is (re)created using the `creationSQL` statements
+   * contained in the schema types of the database.
+   *
+   * Example:
+   * ```swift
+   * let db = try Contacts.bootstrap()
+   * ```
+   *
+   * - Parameters:
+   *   - directory: The `FileManager.SearchPathDirectory` to place the
+   *                copy in, defaults to `applicationSupportDirectory`.
+   *   - domains:   The `FileManager.SearchPathDomainMask` to use for the
+   *                lookup of the `directory`.
+   *                Defaults to `userDomainMask`.
+   *   - filename:  The filename to use, otherwise defaults to the name of
+   *                database type (e.g. `Contacts.sqlite`).
+   *   - readOnly:  Whether the database object should be returned read-only.
+   * - Returns:    The initialized database if successful.
+   */
+  static func bootstrap(into directory : FileManager.SearchPathDirectory
+                                       = .applicationSupportDirectory,
+                        domains        : FileManager.SearchPathDomainMask
+                                       = .userDomainMask,
+                        filename       : String? = nil,
+                        readOnly       : Bool = false) throws -> Self
+  {
+    guard let dir = FileManager.default.urls(for: directory, in: domains).first
+    else {
+      fatalError("Could not get path for \(directory) directory?!")
+    }
+    
+    let filename = filename ?? String(describing: self) + ".sqlite3"
+    let url = dir.appendingPathComponent(filename)
+    
+    return try bootstrap(at: url, readOnly: readOnly)
+  }
 }
+#endif // canImport(Foundation)
 
 
 // MARK: - Async/Await
 
-#if swift(>=5.5) && canImport(_Concurrency)
+#if swift(>=5.5) && canImport(_Concurrency) && canImport(Foundation)
 import Dispatch
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
-
+  
   /**
    * Create or open the SQL database at the given URL.
    *
@@ -97,7 +209,7 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    *
    * Example:
    * ```swift
-   * let db = try await Contacts.create(
+   * let db = try await Contacts.bootstrap(
    *   at: destinationURL,
    *   readOnly: false,
    *   copying: bundle.url(forResource: "Contacts", withExtension: "db")!
@@ -109,15 +221,55 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    *   - readOnly: Whether the database object should be returned read-only.
    *   - databaseFileURL: The "source" database to be copied.
    */
-  @inlinable
-  static func create(at url: URL, readOnly: Bool = false,
-                     copying databaseFileURL: URL) async throws -> Self
+  static func bootstrap(at url: URL, readOnly: Bool = false,
+                        copying databaseFileURL: URL) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.create(at: url, readOnly: readOnly,
-                                   copying: databaseFileURL)
+          let db = try self.bootstrap(at: url, readOnly: readOnly,
+                                      copying: databaseFileURL)
+          continuation.resume(returning: db)
+        }
+        catch { continuation.resume(throwing: error) }
+      }
+    }
+  }
+  
+  /**
+   * Create the database by copying an existing (usually resource) database
+   * to a different place.
+   *
+   * Example:
+   * ```swift
+   * let db = try await ContactsDB.bootstrap(
+   *   copying: ContactsDB.module.connectionHandler.url
+   * )
+   * ```
+   *
+   * - Parameters:
+   *   - directory:       The `FileManager.SearchPathDirectory` to place the
+   *                      copy in, defaults to `applicationSupportDirectory`.
+   *   - domains:         The `FileManager.SearchPathDomainMask` to use for the
+   *                      lookup of the `directory`.
+   *                      Defaults to `userDomainMask`.
+   *   - readOnly:        Whether the database should be opened read only.
+   *   - databaseFileURL: The URL of the database to be copied.
+   * - Returns:           The initialized database if successful.
+   */
+  static func bootstrap(into directory : FileManager.SearchPathDirectory
+                                       = .applicationSupportDirectory,
+                        domains        : FileManager.SearchPathDomainMask
+                                       = .userDomainMask,
+                        readOnly       : Bool = false,
+                        copying databaseFileURL: URL) async throws -> Self
+  {
+    return try await withCheckedThrowingContinuation { continuation in
+      DispatchQueue.global().async {
+        do {
+          let db = try self.bootstrap(into: directory, domains: domains,
+                                      readOnly: readOnly,
+                                      copying: databaseFileURL)
           continuation.resume(returning: db)
         }
         catch { continuation.resume(throwing: error) }
@@ -142,7 +294,7 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder,
    *
    * Example:
    * ```swift
-   * let db = try await Contacts.create(
+   * let db = try await Contacts.bootstrap(
    *   at: destinationURL,
    *   readOnly: false
    * )
@@ -151,13 +303,59 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder,
    * - Parameters:
    *   - url: The place where the database should be created.
    *   - readOnly: Whether the database object should be returned read-only.
+   * - Returns:    The initialized database if successful.
    */
-  @inlinable
-  static func create(at url: URL, readOnly: Bool = false) async throws -> Self {
+  static func bootstrap(at url: URL, readOnly: Bool = false)
+                async throws -> Self
+  {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.create(at: url, readOnly: readOnly)
+          let db = try self.bootstrap(at: url, readOnly: readOnly)
+          continuation.resume(returning: db)
+        }
+        catch { continuation.resume(throwing: error) }
+      }
+    }
+  }
+  
+  /**
+   * Create or open the SQL database at the given URL.
+   *
+   * If a file already exists at the URL, the database structure is initialized
+   * with that.
+   *
+   * Otherwise the database is (re)created using the `creationSQL` statements
+   * contained in the schema types of the database.
+   *
+   * Example:
+   * ```swift
+   * let db = try await Contacts.bootstrap()
+   * ```
+   *
+   * - Parameters:
+   *   - directory: The `FileManager.SearchPathDirectory` to place the
+   *                copy in, defaults to `applicationSupportDirectory`.
+   *   - domains:   The `FileManager.SearchPathDomainMask` to use for the
+   *                lookup of the `directory`.
+   *                Defaults to `userDomainMask`.
+   *   - filename:  The filename to use, otherwise defaults to the name of
+   *                database type (e.g. `Contacts.sqlite`).
+   *   - readOnly:  Whether the database object should be returned read-only.
+   * - Returns:    The initialized database if successful.
+   */
+  static func bootstrap(into directory : FileManager.SearchPathDirectory
+                                       = .applicationSupportDirectory,
+                        domains        : FileManager.SearchPathDomainMask
+                                       = .userDomainMask,
+                        filename       : String? = nil,
+                        readOnly       : Bool = false) async throws -> Self
+  {
+    return try await withCheckedThrowingContinuation { continuation in
+      DispatchQueue.global().async {
+        do {
+          let db = try self.bootstrap(into: directory, domains: domains,
+                                      filename: filename, readOnly: readOnly)
           continuation.resume(returning: db)
         }
         catch { continuation.resume(throwing: error) }
