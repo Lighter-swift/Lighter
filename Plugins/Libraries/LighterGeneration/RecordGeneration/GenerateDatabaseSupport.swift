@@ -160,7 +160,17 @@ extension EnlighterASTGenerator {
                 propertyName,
                 type: .name(database.name + "!"),
          is: .inlineClosureCall([
+          // `.module` is not available in Xcode app targets! It is generated
+          // by SPM it seems.
+          .raw("#if SWIFT_PACKAGE"),
           .let("bundle", is: .variable("Bundle", "module")),
+          .raw("#else"),
+          .raw("final class Helper {}"),
+          // let bundle = Bundle(for: Helper.self)
+          .let("bundle", is: .call(name: "Bundle", parameters: [
+            ( "for", .raw("Helper.self") ) // otherwise `self` gets quoted
+          ])),
+          .raw("#endif"),
           .ifLetElse(
             "url",
               .call(instance: "bundle", name: "url", parameters: [

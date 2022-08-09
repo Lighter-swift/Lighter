@@ -16,7 +16,8 @@ extension EnlighterASTGenerator {
     var unit = CompilationUnit(name: filename)
     
     unit.imports = [ "SQLite3" ] // TBD: re-export for raw mode?
-    if options.allowFoundation {
+    if options.allowFoundation || options.useLighter {
+      // FIXME: Lighter uses `Foundation` for URL inits.
       unit.imports.append("Foundation")
     }
     if options.useLighter {

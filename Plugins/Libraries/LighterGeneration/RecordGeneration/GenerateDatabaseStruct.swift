@@ -18,7 +18,9 @@ extension EnlighterASTGenerator {
     var typeFunctions          = [ FunctionDefinition         ]()
     var functions              = [ FunctionDefinition         ]()
 
-    if options.useLighter, let filename = moduleFileName {
+    if options.useLighter, let filename = moduleFileName,
+       options.allowFoundation // needs `Bundle`
+    {
       typeVariables.append(generateModuleSingleton(for: filename))
     }
     
@@ -96,7 +98,7 @@ extension EnlighterASTGenerator {
     
     // DateFormatter
     
-    if hasPropertiesOfType(.date) {
+    if hasPropertiesOfType(.date) && options.allowFoundation {
       let name    = "dateFormatter"
       let type    = TypeReference.optional(.name("DateFormatter"))
       let comment = "The `DateFormatter` used for parsing string date values."
@@ -109,7 +111,7 @@ extension EnlighterASTGenerator {
                name, type,
                set: [ .set("_\(name)", .raw("newValue")) ],
                get: [ .return(.nilCoalesce(
-                 .variable("_\(name)"),
+                 .variable("_\(name)"), // "_dateFormatter"
                  .variable("Date", "defaultSQLiteDateFormatter")
                ))],
                comment: comment)

@@ -1,16 +1,21 @@
-// swift-tools-version:5.0
+// swift-tools-version:5.6
 
 import PackageDescription
 
 var package = Package(
   name: "Lighter",
 
-  platforms: [ .macOS(.v10_14), .iOS(.v12) ],
+  platforms: [ .macOS(.v10_15), .iOS(.v13) ],
   
   products: [
     .library(name: "Lighter",         targets: [ "Lighter"       ]),
     .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
-    .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ])
+
+    .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ]),
+    
+    .plugin(name: "Enlighter",        targets: [ "Enlighter"     ]),
+    .plugin(name: "Generate Code for SQLite",
+            targets: [ "Generate Code for SQLite" ])
   ],
   
   targets: [
@@ -23,7 +28,7 @@ var package = Package(
     // standalone lib).
     .target(name: "Lighter"),
 
-    
+
     // MARK: - Plugin Support
     
     // The CodeGenAST is a small and hacky helper lib that can format/render
@@ -46,24 +51,58 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    .testTarget(name: "ContactsDatabaseTests", dependencies: [ "Lighter" ],
-                exclude: [ "contacts-create.sql" ]),
 
     
-    // MARK: - sqlite2swift
+    // MARK: - Plugins and supporting Tools
 
-    .target(name         : "sqlite2swift",
-            dependencies : [ "LighterGeneration" ],
-            path         : "Plugins/Tools/sqlite2swift",
-            exclude      : [ "README.md" ]),
+    .executableTarget(name         : "sqlite2swift",
+                      dependencies : [ "LighterGeneration" ],
+                      path         : "Plugins/Tools/sqlite2swift",
+                      exclude      : [ "README.md" ]),
+
+    .plugin(name: "Enlighter", capability: .buildTool(),
+            dependencies: [ "sqlite2swift" ]),
+    
+    .plugin(
+      name: "Generate Code for SQLite",
+      capability: .command(
+        intent: .custom(
+          verb: "sqlite2swift",
+          description:
+            "Generate Swift code for SQLite DBs into the Sources directory."
+          ),
+          permissions: [
+            .writeToPackageDirectory(reason:
+              "The plugin needs access to generate the source file.")
+          ]
+      ),
+      dependencies: [ "sqlite2swift" ],
+      path: "Plugins/GenerateCodeForSQLite"
+    ),
 
     
-    // MARK: - Internal Tool for Generating Variadics
-        
-    .target(name         : "GenerateInternalVariadics",
-            dependencies : [ "LighterCodeGenAST", "LighterGeneration" ],
-            path         : "Plugins/Tools/GenerateInternalVariadics",
-            exclude      : [ "README.md" ]),
+    // MARK: - Internal Plugin for Generating Variadics
+    
+    .executableTarget(name         : "GenerateInternalVariadics",
+                      dependencies : [ "LighterGeneration" ],
+                      path         : "Plugins/Tools/GenerateInternalVariadics",
+                      exclude      : [ "README.md" ]),
+    .plugin(
+      name: "Generate Variadics into Lighter (Internal)",
+      capability: .command(
+        intent: .custom(
+          verb: "write-internal-variadics",
+          description:
+            "Generate the variadic queries into the Sources/Lighter directory."
+        ),
+        permissions: [
+          .writeToPackageDirectory(
+            reason: "The plugin needs access to generate the source file.")
+        ]
+      ),
+      dependencies: [ "GenerateInternalVariadics" ],
+      path: "Plugins/WriteInternalVariadics"
+    ),
     
     
     // MARK: - Environment specific tests
