@@ -18,7 +18,9 @@ extension EnlighterASTGenerator {
     var typeFunctions          = [ FunctionDefinition         ]()
     var functions              = [ FunctionDefinition         ]()
 
-    if options.useLighter, let filename = moduleFileName {
+    if options.useLighter, let filename = moduleFileName,
+       options.allowFoundation // needs `Bundle`
+    {
       typeVariables.append(generateModuleSingleton(for: filename))
     }
     
