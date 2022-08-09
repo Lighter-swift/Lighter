@@ -256,7 +256,6 @@ import XcodeProjectPlugin
 extension GenerateCodeForSQLite: XcodeCommandPlugin {
   
   func performCommand(context: XcodePluginContext, arguments: [String]) throws {
-    typealias SwiftSourceModuleTarget = XcodeTarget // compat
     debugLog("Perform Xcode \(#fileID):", Date())
     
     let args = Arguments(arguments)
@@ -320,8 +319,8 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
     return url
   }
 
-  private func collectResources(in target: XcodeTarget,
-                                extensions: Set<String>)
+  fileprivate func collectResources(in target: XcodeTarget,
+                                    extensions: Set<String>)
                -> Set<String>
   {
     var result = Set<String>()
