@@ -34,7 +34,7 @@ public extension SQLDatabaseAsyncChangeOperations {
   func delete<T>(from table : KeyPath<Self.RecordTypes, T.Type>,
                  id         : T.Schema.PrimaryKeyColumn.Value)
          async throws
-         where T: SQLTableRecord, T.Schema: SQLKeyedTableSchema
+         where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
     try await runOnDatabaseQueue { try delete(from: table, id: id) }
   }
@@ -53,7 +53,7 @@ public extension SQLDatabaseAsyncChangeOperations {
   func delete<T, C>(from   table : KeyPath<Self.RecordTypes, T.Type>,
                     where column : KeyPath<T.Schema, C>, is value : C.Value)
          async throws
-         where C: SQLColumn, T == C.T, T: SQLTableRecord
+         where C: SQLColumn, T == C.T, T: SQLDeletableRecord
   {
     try await runOnDatabaseQueue {
       try delete(from: table, where: column, is: value)
@@ -76,7 +76,7 @@ public extension SQLDatabaseAsyncChangeOperations {
   func delete<T, P>(from  table : KeyPath<Self.RecordTypes, T.Type>,
                     where     p : @escaping ( T.Schema ) -> P)
          async throws
-         where T: SQLTableRecord, P: SQLPredicate
+         where T: SQLDeletableRecord, P: SQLPredicate
   {
     try await runOnDatabaseQueue { try delete(from: table, where: p) }
   }
@@ -97,7 +97,7 @@ public extension SQLDatabaseAsyncChangeOperations {
    */
   @inlinable
   func delete<T>(_ record: T) async throws
-         where T: SQLTableRecord, T.Schema: SQLKeyedTableSchema
+         where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
     try await runOnDatabaseQueue { try delete(record) }
   }
@@ -116,7 +116,7 @@ public extension SQLDatabaseAsyncChangeOperations {
    */
   @inlinable
   func update<T>(_ record: T) async throws
-         where T: SQLTableRecord, T.Schema: SQLKeyedTableSchema
+         where T: SQLUpdatableRecord, T.Schema: SQLKeyedTableSchema
   {
     try await runOnDatabaseQueue { try update(record) }
   }
@@ -141,7 +141,7 @@ public extension SQLDatabaseAsyncChangeOperations {
   @inlinable
   @discardableResult
   func insert<T>(_ record: T) async throws -> T
-         where T: SQLTableRecord
+         where T: SQLInsertableRecord
   {
     try await runOnDatabaseQueue { try insert(record) }
   }

@@ -37,7 +37,7 @@ public extension SQLDatabaseChangeOperations {
   func delete<T>(from table : KeyPath<Self.RecordTypes, T.Type>,
                  id         : T.Schema.PrimaryKeyColumn.Value)
          throws
-         where T: SQLTableRecord, T.Schema: SQLKeyedTableSchema
+         where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
     try delete(from: table) {_ in T.Schema.primaryKeyColumn == id }
   }
@@ -54,9 +54,9 @@ public extension SQLDatabaseChangeOperations {
   func delete<T, C>(from   table : KeyPath<Self.RecordTypes, T.Type>,
                     where column : KeyPath<T.Schema, C>, is value : C.Value)
          throws
-         where C: SQLColumn, T == C.T, T: SQLTableRecord
+         where C: SQLColumn, T == C.T, T: SQLDeletableRecord
   {
-    try delete(from: table) {_ in T.schema[keyPath: column] == value }
+    try delete(from: table) { _ in T.schema[keyPath: column] == value }
   }
 
   /**
@@ -70,8 +70,8 @@ public extension SQLDatabaseChangeOperations {
    * ```
    */
   func delete<T, P>(from  table : KeyPath<Self.RecordTypes, T.Type>,
-                 where     p : ( T.Schema ) -> P) throws
-         where T: SQLTableRecord, P: SQLPredicate
+                    where     p : ( T.Schema ) -> P) throws
+         where T: SQLDeletableRecord, P: SQLPredicate
   {
     var builder = SQLBuilder<T>()
     builder.generateDelete(from: T.Schema.externalName, where: p(T.schema))
@@ -91,7 +91,7 @@ public extension SQLDatabaseChangeOperations {
    */
   @inlinable
   func delete<T>(_ record: T) throws
-         where T: SQLTableRecord, T.Schema: SQLKeyedTableSchema
+         where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
     try connectionHandler.withConnection(readOnly: false) { db in
       
@@ -133,7 +133,7 @@ public extension SQLDatabaseChangeOperations {
    */
   @inlinable
   func update<T>(_ record: T) throws
-         where T: SQLTableRecord, T.Schema: SQLKeyedTableSchema
+         where T: SQLUpdatableRecord, T.Schema: SQLKeyedTableSchema
   {
     try connectionHandler.withConnection(readOnly: false) { db in
       
@@ -177,7 +177,7 @@ public extension SQLDatabaseChangeOperations {
   @inlinable
   @discardableResult
   func insert<T>(_ record: T) throws -> T
-         where T: SQLTableRecord
+         where T: SQLInsertableRecord
   {
     try connectionHandler.withConnection(readOnly: false) { db in
       
