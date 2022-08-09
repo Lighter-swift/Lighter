@@ -46,7 +46,8 @@ var package = Package(
     .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
-    .testTarget(name: "ContactsDatabaseTests",  dependencies: [ "Lighter" ]),
+    .testTarget(name: "ContactsDatabaseTests", dependencies: [ "Lighter" ],
+                exclude: [ "contacts-create.sql" ]),
 
     
     // MARK: - sqlite2swift
