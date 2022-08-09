@@ -168,7 +168,7 @@ extension EnlighterASTGenerator {
           .raw("final class Helper {}"),
           // let bundle = Bundle(for: Helper.self)
           .let("bundle", is: .call(name: "Bundle", parameters: [
-            ( "for"   , .variableReference(instance: "Helper", name: "self") ),
+            ( "for", .raw("Helper.self") ) // otherwise `self` gets quoted
           ])),
           .raw("#endif"),
           .ifLetElse(
