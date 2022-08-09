@@ -213,7 +213,7 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
       builder.generateStruct(s)
       return builder.source
     }()
-    print("GOT:\n-----\n\(source)\n-----")
+    //print("GOT:\n-----\n\(source)\n-----")
     
     XCTAssertTrue(source.contains("#if swift(>=5.7)"))
     XCTAssertTrue(source.contains(
