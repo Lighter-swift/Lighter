@@ -9,7 +9,7 @@
 Like [SwiftGen](https://github.com/SwiftGen/SwiftGen) but for SQLite3.
 
 - Type-safe down to the SQL schema.
-- Very, **very**, fast.
+- Very, **very**, [fast](https://github.com/Lighter-swift/PerformanceTestSuite).
 - Dependency free.
 
 Lighter is useful for two main scenarios:
