@@ -75,10 +75,12 @@ public protocol SQLDatabase: SQLDatabaseOperations {
    * ```
    *
    * - Parameters:
-   *   - url: The place where the database should be created.
-   *   - readOnly: Whether the database object should be returned read-only.
+   *   - url:             The place where the database should be created.
+   *   - readOnly:        Whether the database should be opened read-only.
+   *   - overwrite:       Whether the database should be deleted if it
+   *                      exists already (useful during development).
    *   - databaseFileURL: The "source" database to be copied.
    */
-  static func bootstrap(at url: URL, readOnly: Bool,
+  static func bootstrap(at url: URL, readOnly: Bool, overwrite: Bool,
                         copying databaseFileURL: URL) throws -> Self
 }

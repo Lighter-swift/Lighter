@@ -212,7 +212,7 @@ extension EnlighterASTGenerator {
     if database.userVersion != 0 {
       statements.append(
         .call(instance: "sql", name: "append",
-              .string("PRAGMA user_version = \(database.userVersion));"))
+              .string("PRAGMA user_version = \(database.userVersion);"))
       )
     }
 
