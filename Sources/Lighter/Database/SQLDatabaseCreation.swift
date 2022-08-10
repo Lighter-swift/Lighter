@@ -27,23 +27,33 @@ public extension SQLDatabase {
    * Example:
    * ```swift
    * let db = try ContactsDB.bootstrap(
-   *   at: url, copying: ContactsDB.module.connectionHandler.url
+   *   at: url,
+   *   overwrite: false,
+   *   copying: ContactsDB.module.connectionHandler.url
    * )
    * ```
    *
    * - Parameters:
    *   - url:             The path to the destination.
    *   - readOnly:        Whether the database should be opened read only.
+   *   - overwrite:       Whether the database should be deleted if it
+   *                      exists already (useful during development).
    *   - databaseFileURL: The URL of the database to be copied.
    * - Returns:           The initialized database if successful.
    */
   static func bootstrap(at url: URL, readOnly: Bool = false,
+                        overwrite: Bool = false,
                         copying databaseFileURL: URL) throws -> Self
   {
     let fm = FileManager.default
     
     if fm.fileExists(atPath: url.path) {
-      return Self.init(url: url, readOnly: readOnly)
+      if overwrite {
+        try fm.removeItem(at: url)
+      }
+      else {
+        return Self.init(url: url, readOnly: readOnly)
+      }
     }
     
     let dir = url.deletingLastPathComponent()
@@ -73,6 +83,8 @@ public extension SQLDatabase {
    *                      lookup of the `directory`.
    *                      Defaults to `userDomainMask`.
    *   - readOnly:        Whether the database should be opened read only.
+   *   - overwrite:       Whether the database should be deleted if it
+   *                      exists already (useful during development).
    *   - databaseFileURL: The URL of the database to be copied.
    * - Returns:           The initialized database if successful.
    */
@@ -80,7 +92,8 @@ public extension SQLDatabase {
                                        = .applicationSupportDirectory,
                         domains        : FileManager.SearchPathDomainMask
                                        = .userDomainMask,
-                        readOnly: Bool = false,
+                        readOnly       : Bool = false,
+                        overwrite      : Bool = false,
                         copying databaseFileURL: URL) throws -> Self
   {
     guard let dir = FileManager.default.urls(for: directory, in: domains).first
@@ -89,7 +102,8 @@ public extension SQLDatabase {
     }
     
     let url = dir.appendingPathComponent(databaseFileURL.lastPathComponent)
-    return try bootstrap(at: url, readOnly: readOnly, copying: databaseFileURL)
+    return try bootstrap(at: url, readOnly: readOnly, overwrite: overwrite,
+                         copying: databaseFileURL)
   }
 }
 
@@ -109,19 +123,29 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
    * ```swift
    * let db = try Contacts.bootstrap(
    *   at: destinationURL,
-   *   readOnly: false
+   *   readOnly: false,
+   *   overwrite: false
    * )
    * ```
    *
    * - Parameters:
-   *   - url:      The place where the database should be created.
-   *   - readOnly: Whether the database object should be returned read-only.
-   * - Returns:    The initialized database if successful.
+   *   - url:       The place where the database should be created.
+   *   - readOnly:  Whether the database object should be returned read-only.
+   *   - overwrite: Whether the database should be deleted if it
+   *                exists already (useful during development).
+   * - Returns:     The initialized database if successful.
    */
-  static func bootstrap(at url: URL, readOnly: Bool = false) throws -> Self {
+  static func bootstrap(at url: URL, readOnly: Bool = false,
+                        overwrite: Bool = false) throws -> Self
+  {
     let fm = FileManager.default
     if fm.fileExists(atPath: url.path) {
-      return Self.init(url: url, readOnly: readOnly)
+      if overwrite {
+        try fm.removeItem(at: url)
+      }
+      else {
+        return Self.init(url: url, readOnly: readOnly)
+      }
     }
     
     let dir = url.deletingLastPathComponent()
@@ -168,14 +192,17 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
    *   - filename:  The filename to use, otherwise defaults to the name of
    *                database type (e.g. `Contacts.sqlite`).
    *   - readOnly:  Whether the database object should be returned read-only.
-   * - Returns:    The initialized database if successful.
+   *   - overwrite: Whether the database should be deleted if it
+   *                exists already (useful during development).
+   * - Returns:     The initialized database if successful.
    */
   static func bootstrap(into directory : FileManager.SearchPathDirectory
                                        = .applicationSupportDirectory,
                         domains        : FileManager.SearchPathDomainMask
                                        = .userDomainMask,
                         filename       : String? = nil,
-                        readOnly       : Bool = false) throws -> Self
+                        readOnly       : Bool = false,
+                        overwrite      : Bool = false) throws -> Self
   {
     guard let dir = FileManager.default.urls(for: directory, in: domains).first
     else {
@@ -185,7 +212,7 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
     let filename = filename ?? String(describing: self) + ".sqlite3"
     let url = dir.appendingPathComponent(filename)
     
-    return try bootstrap(at: url, readOnly: readOnly)
+    return try bootstrap(at: url, readOnly: readOnly, overwrite: overwrite)
   }
 }
 #endif // canImport(Foundation)
@@ -217,17 +244,21 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    * ```
    *
    * - Parameters:
-   *   - url: The place where the database should be created.
-   *   - readOnly: Whether the database object should be returned read-only.
+   *   - url:             The place where the database should be created.
+   *   - readOnly:        Whether the database should be returned read-only.
+   *   - overwrite:       Whether the database should be deleted if it
+   *                      exists already (useful during development).
    *   - databaseFileURL: The "source" database to be copied.
    */
   static func bootstrap(at url: URL, readOnly: Bool = false,
+                        overwrite: Bool = false,
                         copying databaseFileURL: URL) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
           let db = try self.bootstrap(at: url, readOnly: readOnly,
+                                      overwrite: overwrite,
                                       copying: databaseFileURL)
           continuation.resume(returning: db)
         }
@@ -254,6 +285,8 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    *                      lookup of the `directory`.
    *                      Defaults to `userDomainMask`.
    *   - readOnly:        Whether the database should be opened read only.
+   *   - overwrite:       Whether the database should be deleted if it
+   *                      exists already (useful during development).
    *   - databaseFileURL: The URL of the database to be copied.
    * - Returns:           The initialized database if successful.
    */
@@ -262,13 +295,14 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
                         domains        : FileManager.SearchPathDomainMask
                                        = .userDomainMask,
                         readOnly       : Bool = false,
+                        overwrite      : Bool = false,
                         copying databaseFileURL: URL) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
           let db = try self.bootstrap(into: directory, domains: domains,
-                                      readOnly: readOnly,
+                                      readOnly: readOnly, overwrite: overwrite,
                                       copying: databaseFileURL)
           continuation.resume(returning: db)
         }
@@ -301,17 +335,21 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder,
    * ```
    *
    * - Parameters:
-   *   - url: The place where the database should be created.
-   *   - readOnly: Whether the database object should be returned read-only.
-   * - Returns:    The initialized database if successful.
+   *   - url:       The place where the database should be created.
+   *   - readOnly:  Whether the database object should be returned read-only.
+   *   - overwrite: Whether the database should be deleted if it
+   *                exists already (useful during development).
+   * - Returns:     The initialized database if successful.
    */
-  static func bootstrap(at url: URL, readOnly: Bool = false)
+  static func bootstrap(at url: URL, readOnly: Bool = false,
+                        overwrite: Bool = false)
                 async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.bootstrap(at: url, readOnly: readOnly)
+          let db = try self.bootstrap(at: url, readOnly: readOnly,
+                                      overwrite: overwrite)
           continuation.resume(returning: db)
         }
         catch { continuation.resume(throwing: error) }
@@ -342,20 +380,24 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder,
    *   - filename:  The filename to use, otherwise defaults to the name of
    *                database type (e.g. `Contacts.sqlite`).
    *   - readOnly:  Whether the database object should be returned read-only.
-   * - Returns:    The initialized database if successful.
+   *   - overwrite: Whether the database should be deleted if it
+   *                exists already (useful during development).
+   * - Returns:     The initialized database if successful.
    */
   static func bootstrap(into directory : FileManager.SearchPathDirectory
                                        = .applicationSupportDirectory,
                         domains        : FileManager.SearchPathDomainMask
                                        = .userDomainMask,
                         filename       : String? = nil,
-                        readOnly       : Bool = false) async throws -> Self
+                        readOnly       : Bool = false,
+                        overwrite      : Bool = false) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
           let db = try self.bootstrap(into: directory, domains: domains,
-                                      filename: filename, readOnly: readOnly)
+                                      filename: filename, readOnly: readOnly,
+                                      overwrite: overwrite)
           continuation.resume(returning: db)
         }
         catch { continuation.resume(throwing: error) }
