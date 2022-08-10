@@ -46,7 +46,7 @@ public extension SQLDatabase {
       return Self.init(url: url, readOnly: readOnly)
     }
     
-    let dir = databaseFileURL.deletingLastPathComponent()
+    let dir = url.deletingLastPathComponent()
     if !fm.fileExists(atPath: dir.path) {
       try fm.createDirectory(at: dir, withIntermediateDirectories: true)
     }
