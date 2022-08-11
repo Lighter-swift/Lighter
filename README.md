@@ -8,9 +8,26 @@
 [Swift](https://swift.org/), e.g. in iOS applications or on the server.
 Like [SwiftGen](https://github.com/SwiftGen/SwiftGen) but for SQLite3.
 
-- Type-safe down to the SQL schema.
-- Very, **very**, [fast](https://github.com/Lighter-swift/PerformanceTestSuite).
-- Dependency free.
+<details><summary>Type-safe down to the SQL schema.</summary>
+State of the art: Developer writes Swift structures that match a SQLite 
+table. 
+Enlighter reverses this, the generated Swift code reflects what the SQLite 
+table is actually defined as. No place for mistakes. 
+Remove a “somewhere” in the “it’s always any-o-clock somewhere in the stack”.
+</details>
+<details><summary>Very, <b>very</b>, <a href="https://github.com/Lighter-swift/PerformanceTestSuite">fast</a>.</summary>
+Lighter builds upon the database schema and hence directly knows what 
+it looks like at compile time. For common operations no mapping is 
+necessary at all, the generated code runs as fast (usually faster) than 
+hand written code. It directly binds Swift structures to the SQLite API.
+</details>
+<details><summary>Dependency free.</summary>
+Lighter itself is a small and convenient API to access SQLite databases. 
+Enlighter, the code generator, can however produce code that just uses 
+the SQLite API and doesn’t require any dependencies, i.e. tech debt. 
+Don’t ship 3rd party libraries, directly generate the necessary code 
+into your app.
+</details>
 
 Lighter is useful for two main scenarios:
 
