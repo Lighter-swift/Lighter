@@ -221,16 +221,16 @@ struct Enlighter: BuildToolPlugin {
       }()
 
       if configuration.verbose {
-        print("  Adding sqlite2swift for:", group.stem)
-        print("    \(sqlite2swift.path.string)")
-        print("    Args:", args)
+        debugLog("  Adding sqlite2swift for:", group.stem)
+        debugLog("    \(sqlite2swift.path.string)")
+        debugLog("    Args:", args)
       }
       buildCommands.append(.buildCommand(
-        displayName: "Enlighten \(group.stem) database in \(target.name)",
-        executable: sqlite2swift.path,
-        arguments: args,
-        inputFiles: inputFiles,
-        outputFiles: outputFiles
+        displayName : "Enlighten \(group.stem) database in \(target.name)",
+        executable  : sqlite2swift.path,
+        arguments   : args,
+        inputFiles  : inputFiles,
+        outputFiles : outputFiles
       ))
     }
     debugLog("Finished target:", target.name,
@@ -388,14 +388,34 @@ extension Enlighter: XcodeBuildToolPlugin {
         print("    Args:", args)
       }
       buildCommands.append(.buildCommand(
-        displayName: "Enlighten \(group.stem) database in \(target.name)",
-        executable: sqlite2swift.path,
-        arguments: args,
-        inputFiles: inputFiles,
-        outputFiles: outputFiles
+        displayName : "Enlighten \(group.stem) database in \(target.name)",
+        executable  : sqlite2swift.path,
+        arguments   : args,
+        inputFiles  : inputFiles,
+        outputFiles : outputFiles
       ))
+      
+      // So, in Xcode, if a resource is handled by Enlighter, Xcode itself
+      // doesn't copy the resource anymore. Likely a bug.
+      // So what we do is copy them ourselves into the plugin dir. They then
+      // get bundled properly.
+      let inResourceFiles  = groups.map({ $0.resourceURLs }).reduce([], +)
+                                   .map { Path($0.path) }
+      try inResourceFiles.forEach { inputResource in
+        let outResourceFile =
+          context.pluginWorkDirectory.appending(inputResource.lastComponent)
+
+        buildCommands.append(.buildCommand(
+          displayName : "Copy \(group.stem) resource "
+                      + "\(inputResource.lastComponent) into \(target.name)",
+          executable  : try context.tool(named: "cp").path,
+          arguments   : [ "-a", inputResource.string, outResourceFile.string ],
+          inputFiles  : [ inputResource   ],
+          outputFiles : [ outResourceFile ]
+        ))
+      }
     }
-    debugLog("Finished target:", target.name,
+    debugLog("Finished Xcode target:", target.name,
              "#\(buildCommands.count) commands.")
     return buildCommands
   }
