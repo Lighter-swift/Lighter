@@ -78,13 +78,13 @@ public enum Statement: Equatable {
 
 public extension Statement {
   
-  /// Initialize a new ``Statement/ifLetElse(_:_:_:`else`:)`` statement.
+  /// Initialize a new `ifLetElse` statement.
   static func ifLet(_ id: String, is value: Expression, then: Statement...)
               -> Self
   {
     .ifLetElse(id, value, then, else: [])
   }
-  /// Initialize a new ``Statement/ifLetElse(_:_:_:`else`:)`` statement.
+  /// Initialize a new `ifLetElse` statement.
   static func ifLet(_ id: String, is value: Expression, then: [Statement],
                     else: [Statement])
               -> Self
