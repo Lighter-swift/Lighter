@@ -394,6 +394,26 @@ extension Enlighter: XcodeBuildToolPlugin {
         inputFiles  : inputFiles,
         outputFiles : outputFiles
       ))
+      
+      // So, in Xcode, if a resource is handled by Enlighter, Xcode itself
+      // doesn't copy the resource anymore. Likely a bug.
+      // So what we do is copy them ourselves into the plugin dir. They then
+      // get bundled properly.
+      let inResourceFiles  = groups.map({ $0.resourceURLs }).reduce([], +)
+                                   .map { Path($0.path) }
+      try inResourceFiles.forEach { inputResource in
+        let outResourceFile =
+          context.pluginWorkDirectory.appending(inputResource.lastComponent)
+
+        buildCommands.append(.buildCommand(
+          displayName : "Copy \(group.stem) resource "
+                      + "\(inputResource.lastComponent) into \(target.name)",
+          executable  : try context.tool(named: "cp").path,
+          arguments   : [ "-a", inputResource.string, outResourceFile.string ],
+          inputFiles  : [ inputResource   ],
+          outputFiles : [ outResourceFile ]
+        ))
+      }
     }
     debugLog("Finished Xcode target:", target.name,
              "#\(buildCommands.count) commands.")
