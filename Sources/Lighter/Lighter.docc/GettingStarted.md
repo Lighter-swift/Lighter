@@ -29,7 +29,7 @@ Five quick steps:
    [download here](https://github.com/Lighter-swift/NorthwindSQLite.swift/blob/develop/dist/northwind.db).
    **Make sure it is** selected as **a resource** of the Xcode target.
 4. **Build** the project. Xcode may ask you to "trust" the "Enlighter" plugin.
-   (it is pretty save, plugins can't do network operationss and only write in 
+   (it is pretty save, plugins can't do network operations and only write in 
     the assigned sandbox).
 5. **Start using the database**. E.g. if the Northwind SQLite file was just
    dropped into a small SwiftUI app:
