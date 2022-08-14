@@ -221,16 +221,16 @@ struct Enlighter: BuildToolPlugin {
       }()
 
       if configuration.verbose {
-        print("  Adding sqlite2swift for:", group.stem)
-        print("    \(sqlite2swift.path.string)")
-        print("    Args:", args)
+        debugLog("  Adding sqlite2swift for:", group.stem)
+        debugLog("    \(sqlite2swift.path.string)")
+        debugLog("    Args:", args)
       }
       buildCommands.append(.buildCommand(
-        displayName: "Enlighten \(group.stem) database in \(target.name)",
-        executable: sqlite2swift.path,
-        arguments: args,
-        inputFiles: inputFiles,
-        outputFiles: outputFiles
+        displayName : "Enlighten \(group.stem) database in \(target.name)",
+        executable  : sqlite2swift.path,
+        arguments   : args,
+        inputFiles  : inputFiles,
+        outputFiles : outputFiles
       ))
     }
     debugLog("Finished target:", target.name,
@@ -388,14 +388,14 @@ extension Enlighter: XcodeBuildToolPlugin {
         print("    Args:", args)
       }
       buildCommands.append(.buildCommand(
-        displayName: "Enlighten \(group.stem) database in \(target.name)",
-        executable: sqlite2swift.path,
-        arguments: args,
-        inputFiles: inputFiles,
-        outputFiles: outputFiles
+        displayName : "Enlighten \(group.stem) database in \(target.name)",
+        executable  : sqlite2swift.path,
+        arguments   : args,
+        inputFiles  : inputFiles,
+        outputFiles : outputFiles
       ))
     }
-    debugLog("Finished target:", target.name,
+    debugLog("Finished Xcode target:", target.name,
              "#\(buildCommands.count) commands.")
     return buildCommands
   }

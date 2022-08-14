@@ -16,10 +16,17 @@ import Foundation
  */
 struct EnlighterGroup: CustomStringConvertible {
   
+  // The base name of the group, e.g. `Contacts`. This will become the name of
+  // the database as known to Swift.
   let stem         : String
+  // URLs to all input files for the group, e.g. `Contacts.db`,
+  // `Contacts-01.sql`.
   var matches      : [ URL ]
+  // All `matches` that match the resource pathes passed in to the `load`
+  // function (i.e. all inputs that will be copied as resource files into the
+  // target).
   var resourceURLs = [ URL ]()
-  
+
   var description: String {
     "<Group[\(stem)]: " +
     matches.map(\.lastPathComponent).joined(separator: ",") + ">"
