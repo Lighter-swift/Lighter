@@ -66,7 +66,7 @@ extension Schema {
 public extension Schema.Column.DefaultValue {
   
   /**
-   * Returns the ``Schema.TypeAffinity`` of the column.
+   * Returns the ``Schema/TypeAffinity`` of the column.
    *
    * In SQLite columns can store any type, even if declared otherwise.
    * E.g. you can insert a a TEXT into an INT column, and the TEXT will be

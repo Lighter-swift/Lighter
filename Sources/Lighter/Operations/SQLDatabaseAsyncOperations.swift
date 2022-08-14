@@ -41,7 +41,8 @@ public extension SQLDatabaseAsyncOperations {
   
 #if swift(>=5.5) && canImport(_Concurrency)
   /**
-   * Asynchronously runs the given block in the ``asyncDatabaseQueue``.
+   * Asynchronously runs the given block in the
+   * ``SQLDatabaseAsyncOperations/asyncDatabaseQueue-89vi8``.
    *
    * - Parameters:
    *   - block: The block to execute in the queue.

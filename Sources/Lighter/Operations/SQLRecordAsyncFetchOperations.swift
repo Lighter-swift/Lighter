@@ -13,7 +13,8 @@ public extension SQLRecordFetchOperations
 {
 
   /**
-   * Asynchronously runs the given block in the ``asyncDatabaseQueue``.
+   * Asynchronously runs the given block in the
+   * ``SQLDatabaseAsyncOperations/asyncDatabaseQueue-5emzh``.
    *
    * - Parameters:
    *   - block: The block to execute in the queue.

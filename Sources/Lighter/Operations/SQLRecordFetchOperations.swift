@@ -17,7 +17,7 @@ public struct SQLRecordFetchOperations<Ops, T: SQLRecord>
                 where Ops: SQLDatabaseOperations
 {
   
-  /// Matches the ``SQLDatabaseOperations/RecordTypes``.
+  /// Matches the ``SQLDatabaseOperations/recordTypes-swift.type.property``.
   @inlinable
   public static var recordTypes : Ops.RecordTypes { Ops.recordTypes }
 
