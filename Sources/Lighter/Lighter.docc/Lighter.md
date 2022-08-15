@@ -103,6 +103,7 @@ There are two associated repositories:
 - <doc:Linux>
 - <doc:Manual>
 - <doc:SQLiteAPI>
+- <doc:Mapping>
 - <doc:Performance>
 
 ### Support
