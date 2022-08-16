@@ -44,7 +44,7 @@ are extremely compact (e.g. no duplicate keys).
 > data from the network!
 </details>
 
-<details><summary>Maintaing a fast local SQL cache or database.</summary>
+<details><summary>Maintaining a fast local SQL cache or database.</summary>
 
 If the needs are simpler than a full 
 [ORM](https://en.wikipedia.org/wiki/Object–relational_mapping)
