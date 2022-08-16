@@ -91,7 +91,9 @@ CREATE TABLE address (
 );
 ```
 
-Can be converted to a structure like this (in a highly [configurable](Documentation/Configuration.md) way):
+Can be converted to a structure like this (in a highly 
+[configurable](https://lighter-swift.github.io/documentation/lighter/configuration)
+way):
 ```swift
 struct ContactsDB {
 
@@ -111,7 +113,9 @@ struct ContactsDB {
 ```
 
 The code generator can either generate dependency free code that only uses
-the raw SQLite3 API or code that uses the [Lighter](Sources/Lighter/) library.
+the raw SQLite3 API or code that uses the 
+[Lighter](https://github.com/Lighter-swift/Lighter/tree/develop/Sources/Lighter/) 
+library.
 The Lighter library is not an
 [ORM](https://en.wikipedia.org/wiki/Object–relational_mapping),
 but just a set of Swift protocols that allow for typesafe queries
@@ -127,7 +131,7 @@ feature of the
 [Swift Package Manager](https://www.swift.org/package-manager/),
 available since Swift 5.6 (and exposed in Xcode 14+).
 If SPM plugins cannot be used yet, the
-[sqlite2swift](Plugins/Tools/sqlite2swift/)
+[sqlite2swift](https://github.com/Lighter-swift/Lighter/tree/develop/Plugins/Tools/sqlite2swift/)
 tool can be called directly as well.<br>
 If you want to support the project, there is also the
 [Code for SQLite3](https://apps.apple.com/us/app/code-for-sqlite3/id1638111010/)
@@ -135,7 +139,7 @@ app on the Mac AppStore. It does the same code generation as this FOSS project
 in a little more interactive way.
 
 The Lighter package comes with a "build tool plugin" called 
-[Enlighter](Plugins/Enlighter/),
+[Enlighter](https://github.com/Lighter-swift/Lighter/tree/develop/Plugins/Enlighter/),
 that automatically integrates the code generation results into the build process.
 If it is added to a target, it'll scan for databases and SQL files and create the
 Swift accessors for them:
@@ -148,7 +152,7 @@ This variant is fully automatic, i.e. other code within the `ContactsDB` target
 has direct access to the database types (e.g. the `Person` struct above).
 
 As a manual alternative the
-[Generate Code for SQLite](Plugins/GenerateCodeForSQLite/)
+[Generate Code for SQLite](https://github.com/Lighter-swift/Lighter/tree/develop/Plugins/GenerateCodeForSQLite/)
 "command plugin" is provided.
 This plugin does the same generation as Enlighter, but is explicitly run by the
 developer using the Xcode "File / Packages" menu. It places the resulting code
@@ -269,7 +273,7 @@ Example: [Northwind Database](https://lighter-swift.github.io/NorthwindSQLite.sw
 </details>
 
 
-Interested? 👉 [Getting Started](Documentation/GettingStarted.md).
+Interested? 👉 [Getting Started](https://lighter-swift.github.io/documentation/lighter/gettingstarted).
 
 
 ### Who
