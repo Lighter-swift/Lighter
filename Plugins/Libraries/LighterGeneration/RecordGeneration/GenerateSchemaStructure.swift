@@ -7,10 +7,25 @@ import LighterCodeGenAST
 
 extension EnlighterASTGenerator {
 
-  func indexName(for propertyName: String) -> String {
+  /**
+   * Returns `idx_lol` for `lol` property. The prefix is configurable
+   * using ``Options-swift.struct/propertyIndexPrefix``.
+   */
+  func tupleUnsafeIndexName(for propertyName: String) -> String {
+    // This should be removed
     options.propertyIndexPrefix + propertyName
   }
   
+  /**
+   * Retrieves the type of the property (using `type(for:)`) and then
+   * returns a string for that.
+   * Examples:
+   * - `String`
+   * - `String?`
+   * - `[ UInt8 ]?`
+   * It only expects named type references w/ optionality or arrays (only
+   * thing used in property types).
+   */
   private func typeString(for property: EntityInfo.Property) -> String {
     switch type(for: property) {
       case                  .name(let name)   : return name
@@ -228,12 +243,7 @@ extension EnlighterASTGenerator {
     // Struct
     
     var typeAliases : [ ( name: String, type: TypeReference ) ] = [
-      ( api.propertyIndicesType, .tuple(
-        names: entity.properties.map {
-          options.propertyIndexPrefix + $0.name
-        },
-        types: .init(repeating: .int32, count: entity.properties.count)
-      ) ),
+      ( api.propertyIndicesType, generatePropertyIndicesType(for: entity) ),
       ( api.schemaRecordType, globalTypeRef(of: entity) )
     ]
     if options.generateSwiftFilters {
@@ -291,9 +301,23 @@ extension EnlighterASTGenerator {
     )
   }
   
+  /**
+   * The type for
+   * `typealias PropertyIndices = ( idx_lol: Int32, idx_name: String? )`
+   * `typealias PropertyIndices = Int32` (single column)
+   */
+  private func generatePropertyIndicesType(for entity: EntityInfo) -> TypeReference {
+    return entity.properties.count == 1 ? .int32 : .tuple(
+      names: entity.properties.map {
+        options.propertyIndexPrefix + $0.name
+      },
+      types: .init(repeating: .int32, count: entity.properties.count)
+    )
+  }
+  
   /*
    public static func lookupColumnIndices(in statement: OpaquePointer!)
-   -> PropertyIndices
+                      -> PropertyIndices
    */
   func generateIndexLookup(for entity: EntityInfo) -> FunctionDefinition {
     .init(
@@ -330,8 +354,13 @@ extension EnlighterASTGenerator {
                   //       `strcmp` doesn't allow NULL).
                   .callIs0("strcmp", .variable("col!"),
                            .string($0.externalName)),
-                  [ .set(instance: "indices", indexName(for: $0.name),
-                         .variable("i")) ]
+                  [
+                    entity.properties.count == 1
+                    ? .set("indices", .variable("i")) // not a tuple
+                    : .set(instance: "indices",
+                           tupleUnsafeIndexName(for: $0.name),
+                           .variable("i"))
+                  ]
                 )
               }
             )
