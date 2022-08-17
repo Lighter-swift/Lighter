@@ -104,6 +104,7 @@ There are two associated repositories:
 - <doc:Manual>
 - <doc:SQLiteAPI>
 - <doc:Mapping>
+- <doc:Migrations>
 - <doc:Performance>
 
 ### Support

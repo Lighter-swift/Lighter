@@ -90,7 +90,7 @@ public extension SQLDatabaseChangeOperations {
     var builder = SQLBuilder<T>()
     builder.generateDelete(from: T.Schema.externalName,
                            where: predicate(T.schema))
-    try fetch(builder.sql, builder.bindings) { stmt, stop in stop = true }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
 }
 

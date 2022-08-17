@@ -17,10 +17,7 @@ extension EnlighterASTGenerator {
       case .custom: return true
     }
   }
-  fileprivate func index(for propertyName: String) -> Expression {
-    .variable("indices", indexName(for: propertyName))
-  }
-  
+
   /// Whether to use the `SQLiteValueType` `bind` methods (needs
   /// ``Options-swift.struct/useLighter` enabled).
   var useLighterBinds : Bool {
@@ -81,7 +78,9 @@ extension EnlighterASTGenerator {
     }
     
     statements.append(
-      .group(generateBindStatementsForProperties(entity.properties))
+      .group(generateBindStatementsForProperties(
+        entity.properties, sole: entity.properties.count == 1
+      ))
     )
     
     // for the binds the generation needs to recurse backwards
@@ -366,13 +365,20 @@ extension EnlighterASTGenerator {
   }
 
   private func generateBindStatementsForProperties(
-    _ properties: [ EntityInfo.Property ]
+    _ properties: [ EntityInfo.Property ],
+    sole: Bool
   ) -> [ Statement ]
   {
     // Note: Was sometimes crashing at runtime when using generics (and nesting
     //       became deep). Hence the array instead of the array slice.
     guard !properties.isEmpty else {
       return [ .return(.call(try: true, name: "execute")) ]
+    }
+    
+    func index(for propertyName: String, sole: Bool) -> Expression {
+      sole
+        ? .variable("indices")
+        : .variable("indices", tupleUnsafeIndexName(for: propertyName))
     }
     
     var didRecurse = false
@@ -382,10 +388,11 @@ extension EnlighterASTGenerator {
 
       let ( statement, didNewRecurse ) = generateBindStatementForProperty(
         property,
-        index: index(for: property.name),
+        index: index(for: property.name, sole: sole),
         trailer: {
           generateBindStatementsForProperties(
-            Array(properties[properties.index(after: idx)...])
+            Array(properties[properties.index(after: idx)...]),
+            sole: sole
           )
         }
       )

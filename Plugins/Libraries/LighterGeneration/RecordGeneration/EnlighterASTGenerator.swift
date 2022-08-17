@@ -20,7 +20,7 @@ public final class EnlighterASTGenerator {
   public let filename : String
   
   public struct Options: Equatable {
-
+    
     /// How to bind Date values into the database.
     public enum DateStorageStyle: String {
       /// Save as a REAL containing the unix timestamp
@@ -54,7 +54,7 @@ public final class EnlighterASTGenerator {
       /// `sqlite3_person_insert`.
       case globalFunctions(prefix: String) // default prefix: `sqlite3_`
     }
-
+    
     public enum RawOperationNames: Equatable {
       case lowercaseAndPluralize
     }
@@ -67,10 +67,10 @@ public final class EnlighterASTGenerator {
     
     /// Only generate read operations.
     public var readOnly        = false
-
+    
     /// Generate async/await Lighter conformances (``useLighter`` is enabled).
     public var asyncAwait      = true
-
+    
     /// Whether record types should be generated as subtypes of the database
     /// type.
     /// E.g.
@@ -111,7 +111,7 @@ public final class EnlighterASTGenerator {
     
     /// Whether or how to generate low-level SQLite functions
     public var rawFunctions : RawFunctionStyle
-                            = .globalFunctions(prefix: "sqlite3_")
+    = .globalFunctions(prefix: "sqlite3_")
     
     /// How to adjust the names of `sqlite3_persons_update` and such.
     public var generateRawOperations = RawOperationNames.lowercaseAndPluralize
@@ -125,7 +125,7 @@ public final class EnlighterASTGenerator {
     
     /// Whether to generate functions that fetch relationships.
     public var generateLighterRelationships = true
-
+    
     /// If ``useLighter`` is enabled, the records will conform to `Hashable`
     /// automatically by means of other protocols.
     /// If not, this can be used to mark them as `Hashable`.
@@ -181,7 +181,7 @@ public final class EnlighterASTGenerator {
   public internal(set) var options : Options // internal for testing purposes
   
   var api : LighterAPI { options.api }
-
+  
   public
   init(database: DatabaseInfo, filename: String, options: Options? = nil) {
     self.database = database
@@ -194,24 +194,59 @@ public final class EnlighterASTGenerator {
   
   func globalName(of entity: EntityInfo) -> String {
     options.nestRecordTypesInDatabase
-      ? "\(database.name).\(entity.name)"
-      : entity.name
+    ? "\(database.name).\(entity.name)"
+    : entity.name
   }
   func globalTypeRef(of entity: EntityInfo) -> TypeReference {
     options.nestRecordTypesInDatabase
-      ? .qualifiedType(baseName: database.name, name: entity.name)
-      : .name(entity.name)
+    ? .qualifiedType(baseName: database.name, name: entity.name)
+    : .name(entity.name)
   }
   func globalDocRef(of entity: EntityInfo, property: String? = nil) -> String {
     let n = options.nestRecordTypesInDatabase
-      ? "\(database.name)/\(entity.name)"
-      : "\(entity.name)"
+    ? "\(database.name)/\(entity.name)"
+    : "\(entity.name)"
     if let property = property {
       return "``\(n)/\(property)``"
     }
     else {
       return "``\(n)``"
     }
+  }
+  
+  // MARK: - Bind Mappers
+  
+  func uuidBlobMap(for propertyName: String, at idxvar: String) -> Expression {
+    //let idxvar  = index(for: propertyName)
+    let blobMap = // make this nice
+    """
+    { if sqlite3_column_bytes(statement, \(idxvar)) == 16 {
+        let rbp = UnsafeRawBufferPointer(start: $0, count: 16)
+        return UUID(uuid: (
+          rbp[0], rbp[1], rbp[2],  rbp[3],  rbp[4],  rbp[5],  rbp[6],  rbp[7],
+          rbp[8], rbp[9], rbp[10], rbp[11], rbp[12], rbp[13], rbp[14], rbp[15]
+        ))
+      } else { return nil }
+    }
+    """
+    return .raw(blobMap)
+  }
+  
+  // This returns an optional!
+  func stringMap(initPrefix: String, initSuffix: String = ")") -> Expression {
+    .raw("{ \(initPrefix)String(cString: $0)\(initSuffix) }")
+  }
+  
+  /// This requires the ``dateFormatter`` property in the associated database
+  /// structure.
+  /// This can still return nil!
+  func dateFormatterMap() -> Expression {
+    stringMap(initPrefix: "\(database.name).dateFormatter?.date(from: ",
+              initSuffix: ")")
+  }
+  /// This can still return nil!
+  func uuidFormatterMap() -> Expression {
+    stringMap(initPrefix: "UUID(uuidString: ", initSuffix: ")")
   }
 }
 

@@ -33,7 +33,7 @@ final class UpdateOperationsTests: XCTestCase {
     
     XCTAssertTrue(result.contains("`set` column: KeyPath<T.Schema, C>,"))
     XCTAssertTrue(result.contains(
-      "try fetch(builder.sql, builder.bindings) { ( _, stop"))
+      "try execute(builder.sql, builder.bindings, readOnly: false)"))
     XCTAssertTrue(result.contains("`is` id: PK.Value"))
   }
   
@@ -60,7 +60,7 @@ final class UpdateOperationsTests: XCTestCase {
     
     XCTAssertTrue(result.contains("`set` column5: KeyPath<T.Schema, C5>,"))
     XCTAssertTrue(result.contains(
-      "try fetch(builder.sql, builder.bindings) { ( _, stop"))
+      "try execute(builder.sql, builder.bindings, readOnly: false)"))
     XCTAssertTrue(result.contains("`is` id: PK.Value"))
   }
   
@@ -87,7 +87,7 @@ final class UpdateOperationsTests: XCTestCase {
     
     XCTAssertTrue(result.contains("`set` column2: KeyPath<T.Schema, C2>,"))
     XCTAssertTrue(result.contains(
-      "try fetch(builder.sql, builder.bindings) { ( _, stop"))
+      "try execute(builder.sql, builder.bindings, readOnly: false)"))
     XCTAssertTrue(result.contains(
       "predicate: ( T.Schema ) -> P"))
     XCTAssertTrue(result.contains("where: predicate(T.schema)"))

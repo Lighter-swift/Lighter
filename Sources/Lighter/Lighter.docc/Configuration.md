@@ -138,7 +138,7 @@ Keys:
 
 Control generation of variadic functions (`select` etc).
 
-This is only used within Lighter itself at this type. It configures the number
+This is only used within Lighter itself at this time. It configures the number
 of variadic functions that are generated for `select`, `update` and `insert`.
 
 

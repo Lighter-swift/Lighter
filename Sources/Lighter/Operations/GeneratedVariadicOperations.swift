@@ -1,4 +1,4 @@
-// Autocreated by GenerateInternalVariadics at 2022-07-27T15:16:56Z
+// Autocreated by GenerateInternalVariadics at 2022-08-17T15:57:10Z
 
 public extension SQLDatabaseFetchOperations {
   
@@ -4215,9 +4215,7 @@ public extension SQLDatabaseChangeOperations {
       set: value,
       where: T.schema[keyPath: key] == id
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4264,9 +4262,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2,
       where: T.schema[keyPath: key] == id
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4320,9 +4316,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3,
       where: T.schema[keyPath: key] == id
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4383,9 +4377,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3, value4,
       where: T.schema[keyPath: key] == id
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4453,9 +4445,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3, value4, value5,
       where: T.schema[keyPath: key] == id
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4525,9 +4515,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3, value4, value5, value6,
       where: T.schema[keyPath: key] == id
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4562,9 +4550,7 @@ public extension SQLDatabaseChangeOperations {
       set: value,
       where: predicate(T.schema)
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4610,9 +4596,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2,
       where: predicate(T.schema)
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4665,9 +4649,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3,
       where: predicate(T.schema)
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4727,9 +4709,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3, value4,
       where: predicate(T.schema)
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4796,9 +4776,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3, value4, value5,
       where: predicate(T.schema)
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4865,9 +4843,7 @@ public extension SQLDatabaseChangeOperations {
       set: value1, value2, value3, value4, value5, value6,
       where: predicate(T.schema)
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4894,9 +4870,7 @@ public extension SQLDatabaseChangeOperations {
     var builder = SQLBuilder<T>()
     builder.addColumn(column)
     builder.generateInsert(into: T.Schema.externalName, values: value)
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4928,9 +4902,7 @@ public extension SQLDatabaseChangeOperations {
     builder.addColumn(column1)
     builder.addColumn(column2)
     builder.generateInsert(into: T.Schema.externalName, values: value1, value2)
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -4977,9 +4949,7 @@ public extension SQLDatabaseChangeOperations {
       into: T.Schema.externalName,
       values: value1, value2, value3
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -5033,9 +5003,7 @@ public extension SQLDatabaseChangeOperations {
       into: T.Schema.externalName,
       values: value1, value2, value3, value4
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -5096,9 +5064,7 @@ public extension SQLDatabaseChangeOperations {
       into: T.Schema.externalName,
       values: value1, value2, value3, value4, value5
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
   
   /**
@@ -5161,8 +5127,6 @@ public extension SQLDatabaseChangeOperations {
       into: T.Schema.externalName,
       values: value1, value2, value3, value4, value5, value6
     )
-    try fetch(builder.sql, builder.bindings) { ( _, stop ) in
-      stop = true
-    }
+    try execute(builder.sql, builder.bindings, readOnly: false)
   }
 }
