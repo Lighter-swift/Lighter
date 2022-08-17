@@ -148,7 +148,7 @@ public final class UpdateFunctionGeneration: FunctionGenerator {
   
   public func generateUpdate(columnCount: Int) -> FunctionDefinition {
     // Yes, this is a little big. But hey, it is a code generator! :-)
-    _ = """
+    /*
     func update<T, C1, C2, PK>(
       _     table : KeyPath<Self.RecordTypes, T.Type>,
       set column1 : KeyPath<T.Schema, C1>, to value1 : C1.Value,
@@ -177,9 +177,9 @@ public final class UpdateFunctionGeneration: FunctionGenerator {
       )
       
       print("SQL:", builder.sql)
-      try fetch(builder.sql, builder.bindings) { stmt, stop in stop = true }
+      try execute(builder.sql, builder.bindings, readOnly: false)
     }
-    """
+    */
 
     let T   = recordGenericParameterPrefix    // T
     let P   = predicateGenericParameterPrefix // P
@@ -268,7 +268,7 @@ public final class UpdateFunctionGeneration: FunctionGenerator {
     
     
     // MARK: - Body
-    _ = """
+    /*
         var builder = SQLBuilder<T>()
         builder.addColumn(column1)
         builder.addColumn(column2)
@@ -278,7 +278,7 @@ public final class UpdateFunctionGeneration: FunctionGenerator {
           predicate : p(T.schema)
         )
         try fetch(builder.sql, builder.bindings) { stmt, stop in stop = true }
-        """
+     */
     
     var statements = [ Statement ]()
     statements.reserveCapacity(Cs.count * 2 + 10)
@@ -326,13 +326,11 @@ public final class UpdateFunctionGeneration: FunctionGenerator {
     )
           
     let syncCode = Statement.call(
-      try: true, name: "fetch", parameters: [
+      try: true, name: "execute", parameters: [
         ( nil, .variable(builderVariableName, "sql")      ),
-        ( nil, .variable(builderVariableName, "bindings") )
-      ],
-      trailing: ( parameters: [ "_", "stop" ], statements: [
-        .set("stop", .literal(.true))
-      ])
+        ( nil, .variable(builderVariableName, "bindings") ),
+        ( "readOnly", .false )
+      ]
     )
     
     if asyncFunctions {

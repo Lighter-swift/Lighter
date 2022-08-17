@@ -39,14 +39,16 @@ public extension SQLDatabaseOperations {
    * - Parameters:
    *   - sql:      The SQL to execute.
    *   - bindings: Optional set of bindings (`?` in the SQL).
+   *   - readOnly: Whether the connection should be opened read/only.
    *   - yield:    A closure that is called for each result record.
    *               The first argument is the SQLite prepared statement handle,
    *               the second a bool that can be used to stop the fetch.
    */
   func fetch(_ sql: String, _ bindings: [ SQLiteValueType ]? = nil,
+             readOnly: Bool = true,
              yield: ( OpaquePointer, inout Bool ) throws -> Void) throws
   {
-    try connectionHandler.withConnection(readOnly: true) { db in
+    try connectionHandler.withConnection(readOnly: readOnly) { db in
       var maybeStmt : OpaquePointer?
       guard sqlite3_prepare_v2(db, sql, -1, &maybeStmt, nil) == SQLITE_OK,
             let stmt = maybeStmt else
@@ -95,11 +97,14 @@ public extension SQLDatabaseOperations {
    *
    * - Parameters:
    *   - sql:      The SQL to execute.
+   *   - readOnly: Whether the connection should be opened read/only.
    *   - bindings: Optional bind variables.
    */
   @inlinable
-  func execute(_ sql: String, _ bindings: [ SQLiteValueType ]? = nil) throws {
-    try fetch(sql, bindings) { _, stop in stop = true }
+  func execute(_ sql: String, _ bindings: [ SQLiteValueType ]? = nil,
+               readOnly: Bool = false) throws
+  {
+    try fetch(sql, bindings, readOnly: readOnly) { _, stop in stop = true }
   }
 }
 

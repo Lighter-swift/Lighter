@@ -37,8 +37,8 @@ final class InsertOperationsTests: XCTestCase {
       "where T: SQLTableRecord, C: SQLColumn, T == C.T"))
     XCTAssertTrue(source.contains("var builder = SQLBuilder<T>()"))
     XCTAssertTrue(source.contains("builder.addColumn(column)"))
-    XCTAssertTrue(source.contains("try fetch(builder"))
-    XCTAssertTrue(source.contains("stop = true"))
+    XCTAssertTrue(source.contains("try execute(builder"))
+    XCTAssertTrue(source.contains("readOnly: false"))
   }
   
   func testLargeInsert() {
@@ -68,7 +68,7 @@ final class InsertOperationsTests: XCTestCase {
       "where T: SQLTableRecord, C: SQLColumn, T == C.T"))
     XCTAssertTrue(source.contains("var builder = SQLBuilder<T>()"))
     XCTAssertTrue(source.contains("builder.addColumn(column)"))
-    XCTAssertTrue(source.contains("try fetch(builder"))
-    XCTAssertTrue(source.contains("stop = true"))
+    XCTAssertTrue(source.contains("try execute(builder"))
+    XCTAssertTrue(source.contains("readOnly: false"))
   }
 }

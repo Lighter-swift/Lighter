@@ -105,7 +105,7 @@ public final class InsertFunctionGeneration: FunctionGenerator {
   
   public func generateInsert(columnCount: Int) -> FunctionDefinition {
     // Yes, this is a little big. But hey, it is a code generator! :-)
-    _ = """
+    /*
     func insert<T, C1, C2>(
       into    table : KeyPath<Self.RecordTypes, T.Type>,
       _     column1 : KeyPath<T.Schema, C1>,
@@ -124,9 +124,9 @@ public final class InsertFunctionGeneration: FunctionGenerator {
       )
       
       print("SQL:", builder.sql)
-      try fetch(builder.sql, builder.bindings) { stmt, stop in stop = true }
+      try execute(builder.sql, builder.bindings, readOnly: false)
     }
-    """
+    */
 
     let T   = recordGenericParameterPrefix // T
     let Cs  = oneBasedNames(prefix: columnGenericParameterPrefix,
@@ -183,7 +183,7 @@ public final class InsertFunctionGeneration: FunctionGenerator {
     
     
     // MARK: - Body
-    _ = """
+    /*
         var builder = SQLBuilder<T>()
         builder.addColumn(column1)
         builder.addColumn(column2)
@@ -191,8 +191,8 @@ public final class InsertFunctionGeneration: FunctionGenerator {
           into   : T.Schema.externalName,
           values : value1.asSQLiteValue, value2.asSQLiteValue
         )
-        try fetch(builder.sql, builder.bindings) { stmt, stop in stop = true }
-        """
+        try execute(builder.sql, builder.bindings, readOnly: false)
+     */
     
     var statements = [ Statement ]()
     statements.reserveCapacity(Cs.count * 2 + 10)
@@ -221,17 +221,15 @@ public final class InsertFunctionGeneration: FunctionGenerator {
     )
           
     let syncCode = Statement.call(
-      try: true, name: "fetch", parameters: [
+      try: true, name: "execute", parameters: [
         ( nil, .variable(builderVariableName, "sql")      ),
-        ( nil, .variable(builderVariableName, "bindings") )
-      ],
-      trailing: ( parameters: [ "_", "stop" ], statements: [
-        .set("stop", .literal(.true))
-      ])
+        ( nil, .variable(builderVariableName, "bindings") ),
+        ( "readOnly", .false )
+      ]
     )
     
     if asyncFunctions {
-      // try await runOnDatabaseQueue { try fetch(from, limit: limit) }
+      // try await runOnDatabaseQueue { ... }
       statements.append(
         .return(
           .call(try: true, await: true, name: "runOnDatabaseQueue",
