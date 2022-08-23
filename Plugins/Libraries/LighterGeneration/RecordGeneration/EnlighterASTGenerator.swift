@@ -216,22 +216,6 @@ public final class EnlighterASTGenerator {
   
   // MARK: - Bind Mappers
   
-  func uuidBlobMap(for propertyName: String, at idxvar: String) -> Expression {
-    //let idxvar  = index(for: propertyName)
-    let blobMap = // make this nice
-    """
-    { if sqlite3_column_bytes(statement, \(idxvar)) == 16 {
-        let rbp = UnsafeRawBufferPointer(start: $0, count: 16)
-        return UUID(uuid: (
-          rbp[0], rbp[1], rbp[2],  rbp[3],  rbp[4],  rbp[5],  rbp[6],  rbp[7],
-          rbp[8], rbp[9], rbp[10], rbp[11], rbp[12], rbp[13], rbp[14], rbp[15]
-        ))
-      } else { return nil }
-    }
-    """
-    return .raw(blobMap)
-  }
-  
   // This returns an optional!
   func stringMap(initPrefix: String, initSuffix: String = ")") -> Expression {
     .raw("{ \(initPrefix)String(cString: $0)\(initSuffix) }")

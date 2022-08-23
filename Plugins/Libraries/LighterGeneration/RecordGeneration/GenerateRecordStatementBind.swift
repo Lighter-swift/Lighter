@@ -517,9 +517,12 @@ extension EnlighterASTGenerator {
                                 trailer        : [ Statement ]) -> Statement
   {
     if options.allowFoundation {
+      let helperPrefix = options.optionalHelpersInDatabase
+                       ? "\(database.name)." : ""
       return .return(
         .call(
-          try: true, name: "withOptUUIDBytes",
+          try: true,
+          name: "\(helperPrefix)withOptUUIDBytes",
           parameters: [ ( nil, ivar(propertyName) ) ],
           trailing: ( [ "rbp" ], [
             .ifSwitch( (
@@ -527,8 +530,7 @@ extension EnlighterASTGenerator {
               .call(name: "sqlite3_bind_blob", .variable("statement"), index,
                     .variable("rbp.baseAddress"), .variable("Int32(rbp.count)"),
                     .nil) // this says: do not copy (`SQLITE_STATIC`)
-            ) ) ] +
-                      trailer
+            ) ) ] + trailer
           )
         )
       )
