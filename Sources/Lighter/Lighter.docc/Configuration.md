@@ -270,6 +270,8 @@ Keys:
   Note: `DateFormatter` is quite slow in parsing, if performance is a concern
   prefer to store dates as timestamps.
 - `uuidSerialization` (String): (default is `BLOB`)
+  This isn't used if `useSQLiteValueTypeBinds` is on and Lighter is being used
+  (set the `UUID.sqlUUIDStorageStyle` in that mode).
   ```json
   { "__doc__": "Lighter.json sample",
     "CodeGeneration": { "uuidSerialization": "text" }
