@@ -103,7 +103,6 @@ extension EnlighterASTGenerator {
       tupleUnsafeIndexName : self.tupleUnsafeIndexName(for:),
       dateFormatterMap     : self.dateFormatterMap,
       uuidFormatterMap     : self.uuidFormatterMap,
-      uuidBlobMap          : self.uuidBlobMap(for:at:),
       stringMap            : self.stringMap(initPrefix:initSuffix:),
       
       property : property,
@@ -127,7 +126,6 @@ fileprivate struct SwiftInitPropertyGenerator {
   let tupleUnsafeIndexName : ( String ) -> String
   let dateFormatterMap     : () -> Expression
   let uuidFormatterMap     : () -> Expression
-  let uuidBlobMap          : ( String, String ) -> Expression
   let stringMap            : ( String, String ) -> Expression
   
   let property             : EntityInfo.Property
@@ -138,22 +136,36 @@ fileprivate struct SwiftInitPropertyGenerator {
   
   // MARK: - Support
   
-  func index() -> Expression {
+  private func index() -> Expression {
     sole
     ? .variable("indices")
     : .variable("indices", self.tupleUnsafeIndexName(name))
   }
-  func _indexName() -> String {
+  private func _indexName() -> String {
     sole ? "indices" : "indices." + self.tupleUnsafeIndexName(name)
   }
-
   
+  private func uuidBlobMap() -> Expression {
+    let blobMap = // make this nice
+    """
+    { if sqlite3_column_bytes(statement, \(_indexName())) == 16 {
+        let rbp = UnsafeRawBufferPointer(start: $0, count: 16)
+        return UUID(uuid: (
+          rbp[0], rbp[1], rbp[2],  rbp[3],  rbp[4],  rbp[5],  rbp[6],  rbp[7],
+          rbp[8], rbp[9], rbp[10], rbp[11], rbp[12], rbp[13], rbp[14], rbp[15]
+        ))
+      } else { return nil }
+    }
+    """
+    return .raw(blobMap)
+  }
+
   // MARK: - Performing Statement Range Checks
   
   /// Make sure the property index is within the allowed range:
   /// `indices.idx_personId >= 0 && indices.idx_personId < argc`
   /// E.g. it could be `-1` if it wasn't requested.
-  func makeIndexCheck() -> Expression {
+  private func makeIndexCheck() -> Expression {
     let idx = index()
     return Expression.and([
       .cmp(idx, .greaterThanOrEqual, 0),
@@ -165,7 +177,7 @@ fileprivate struct SwiftInitPropertyGenerator {
   /// *and* that it isn't null if available:
   /// `sqlite3_column_type(stmt, indices.idx_personId) != SQLITE_NULL)`.
   /// E.g. it could be `-1` if it wasn't requested.
-  func makeNullIndexCheck() -> Expression {
+  private func makeNullIndexCheck() -> Expression {
     let idx = index()
     return Expression.and([
       .cmp(idx, .greaterThanOrEqual, 0),
@@ -184,7 +196,7 @@ fileprivate struct SwiftInitPropertyGenerator {
   /// - String/BLOB needs a map to `[UInt8]`/`Data`
   /// - URL/Decimal will pass along `nil` when they fail to parse an anotherwise
   ///   non-nil string.
-  func valueGrab() -> Expression {
+  fileprivate func valueGrab() -> Expression {
 
     func stringGrab() -> Expression {
       return property.isNotNull
@@ -276,7 +288,7 @@ fileprivate struct SwiftInitPropertyGenerator {
 
   // init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
   //   throws
-  func grabCustomValue(type: String) -> Expression {
+  private func grabCustomValue(type: String) -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .cast(
@@ -289,7 +301,7 @@ fileprivate struct SwiftInitPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptCustomValue(type: String) -> Expression {
+  private func grabOptCustomValue(type: String) -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .cast(
@@ -304,7 +316,7 @@ fileprivate struct SwiftInitPropertyGenerator {
   }
 
   // This one needs a cast to `Int` (returns `Int64`)
-  func grabIntColumnValue() -> Expression {
+  private func grabIntColumnValue() -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .cast(
@@ -315,14 +327,14 @@ fileprivate struct SwiftInitPropertyGenerator {
       defaultValue
     )
   }
-  func grabDoubleColumnValue() -> Expression {
+  private func grabDoubleColumnValue() -> Expression {
     .conditional(
       makeNullIndexCheck(),
      .call(name: "sqlite3_column_double", .variable("statement"), index()),
       defaultValue
     )
   }
-  func grabBoolColumnValue() -> Expression {
+  private func grabBoolColumnValue() -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .compare(
@@ -335,7 +347,7 @@ fileprivate struct SwiftInitPropertyGenerator {
     )
   }
 
-  func notNullCondition() -> Expression {
+  private func notNullCondition() -> Expression {
     .cmp(
       .call(name: "sqlite3_column_type", .variable("statement"),
             index()),
@@ -360,7 +372,7 @@ fileprivate struct SwiftInitPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptBoolColumnValue() -> Expression {
+  private func grabOptBoolColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       .conditional( // provided, but can still be nil! nil wins over default.
@@ -378,7 +390,7 @@ fileprivate struct SwiftInitPropertyGenerator {
     )
   }
 
-  func grabOptDoubleColumnValue() -> Expression {
+  private func grabOptDoubleColumnValue() -> Expression {
     let idx = index()
     return .conditional(
       makeIndexCheck(),
@@ -410,8 +422,8 @@ fileprivate struct SwiftInitPropertyGenerator {
   /// This applies the default value if the index check fails (i.e. the
   /// property is not part of the result)
   /// OR if the value is `NULL` in the result!
-  func grabColumnValue(type: String, map: @autoclosure () -> Expression)
-       -> Expression
+  private func grabColumnValue(type: String, map: @autoclosure () -> Expression)
+               -> Expression
   {
     .nilCoalesce(
       .conditional(
@@ -426,7 +438,7 @@ fileprivate struct SwiftInitPropertyGenerator {
     )
   }
 
-  func blobMap(type: String = "[ UInt8 ]") -> Expression {
+  private func blobMap(type: String = "[ UInt8 ]") -> Expression {
     let index = _indexName()
 
     // $0 is the blob ptr, type is `[ UInt8 ]`
@@ -434,7 +446,7 @@ fileprivate struct SwiftInitPropertyGenerator {
               + "count: Int(sqlite3_column_bytes(statement, \(index))))) }")
   }
   
-  func grabDateColumnValue() -> Expression {
+  private func grabDateColumnValue() -> Expression {
     .nilCoalesce(
       .conditional(
         makeNullIndexCheck(),
@@ -446,7 +458,7 @@ fileprivate struct SwiftInitPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptDateColumnValue() -> Expression {
+  private func grabOptDateColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       dateValue(), // can also return nil
@@ -456,7 +468,7 @@ fileprivate struct SwiftInitPropertyGenerator {
 
   /// This isn't easy :-)
   // this can return nil
-  func dateValue() -> Expression {
+  private func dateValue() -> Expression {
     assert(allowFoundation)
     let idx = index()
     // it is not NULL and available. So check either Double or Text
@@ -482,7 +494,7 @@ fileprivate struct SwiftInitPropertyGenerator {
     )
   }
 
-  func grabUUIDColumnValue() -> Expression {
+  private func grabUUIDColumnValue() -> Expression {
     .nilCoalesce(
       .conditional(
         makeNullIndexCheck(),
@@ -493,7 +505,7 @@ fileprivate struct SwiftInitPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptUUIDColumnValue() -> Expression {
+  private func grabOptUUIDColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       uuidValue(), // can also return nil
@@ -501,7 +513,7 @@ fileprivate struct SwiftInitPropertyGenerator {
     )
   }
 
-  func uuidValue() -> Expression {
+  private func uuidValue() -> Expression {
     let idx = index()
     return .conditional(
       .cmp( // is it a blob?
@@ -512,7 +524,7 @@ fileprivate struct SwiftInitPropertyGenerator {
       .flatMap(expression:
                 .call(name: "sqlite3_column_blob",
                       .variable("statement"), idx),
-               map: uuidBlobMap(name, _indexName())),
+               map: uuidBlobMap()),
       // it is something else, treat as SQLITE_TEXT
       .flatMap(expression:
                 .call(name: "sqlite3_column_text",

@@ -249,10 +249,8 @@ extension EnlighterASTGenerator {
       tupleUnsafeIndexName : self.tupleUnsafeIndexName(for:),
       dateFormatterMap     : self.dateFormatterMap,
       uuidFormatterMap     : self.uuidFormatterMap,
-      uuidBlobMap          : self.uuidBlobMap(for:at:),
-      
-      property : property,
-      sole     : entity.properties.count == 1,
+      property             : property,
+      sole                 : entity.properties.count == 1,
       /// RecordType.schema.personId.defaultValue
       defaultValue: options.useLighter
         ? Expression.variablePath([
@@ -270,7 +268,6 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   let tupleUnsafeIndexName : ( String ) -> String // a relict
   let dateFormatterMap : () -> Expression
   let uuidFormatterMap : () -> Expression
-  let uuidBlobMap      : ( String, String ) -> Expression
   
   let property         : EntityInfo.Property
   var name             : String { property.name }
@@ -285,7 +282,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   /// - String/BLOB needs a map to `[UInt8]`/`Data`
   /// - URL/Decimal will pass along `nil` when they fail to parse an otherwise
   ///   non-nil string.
-  func valueGrab() -> Expression {
+  fileprivate func valueGrab() -> Expression {
     switch property.propertyType {
       case .custom(let type):
         return property.isNotNull
@@ -306,7 +303,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
       case .uint8Array:
         return property.isNotNull
           ? grabColumnValue   (type: "blob", map: blobMap(type: "[ UInt8 ]"))
-          : grabOptColumnValue(type: "blob", map: blobMap( type: "[ UInt8 ]"))
+          : grabOptColumnValue(type: "blob", map: blobMap(type: "[ UInt8 ]"))
       case .data:
         return property.isNotNull
           ? grabColumnValue   (type: "blob", map: blobMap(type: "Data"))
@@ -349,33 +346,54 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   //        conventions of the retrieval functions.
 
   // This returns an optional!
-  func stringMap(initPrefix: String, initSuffix: String = ")") -> Expression {
+  private func stringMap(initPrefix: String, initSuffix: String = ")")
+               -> Expression
+  {
     .raw("{ \(initPrefix)String(cString: $0)\(initSuffix) }")
   }
 
-  func index() -> Expression {
+  private func index() -> Expression {
     sole
     ? .variable("indices")
     : .variable("indices", self.tupleUnsafeIndexName(name))
   }
-  func _indexName() -> String {
+  private func _indexName() -> String {
     sole ? "indices" : "indices." + self.tupleUnsafeIndexName(name)
   }
 
   /// argv[Int(indices.idx_personId)]
-  func argvItem() -> Expression {
+  private func argvItem() -> Expression {
     sole // Later: make nicer (remove raw)
     ? .raw("argv[Int(indices)]")
     : .raw("argv[Int(indices.\(self.tupleUnsafeIndexName(name)))]")
   }
-  
+
+  private func uuidBlobMap() -> Expression {
+    //let idxvar  = index(for: propertyName)
+    let ref = sole // Later: make nicer (remove raw)
+      ? "argv[Int(indices)]"
+      : "argv[Int(indices.\(self.tupleUnsafeIndexName(name)))]"
+    let blobMap = // make this nice
+    """
+    { if sqlite3_value_bytes(\(ref)) == 16 {
+        let rbp = UnsafeRawBufferPointer(start: $0, count: 16)
+        return UUID(uuid: (
+          rbp[0], rbp[1], rbp[2],  rbp[3],  rbp[4],  rbp[5],  rbp[6],  rbp[7],
+          rbp[8], rbp[9], rbp[10], rbp[11], rbp[12], rbp[13], rbp[14], rbp[15]
+        ))
+      } else { return nil }
+    }
+    """
+    return .raw(blobMap)
+  }
+
   
   /// Make sure the property index is within the allowed range:
   /// `indices.idx_personId >= 0 && indices.idx_personId < argc`
   /// *and* that it isn't null if available:
   /// `sqlite3_value_type(argv[Int(indices.idx_personId)]) != SQLITE_NULL)`.
   /// E.g. it could be `-1` if it wasn't requested.
-  func makeNullIndexCheck() -> Expression {
+  private func makeNullIndexCheck() -> Expression {
     let idx = index()
     return Expression.and([
       .cmp(idx, .greaterThanOrEqual, 0),
@@ -391,7 +409,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   /// Make sure the property index is within the allowed range:
   /// `indices.idx_personId >= 0 && indices.idx_personId < argc`
   /// E.g. it could be `-1` if it wasn't requested.
-  func makeIndexCheck() -> Expression {
+  private func makeIndexCheck() -> Expression {
     let idx = index()
     return Expression.and([
       .cmp(idx, .greaterThanOrEqual, 0),
@@ -403,7 +421,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   
   // init(unsafeSQLite3ValueHandle value: OpaquePointer?)
   //   throws
-  func grabCustomValue(type: String) -> Expression {
+  private func grabCustomValue(type: String) -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .cast(
@@ -415,7 +433,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptCustomValue(type: String) -> Expression {
+  private func grabOptCustomValue(type: String) -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .cast(
@@ -429,7 +447,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   }
   
   // This one needs a cast to `Int` (returns `Int64`)
-  func grabIntColumnValue() -> Expression {
+  private func grabIntColumnValue() -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .cast(
@@ -439,14 +457,14 @@ fileprivate struct SwiftMatcherPropertyGenerator {
       defaultValue
     )
   }
-  func grabDoubleColumnValue() -> Expression {
+  private func grabDoubleColumnValue() -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .call(name: "sqlite3_value_double", argvItem()),
       defaultValue
     )
   }
-  func grabBoolColumnValue() -> Expression {
+  private func grabBoolColumnValue() -> Expression {
     .conditional(
       makeNullIndexCheck(),
       .compare(
@@ -458,7 +476,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
     )
   }
   
-  func notNullCondition() -> Expression {
+  private func notNullCondition() -> Expression {
     .cmp(
       .call(name: "sqlite3_value_type", argvItem()),
       .notEqual,
@@ -466,7 +484,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
     )
   }
   
-  func grabOptIntColumnValue() -> Expression {
+  private func grabOptIntColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       .conditional( // provided, but can still be nil! nil wins over default.
@@ -481,7 +499,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptBoolColumnValue() -> Expression {
+  private func grabOptBoolColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       .conditional( // provided, but can still be nil! nil wins over default.
@@ -498,7 +516,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
     )
   }
   
-  func grabOptDoubleColumnValue() -> Expression {
+  private func grabOptDoubleColumnValue() -> Expression {
     return .conditional(
       makeIndexCheck(),
       .conditional( // provided, but can still be nil! nil wins over default.
@@ -514,8 +532,9 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   /// This ONLY applies the default value, if the index check fails (i.e. the
   /// property is NOT part of the result). If the property IS part of the result
   /// and `NULL`, that is passed along to the optional property as `nil`.
-  func grabOptColumnValue(type: String, map: @autoclosure () -> Expression)
-       -> Expression
+  private func grabOptColumnValue(type: String,
+                                  map: @autoclosure () -> Expression)
+               -> Expression
   {
     return .conditional(
       makeIndexCheck(), // is it available?
@@ -527,8 +546,8 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   /// This applies the default value if the index check fails (i.e. the
   /// property is not part of the result)
   /// OR if the value is `NULL` in the result!
-  func grabColumnValue(type: String, map: @autoclosure () -> Expression)
-       -> Expression
+  private func grabColumnValue(type: String, map: @autoclosure () -> Expression)
+               -> Expression
   {
     .nilCoalesce(
       .conditional(
@@ -541,7 +560,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
     )
   }
   
-  func blobMap(type: String = "[ UInt8 ]") -> Expression {
+  private func blobMap(type: String = "[ UInt8 ]") -> Expression {
     let argvItem = sole ? "argv[Int(indices)]"
                         : "argv[Int(indices.\(tupleUnsafeIndexName(name)))]"
     
@@ -550,7 +569,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
                 + "count: Int(sqlite3_value_bytes(\(argvItem))))) }")
   }
   
-  func grabDateColumnValue() -> Expression {
+  private func grabDateColumnValue() -> Expression {
     .nilCoalesce(
       .conditional(
         makeNullIndexCheck(),
@@ -562,7 +581,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
       defaultValue
     )
   }
-  fileprivate func grabOptDateColumnValue() -> Expression {
+  private func grabOptDateColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       dateValue(), // can also return nil
@@ -571,7 +590,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
   }
   
   // this can return nil
-  func dateValue() -> Expression {
+  private func dateValue() -> Expression {
     let argvItem = argvItem()
     // it is not NULL and available. So check either Double or Text
     return .conditional(
@@ -593,7 +612,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
     )
   }
   
-  func grabUUIDColumnValue() -> Expression {
+  private func grabUUIDColumnValue() -> Expression {
     .nilCoalesce(
       .conditional(
         makeNullIndexCheck(),
@@ -604,7 +623,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
       defaultValue
     )
   }
-  func grabOptUUIDColumnValue() -> Expression {
+  private func grabOptUUIDColumnValue() -> Expression {
     .conditional(
       makeIndexCheck(),
       uuidValue(), // can also return nil
@@ -612,7 +631,7 @@ fileprivate struct SwiftMatcherPropertyGenerator {
     )
   }
   
-  func uuidValue() -> Expression {
+  private func uuidValue() -> Expression {
     let argvItem = argvItem()
     return .conditional(
       .cmp( // is it a blob?
@@ -620,10 +639,10 @@ fileprivate struct SwiftMatcherPropertyGenerator {
         .equal,
         .variable("SQLITE_BLOB")
       ),
-      .flatMap(expression: .call(name: "sqlite3_column_blob", argvItem),
-               map: uuidBlobMap(name, _indexName())),
+      .flatMap(expression: .call(name: "sqlite3_value_blob", argvItem),
+               map: uuidBlobMap()),
       // it is something else, treat as SQLITE_TEXT
-      .flatMap(expression: .call(name: "sqlite3_column_text", argvItem),
+      .flatMap(expression: .call(name: "sqlite3_value_text", argvItem),
                map: uuidFormatterMap())
     )
   }
