@@ -5,7 +5,7 @@
 
 public extension Fancifier.Options {
   
-  // swiftMapping
+  // SwiftMapping dictionary
   init(section: ConfigFile.Section?) {
     self.init()
     guard let section = section else { return }
