@@ -129,6 +129,17 @@ extension EnlighterASTGenerator {
     )
   }
   
+  /**
+   * Generates the optional helper for `UUID`s:
+   * ```
+   * public static func withOptUUIDBytes<R>(_ uuid: UUID?,
+   *    _ body: ( UnsafeRawBufferPointer ) throws -> R) rethrows -> R
+   * {
+   *    if var uuid = uuid?.uuid { return try withUnsafeBytes(of: &uuid, body) }
+   *    else { return try body(UnsafeRawBufferPointer(start: nil, count: 0)) }
+   * }
+   * ```
+   */
   func makeWithOptUUIDBytes() -> FunctionDefinition {
     FunctionDefinition(
       declaration: FunctionDeclaration(
@@ -145,8 +156,10 @@ extension EnlighterASTGenerator {
         rethrows: true, returnType: .name("R")
       ),
       statements: [
-        .raw("if let uuid = uuid { return try withUnsafeBytes(of: &uuid, body) }"),
-        .raw("else { return try body(UnsafeRawBufferPointer(start: nil, count: 0)) }")
+        .raw("if var uuid = uuid?.uuid { "
+           + "return try withUnsafeBytes(of: &uuid, body) }"),
+        .raw("else { "
+           + "return try body(UnsafeRawBufferPointer(start: nil, count: 0)) }")
       ]
     )
   }
