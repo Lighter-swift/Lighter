@@ -3,13 +3,14 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
-import Foundation
+import struct Foundation.URL
 
 struct EnlighterTargetConfig { // that's all we need from Lighter.json
 
-  let extensions : Set<String>
-  let outputFile : String?
+  let dbExtensions : Set<String>
+  let extensions   : Set<String>
+  let outputFile   : String?
   
-  let verbose    : Bool
-  let configURL  : URL?
+  let verbose      : Bool
+  let configURL    : URL?
 }

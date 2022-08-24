@@ -75,10 +75,11 @@ struct GenerateCodeForSQLite: CommandPlugin {
         ?? (rootJSON["outputFile"] as? String)
         
         let targetConfig = EnlighterTargetConfig(
-          extensions : extensions(in: rootJSON, target: target.name),
-          outputFile : outputFile,
-          verbose    : args.verbose,
-          configURL  : configURL
+          dbExtensions : dbExtensions(in: rootJSON, target: target.name),
+          extensions   : extensions(in: rootJSON, target: target.name),
+          outputFile   : outputFile,
+          verbose      : args.verbose,
+          configURL    : configURL
         )
         guard !targetConfig.extensions.isEmpty else {
           if args.verbose {
@@ -117,6 +118,16 @@ struct GenerateCodeForSQLite: CommandPlugin {
     #endif
   }
   
+  fileprivate func dbExtensions(in rootJSON: [ String : Any ], target: String)
+                   -> Set<String>
+  {
+    let targetJSON = rootJSON[target] as? [ String : Any ]
+    let exts1 = (targetJSON?  ["databaseExtensions"] as? [ String ])
+             ?? (rootJSON     ["databaseExtensions"] as? [ String ])
+             ?? (defaultConfig["databaseExtensions"] as? [ String ])
+             ?? []
+    return Set(exts1)
+  }
   fileprivate func extensions(in rootJSON: [ String : Any ], target: String)
                    -> Set<String>
   {
@@ -208,8 +219,9 @@ struct GenerateCodeForSQLite: CommandPlugin {
         if configuration.verbose {
           args.append("--verbose")
         }
-        if !group.resourceURLs.isEmpty {
-          args.append("--has-resources")
+        if let name = group.moduleFilename(using: configuration.dbExtensions) {
+          args.append("--module-filename")
+          args.append(name)
         }
         args.append(configuration.configURL?.path ?? "default")
         args.append(target.name) // required to resolve configs
@@ -281,10 +293,11 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
         ?? (rootJSON["outputFile"] as? String)
         
         let targetConfig = EnlighterTargetConfig(
-          extensions : extensions(in: rootJSON, target: target.name),
-          outputFile : outputFile,
-          verbose    : args.verbose,
-          configURL  : configURL
+          dbExtensions : dbExtensions(in: rootJSON, target: target.name),
+          extensions   : extensions(in: rootJSON, target: target.name),
+          outputFile   : outputFile,
+          verbose      : args.verbose,
+          configURL    : configURL
         )
         guard !targetConfig.extensions.isEmpty else {
           if args.verbose {
@@ -369,8 +382,9 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
         if configuration.verbose {
           args.append("--verbose")
         }
-        if !group.resourceURLs.isEmpty {
-          args.append("--has-resources")
+        if let name = group.moduleFilename(using: configuration.dbExtensions) {
+          args.append("--module-filename")
+          args.append(name)
         }
         args.append(configuration.configURL?.path ?? "default")
         args.append(target.name) // required to resolve configs
