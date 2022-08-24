@@ -3,6 +3,20 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
+#if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
+  #if swift(>=5.6)
+    import func Darwin.strcasestr
+  #else
+    import func Darwin.strstr
+  #endif
+#elseif canImport(Glibc)
+  import func Glibc.strstr
+#else
+  import Foundation
+#endif
+
+import func SQLite3.sqlite3_libversion_number
+
 public extension Schema {
 
   /**
@@ -33,7 +47,39 @@ public extension Schema {
 
     /// The SQL that is used to create the table.
     @inlinable public var creationSQL : String            { info.sql  }
-    
+
+    /// Whether the table is a "WITHOUT ROWID" table.
+    ///
+    /// This only scans the ``creationSQL`` for the "WITHOUT" "ROWID" words,
+    /// i.e. will fail if the table itself uses those :-)
+    ///
+    /// https://www.sqlite.org/withoutrowid.html
+    /// - `WITHOUT ROWID` tables *MUST* have a primary key, and it must be
+    ///    NOT NULL.
+    /// - No special INTEGER pkey behaviours.
+    /// - No `AUTOINCREMENT`.
+    /// - Introduced in SQLite 3.8.2 (2013-12-06)
+    @inlinable
+    public var isTableWithoutRowID : Bool {
+      // Introduced in 3.8.2 (2013-12-06)
+      guard sqlite3_libversion_number() >= 30_08_002 else { return false }
+      
+      #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.6)
+        return info.sql.withCString { cstr in
+          guard strcasestr(cstr, "WITHOUT") != nil else { return false }
+          guard strcasestr(cstr, "ROWID")   != nil else { return false }
+          return true
+        }
+      #else // Linux etc
+        let s = info.sql.uppercased() // no strcasestr on Linux
+        return s.withCString { cstr in
+          guard strstr(cstr, "WITHOUT") != nil else { return false }
+          guard strstr(cstr, "ROWID")   != nil else { return false }
+          return true
+        }
+      #endif
+    }
+
 
     /// Initialize a new `Table` value.
     @inlinable
@@ -106,6 +152,8 @@ extension Schema.Table: CustomStringConvertible {
         ms += column.description
       }
     }
+    
+    if isTableWithoutRowID { ms += " without-rowid" }
     
     if !foreignKeys.isEmpty {
       ms += " foreign-keys:["

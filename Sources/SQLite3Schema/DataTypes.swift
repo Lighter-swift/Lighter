@@ -81,13 +81,14 @@ extension Schema {
   public enum ColumnType: Hashable, RawRepresentable {
     
     // strict types
-    case integer
+    case integer // this is really the exact `INTEGER`, not .int
     case real
     case text
     case blob
     case any
     
     // common SQL types
+    case int // `INT` (not `BIGINT` etc, those are `.custom`)
     case boolean
     case varchar(width: Int?)
     case date
@@ -109,12 +110,13 @@ extension Schema {
       switch uc {
         // Note: Do not add aliases here, we want to preserve types not
         //       directly supported! (e.g. CLOB to .text)
-        case "INT", "INTEGER"  : self = .integer
+        case "INTEGER"         : self = .integer
         case "REAL"            : self = .real
         case "TEXT"            : self = .text
         case "BLOB"            : self = .blob
         case "ANY"             : self = .any
         
+        case "INT"             : self = .int
         case "BOOLEAN", "BOOL" : self = .boolean
         // Note: Not the `WITH TIME ZONE` variants!
         case "DATE"            : self = .date
@@ -142,6 +144,7 @@ extension Schema {
     public var rawValue: String {
       switch self {
         case .integer   : return "INTEGER"
+        case .int       : return "INT"
         case .real      : return "REAL"
         case .text      : return "TEXT"
         case .blob      : return "BLOB"

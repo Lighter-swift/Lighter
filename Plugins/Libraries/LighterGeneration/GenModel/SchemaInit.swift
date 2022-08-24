@@ -12,6 +12,7 @@ public extension DatabaseInfo {
     entities.reserveCapacity(schema.tables.count + schema.views.count)
     
     for table in schema.tables {
+      let isWithoutRowID = table.isTableWithoutRowID
       let indices  = schema.indices [table.name] ?? []
       let triggers = schema.triggers[table.name] ?? []
       
@@ -20,7 +21,8 @@ public extension DatabaseInfo {
           schema: column,
           foreignKey: table.foreignKeys.first(where: { fkey in
             fkey.sourceColumn == column.name
-          })
+          }),
+          supportsRowIDs: !isWithoutRowID
         )
       }
       
@@ -39,7 +41,8 @@ public extension DatabaseInfo {
       let triggers = schema.triggers[view.name] ?? []
       
       let properties = view.columns.map {
-        EntityInfo.Property(schema: $0, foreignKey: nil)
+        EntityInfo.Property(schema: $0, foreignKey: nil,
+                            supportsRowIDs: false)
       }
       
       let entity = EntityInfo(
@@ -59,7 +62,9 @@ public extension DatabaseInfo {
 
 extension EntityInfo.Property {
   
-  init(schema: Schema.Column, foreignKey: Schema.ForeignKey?) {
+  init(schema: Schema.Column, foreignKey: Schema.ForeignKey?,
+       supportsRowIDs: Bool)
+  {
     self.name         = schema.name
     self.externalName = schema.name
     self.columnType   = schema.type
@@ -67,22 +72,30 @@ extension EntityInfo.Property {
     self.isPrimaryKey = schema.isPrimaryKey
     self.isNotNull    = schema.isNotNull
     self.foreignKey   = foreignKey
+    
+    // https://www.sqlite.org/lang_createtable.html#rowid
+    self.canBeDatabaseGenerated =
+      supportsRowIDs && schema.type == .integer && schema.isPrimaryKey
 
     if let type = schema.type {
       switch type {
-        case .integer       : self.propertyType = .integer
-        case .real          : self.propertyType = .double
-        case .text          : self.propertyType = .string
-        case .blob          : self.propertyType = .uint8Array
-        case .any           : self.propertyType = .string // right?
-        case .boolean       : self.propertyType = .bool
-        case .varchar       : self.propertyType = .string
-        case .date          : self.propertyType = .string // right?
-        case .datetime      : self.propertyType = .string // right?
-        case .timestamp     : self.propertyType = .date
-        case .decimal       : self.propertyType = .decimal
-        case .custom("URL") : self.propertyType = .url
-        case .custom        : self.propertyType = .string
+        case .integer        : self.propertyType = .integer
+        case .int            : self.propertyType = .integer
+        case .real           : self.propertyType = .double
+        case .text           : self.propertyType = .string
+        case .blob           : self.propertyType = .uint8Array
+        case .any            : self.propertyType = .string // right?
+        case .boolean        : self.propertyType = .bool
+        case .varchar        : self.propertyType = .string
+        case .date           : self.propertyType = .string // right?
+        case .datetime       : self.propertyType = .string // right?
+        case .timestamp      : self.propertyType = .date
+        case .decimal        : self.propertyType = .decimal
+        #if true // This depends on the Foundation option, done by Fancifier?
+        case .custom("URL")  : self.propertyType = .url
+        case .custom("UUID") : self.propertyType = .uuid
+        #endif
+        case .custom         : self.propertyType = .string
       }
     }
     else { // No type assigned, use .string

@@ -127,7 +127,8 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     Person.properties.append(.init(
       name: "birthDate", externalName: "birth_date",
       propertyType: .date, columnType: .timestamp,
-      defaultValue: nil, isPrimaryKey: false, isNotNull: true
+      defaultValue: nil, isPrimaryKey: false, isNotNull: true,
+      canBeDatabaseGenerated: false
     ))
     
     let s = gen.generateDatabaseStructure()
@@ -165,7 +166,8 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     Person.properties.append(.init(
       name: "birthDate", externalName: "birth_date",
       propertyType: .date, columnType: .timestamp,
-      defaultValue: nil, isPrimaryKey: false, isNotNull: true
+      defaultValue: nil, isPrimaryKey: false, isNotNull: true,
+      canBeDatabaseGenerated: false
     ))
     
     let s = gen.generateDatabaseStructure()
@@ -203,7 +205,8 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     Person.properties.append(.init(
       name: "birthDate", externalName: "birth_date",
       propertyType: .date, columnType: .timestamp,
-      defaultValue: nil, isPrimaryKey: false, isNotNull: true
+      defaultValue: nil, isPrimaryKey: false, isNotNull: true,
+      canBeDatabaseGenerated: false
     ))
 
     let s = gen.generateDatabaseStructure()

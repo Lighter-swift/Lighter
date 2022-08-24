@@ -90,11 +90,7 @@ public extension EntityInfo {
     /// https://www.sqlite.org/autoinc.html
     /// Note: This is only really true for `INTEGER`, just `INT` doesn't trigger
     ///       the ID generation!!
-    public var canBeDatabaseGenerated : Bool {
-      // If the key is synthesized, i.e. not marked as a pkey in the DB, the DB
-      // won't generate a value for it!
-      columnType == .integer && isPrimaryKey && !isPrimaryKeySynthesized
-    }
+    public let canBeDatabaseGenerated : Bool
   }
 }
 

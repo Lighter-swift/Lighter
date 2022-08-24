@@ -29,6 +29,7 @@ public func generateSwiftInitForSchema(_ schema: Schema,
     source += ".init(id: \(column.id), name: \"\(column.name)\""
     switch column.type {
       case .none             : source += ", type: nil"
+      case .some(.int)       : source += ", type: .int"
       case .some(.integer)   : source += ", type: .integer"
       case .some(.real)      : source += ", type: .real"
       case .some(.text)      : break // default: source += ", type: .text"
