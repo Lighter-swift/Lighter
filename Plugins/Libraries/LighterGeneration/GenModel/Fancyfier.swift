@@ -457,18 +457,24 @@ public final class Fancifier {
       // Derived from cleaned up entity name.
       
       do {
-        var rawName = entity.name.snake_case(lowercase: true)
+        var singularRawName = entity.name.snake_case(lowercase: true)
+        var pluralRawName   = singularRawName
+        
         if options.singularizeRecordNames {
-          rawName = rawName.singularized
+          singularRawName = singularRawName.singularized
         }
-        entity.singularRawName = dedupe(rawName, using: &rawNames)
-      }
-      do {
-        var rawName = entity.name.snake_case(lowercase: true)
         if options.pluralizeRecordReferenceName {
-          rawName = rawName.pluralized
+          pluralRawName = pluralRawName.pluralized
         }
-        entity.pluralRawName = dedupe(rawName, using: &rawNames)
+        
+        entity.singularRawName = dedupe(singularRawName, using: &rawNames)
+        
+        if singularRawName == pluralRawName {
+          entity.pluralRawName = entity.singularRawName
+        }
+        else {
+          entity.pluralRawName = dedupe(pluralRawName, using: &rawNames)
+        }
       }
 
       // Properties
