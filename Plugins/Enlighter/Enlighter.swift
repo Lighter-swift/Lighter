@@ -57,10 +57,11 @@ struct Enlighter: BuildToolPlugin {
       ?? (rootJSON["outputFile"] as? String)
       
       let targetConfig = EnlighterTargetConfig(
-        extensions : extensions(in: rootJSON, target: target.name),
-        outputFile : outputFile,
-        verbose    : verbose,
-        configURL  : configURL
+        dbExtensions : dbExtensions(in: rootJSON, target: target.name),
+        extensions   : extensions(in: rootJSON, target: target.name),
+        outputFile   : outputFile,
+        verbose      : verbose,
+        configURL    : configURL
       )
       guard !targetConfig.extensions.isEmpty else {
         print("Skipping \"\(target.name)\",",
@@ -97,6 +98,16 @@ struct Enlighter: BuildToolPlugin {
     #endif
   }
 
+  fileprivate func dbExtensions(in rootJSON: [ String : Any ], target: String)
+                   -> Set<String>
+  {
+    let targetJSON = rootJSON[target] as? [ String : Any ]
+    let exts1 = (targetJSON?  ["databaseExtensions"] as? [ String ])
+             ?? (rootJSON     ["databaseExtensions"] as? [ String ])
+             ?? (defaultConfig["databaseExtensions"] as? [ String ])
+             ?? []
+    return Set(exts1)
+  }
   fileprivate func extensions(in rootJSON: [ String : Any ], target: String)
                    -> Set<String>
   {
@@ -112,7 +123,7 @@ struct Enlighter: BuildToolPlugin {
     
     return Set(exts1).union(exts2)
   }
-  
+    
   fileprivate func locateConfigFile(in context: PackagePlugin.PluginContext)
                    -> URL?
   {
@@ -151,7 +162,7 @@ struct Enlighter: BuildToolPlugin {
     }
     return result
   }
-  
+    
   private func generate(context       : PackagePlugin.PluginContext,
                         target        : SwiftSourceModuleTarget,
                         configuration : EnlighterTargetConfig,
@@ -191,8 +202,9 @@ struct Enlighter: BuildToolPlugin {
         if configuration.verbose {
           args.append("--verbose")
         }
-        if !group.resourceURLs.isEmpty {
-          args.append("--has-resources")
+        if let name = group.moduleFilename(using: configuration.dbExtensions) {
+          args.append("--module-filename")
+          args.append(name)
         }
         args.append(configuration.configURL?.path ?? "default")
         args.append(target.name) // required to resolve configs
@@ -264,10 +276,11 @@ extension Enlighter: XcodeBuildToolPlugin {
       ?? (rootJSON["outputFile"] as? String)
       
       let targetConfig = EnlighterTargetConfig(
-        extensions : extensions(in: rootJSON, target: target.name),
-        outputFile : outputFile,
-        verbose    : verbose,
-        configURL  : configURL
+        dbExtensions : dbExtensions(in: rootJSON, target: target.name),
+        extensions   : extensions(in: rootJSON, target: target.name),
+        outputFile   : outputFile,
+        verbose      : verbose,
+        configURL    : configURL
       )
       guard !targetConfig.extensions.isEmpty else {
         print("Skipping \"\(target.name)\",",
@@ -353,8 +366,9 @@ extension Enlighter: XcodeBuildToolPlugin {
         if configuration.verbose {
           args.append("--verbose")
         }
-        if !group.resourceURLs.isEmpty {
-          args.append("--has-resources")
+        if let name = group.moduleFilename(using: configuration.dbExtensions) {
+          args.append("--module-filename")
+          args.append(name)
         }
         args.append(configuration.configURL?.path ?? "default")
         args.append(target.name) // required to resolve configs

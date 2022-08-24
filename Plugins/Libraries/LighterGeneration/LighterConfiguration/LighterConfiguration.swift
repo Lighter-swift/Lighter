@@ -11,13 +11,13 @@ import LighterCodeGenAST
  *
  * Example:
  * ```json
- * "codeStyle": {
+ * "CodeStyle": {
  *   "functionCommentStyle" : "**",
  *   "indent"               : "  ",
  *   "lineLength"           : 80
  * },
  *
- * "embeddedLighter": {
+ * "EmbeddedLighter": {
  *   "selects": {
  *     "syncYield"  : { "columns": 8, "sorts": 2 },
  *     "syncArray"  : { "columns": 8, "sorts": 2 },
@@ -25,7 +25,7 @@ import LighterCodeGenAST
  *   }
  * },
  *
- * "swiftMapping": {
+ * "SwiftMapping": {
  *   "databaseTypeName": { ... }
  * }
  * ```
@@ -112,11 +112,13 @@ public extension LighterConfiguration {
       embeddedLighter = .disabled
     }
     else {
-      embeddedLighter = .init(section: section?[section: "EmbeddedLighter"])
+      embeddedLighter = LighterConfiguration
+        .EmbeddedLighter(section: section?[section: "EmbeddedLighter"])
     }
     
-    swiftMapping = .init(section: section?[section: "SwiftMapping"])
+    swiftMapping = Fancifier.Options(section: section?[section: "SwiftMapping"])
 
-    codeGeneration = .init(section: section?[section: "CodeGeneration"])
+    codeGeneration = EnlighterASTGenerator
+      .Options(section: section?[section: "CodeGeneration"])
   }
 }

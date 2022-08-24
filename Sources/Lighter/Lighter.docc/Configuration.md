@@ -269,9 +269,16 @@ Keys:
   The default SQLite date format is `"1973-01-31 12:12:12"`.
   Note: `DateFormatter` is quite slow in parsing, if performance is a concern
   prefer to store dates as timestamps.
-- `uuidSerialization` (String):
+- `uuidSerialization` (String): (default is `BLOB`)
+  This isn't used if `useSQLiteValueTypeBinds` is on and Lighter is being used
+  (set the `UUID.sqlUUIDStorageStyle` in that mode).
+  ```json
+  { "__doc__": "Lighter.json sample",
+    "CodeGeneration": { "uuidSerialization": "text" }
+  }
+  ```
   - If set to `"text"`, `"string"` or `"readable"`, Foundation `UUID` values
-    will be stored as `TEXT` int he SQL database 
+    will be stored as `TEXT` in the SQL database 
     (e.g. `B7D94E7E-EEE3-4E0A-A927-90748B73AA30`, 36 ASCII characters).
   - If set to `"blob"`, `"bytes"` or `"data"`, `UUID` values will be stored as
     compact, 16-byte `uuid_t` values. I.e. in a more compact manner that

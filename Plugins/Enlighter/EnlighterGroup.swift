@@ -32,6 +32,14 @@ struct EnlighterGroup: CustomStringConvertible {
     matches.map(\.lastPathComponent).joined(separator: ",") + ">"
   }
   
+  func moduleFilename(using extensions: Set<String>) -> String? {
+    guard !resourceURLs.isEmpty && !extensions.isEmpty else { return nil }
+    for url in resourceURLs {
+      if extensions.contains(url.pathExtension) { return url.lastPathComponent }
+    }
+    return nil
+  }
+  
   static func load(from    baseURL : URL,
                    resourcesPathes : Set<String>,
                    configuration   : EnlighterTargetConfig)

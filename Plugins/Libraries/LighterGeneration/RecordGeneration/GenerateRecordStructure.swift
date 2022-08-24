@@ -3,6 +3,7 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
+import Foundation
 import LighterCodeGenAST
 
 extension EnlighterASTGenerator {
@@ -44,9 +45,7 @@ extension EnlighterASTGenerator {
                comment: commentForPropertyVariable(property))
       },
       computedProperties : idProperty.flatMap({ [ $0 ] }) ?? [],
-      functions          : [
-        buildRegularInitForEntity(entity)
-      ],
+      functions          : [ buildRegularInitForEntity(entity) ],
       comment            : generateCommentForRecordStruct(entity)
     )
   }
@@ -57,10 +56,23 @@ extension EnlighterASTGenerator {
   func buildInitParameter(_ property: EntityInfo.Property)
        -> FunctionDeclaration.Parameter
   {
-    .init(
+    FunctionDeclaration.Parameter(
       keyword: property.name, name: property.name,
       type: type(for: property),
-      defaultValue: defaultValue(for: property)
+      defaultValue: defaultValue(for: property) ?? {
+        if property.isPrimaryKey {
+          if property.propertyType == .uuid { // null or not
+            // If the primary key is a UUID, generate a default value for that.
+            return .call(name: "UUID")
+          }
+          if property.canBeDatabaseGenerated && property.isNotNull &&
+             property.propertyType == .integer
+          {
+            return .variableReference(instance: "Int", name: "min")
+          }
+        }
+        return nil
+      }()
     )
   }
   
@@ -89,13 +101,17 @@ extension EnlighterASTGenerator {
     let sqlType      = property.columnType ?? .any
     
     var ms = "\(prefix) `\(property.externalName)` (`\(sqlType.rawValue)`), "
-    ms += property.isNotNull    ? "required"    : "optional"
+    ms += property.isNotNull ? "required"    : "optional"
     switch defaultValue {
+      case .none                         : break // no defaults
       case .literal(.nil)                : ms += " (default: `nil`)"
       case .literal(.integer(let value)) : ms += " (default: `\(value)`)"
       case .literal(.double (let value)) : ms += " (default: `\(value)`)"
-      case .literal(.string)             : ms += " (has default string)"
-      default                            : ms += " (has default)"
+      case .literal(.string (let value)) :
+        if value.isEmpty { ms += " (empty string as default)" }
+        else { ms += " (has default string #\(value.count))" }
+      default: // this is hit w/ complex expressions!
+        ms += " (has default)"
     }
     ms += "."
     return ms

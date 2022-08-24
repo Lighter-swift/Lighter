@@ -58,4 +58,34 @@ final class ASTRecordStructGenerationTests: XCTestCase {
     XCTAssertFalse(source.contains("SQLKeyedTableRecord"))
   }
 
+  
+  func testTalentStruct() throws {
+    let dbInfo    = DatabaseInfo(name: "TestDB", schema: Fixtures.talentSchema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    //print("Fancified:", dbInfo)
+    
+    let gen = EnlighterASTGenerator(
+      database: dbInfo, filename: "Contacts.swift"
+    )
+    let s = gen.generateRecordStructure(for: try XCTUnwrap(dbInfo["Talent"]))
+    
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateStruct(s)
+      return builder.source
+    }()
+    //print("GOT:\n-----\n\(source)\n-----")
+    
+    XCTAssertTrue(source.contains(
+      "public struct Talent : Identifiable, SQLKeyedTableRecord, Codable"))
+    XCTAssertTrue(source.contains("var id : UUID"))
+    XCTAssertTrue(source.contains("var name : String"))
+
+    XCTAssertTrue(source.contains("init(id: UUID = UUID(), name: String)"))
+    XCTAssertTrue(source.contains("self.id = id"))
+    
+    XCTAssertFalse(source.contains("has default"))
+  }
 }

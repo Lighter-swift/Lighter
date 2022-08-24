@@ -20,7 +20,7 @@ struct Arguments {
   /// Enable verbose logging
   let verbose      : Bool
   /// Whether one of the input files is also a package resource.
-  let hasResources : Bool
+  let moduleFilename : String?
   
   /// The URL to the configuration file, Lighter.json.
   let configURL    : URL
@@ -55,12 +55,25 @@ struct Arguments {
     else {
       verbose = false
     }
-    if let idx = args.firstIndex(of: "--has-resources") {
-      hasResources = true
+    
+    var wantsModuleFilename = false
+    var moduleFilename : String?
+    if let idx = args.firstIndex(of: "--module-filename") {
+      wantsModuleFilename = true
+      let valueIdx = args.index(after: idx)
+      if valueIdx < args.endIndex {
+        moduleFilename = args[valueIdx]
+        args.remove(at: valueIdx)
+      }
+      else {
+        print("No module filename?!")
+      }
       args.remove(at: idx)
     }
-    else {
-      hasResources = false
+
+    if args.count < 4 {
+      Self.usage(toolName)
+      throw ExitCodes.invalidArguments
     }
 
     configURL  = args[0] != "default"
@@ -78,6 +91,13 @@ struct Arguments {
     stem = firstFileName.firstIndex(where: { $0 == "-" || $0 == "." })
       .flatMap { String(firstFileName[..<$0]) }
     ?? firstFileName
+    
+    if wantsModuleFilename {
+      self.moduleFilename = moduleFilename ?? inputURLs.first?.lastPathComponent
+    }
+    else {
+      self.moduleFilename = nil
+    }
   }
   
   /// Print the arguments.

@@ -99,11 +99,7 @@ struct SQLite2Swift {
       filename : args.outputURL.lastPathComponent,
       options  : config.codeGeneration
     )
-    
-    let moduleFileName = args.inputURLs.first?.lastPathComponent
-    return gen.generateCombinedFile(
-      moduleFileName: args.hasResources ? moduleFileName : nil
-    )
+    return gen.generateCombinedFile(moduleFileName: args.moduleFilename)
   }
     
   private func writeToOutput(_ unit: CompilationUnit) throws {

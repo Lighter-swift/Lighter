@@ -49,7 +49,21 @@ enum Fixtures {
       )
     ]
   )
-  
+
+  static let talentSchema = Schema(
+    version: 1, userVersion: 0,
+    tables: [
+      Schema.Table(
+        info: .init(type: .table, name: "talent"),
+        columns: [
+          .init(id: 0, name: "talent_id", type: .custom("UUID"),
+                isNotNull: true, defaultValue: nil, isPrimaryKey: true),
+          .init(id: 1, name: "name", type: .text, isNotNull: true)
+        ]
+      )
+    ]
+  )
+
   static let northWindSchema = Schema(
     version: 17, userVersion: 0,
     tables: [
