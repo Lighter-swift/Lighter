@@ -209,8 +209,9 @@ fileprivate extension Schema.Column {
       return nil
     }
 
-    if let s = sqlite3_column_text(stmt, 2) {
-      type = Schema.ColumnType(rawValue: String(cString: s))
+    if let cstr = sqlite3_column_text(stmt, 2) {
+      let s = String(cString: cstr)
+      type = Schema.ColumnType(rawValue: s)
     }
     else {
       type = nil
