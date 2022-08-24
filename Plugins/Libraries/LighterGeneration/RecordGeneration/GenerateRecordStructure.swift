@@ -61,9 +61,14 @@ extension EnlighterASTGenerator {
       type: type(for: property),
       defaultValue: defaultValue(for: property) ?? {
         if property.isPrimaryKey {
-          if property.propertyType == .uuid {
+          if property.propertyType == .uuid { // null or not
             // If the primary key is a UUID, generate a default value for that.
             return .call(name: "UUID")
+          }
+          if property.canBeDatabaseGenerated && property.isNotNull &&
+             property.propertyType == .integer
+          {
+            return .variableReference(instance: "Int", name: "min")
           }
         }
         return nil
