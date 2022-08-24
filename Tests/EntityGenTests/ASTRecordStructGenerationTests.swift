@@ -83,7 +83,7 @@ final class ASTRecordStructGenerationTests: XCTestCase {
     XCTAssertTrue(source.contains("var id : UUID"))
     XCTAssertTrue(source.contains("var name : String"))
 
-    XCTAssertTrue(source.contains("init(id: UUID, name: String)"))
+    XCTAssertTrue(source.contains("init(id: UUID = UUID(), name: String)"))
     XCTAssertTrue(source.contains("self.id = id"))
     
     XCTAssertFalse(source.contains("has default"))

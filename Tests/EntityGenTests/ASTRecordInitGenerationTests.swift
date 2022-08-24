@@ -128,4 +128,27 @@ final class ASTRecordInitGenerationTests: XCTestCase {
     XCTAssertTrue(source.contains("rbp[13], rbp[14], rbp[15]"))
     XCTAssertTrue(source.contains("UUID(uuidString: String(cString: $0))"))
   }
+  
+  func testTalentInitWithUUID() throws {
+    let dbInfo    = DatabaseInfo(name: "Talents", schema: Fixtures.talentSchema)
+    let options   = Fancifier.Options()
+    let fancifier = Fancifier(options: options)
+    fancifier.fancifyDatabaseInfo(dbInfo)
+    //print("Fancified:", dbInfo)
+    
+    let gen = EnlighterASTGenerator(
+      database: dbInfo, filename: "Talents.swift"
+    )
+    let s = gen.buildRegularInitForEntity(try XCTUnwrap(dbInfo["Talent"]))
+    
+    let source : String = {
+      let builder = CodeGenerator()
+      builder.generateFunctionDefinition(s)
+      return builder.source
+    }()
+    // print("GOT:\n-----\n\(source)\n-----")
+    
+    XCTAssertTrue(source.contains("public init(id: UUID = UUID()"))
+    XCTAssertTrue(source.contains("name: String)"))
+  }
 }
