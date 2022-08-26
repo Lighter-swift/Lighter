@@ -16,7 +16,7 @@
  *   || $0.id.in(2, 3, 4)
  *   && $0.id.notIn([ 7, 8 ])
  *   && ![ 13, 14 ].contains($0.people)
- *   && $0.in([ 2, 3 ]
+ *   && $0.in([ 2, 3 ])
  * }
  * ```
  */
@@ -52,6 +52,22 @@ public struct SQLColumnValueSetPredicate<C: SQLColumn>: SQLPredicate {
     self.values = values
     self.negate = negate
   }
+  
+  /**
+   * Setup a new ``SQLColumnValueSetPredicate``.
+   *
+   * Examples:
+   * ```swift
+   * $0.personId.in(values)
+   * $0.personId.notIn(values)
+   * ![ 13, 14].contains($0.personId)
+   * ```
+   *
+   * - Parameters:
+   *   - column: The ``SQLColumn`` to compare.
+   *   - values: The values to compare the column against.
+   *   - negate: Whether the check should negate the query (`NOT IN`).
+   */
   @inlinable
   public init<S: Sequence>(_ column: C, _ values: S, negate: Bool = false)
            where S.Element == C.Value
