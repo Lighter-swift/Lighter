@@ -70,13 +70,13 @@ The toolkit consists of four major parts:
   for Xcode and the Swift Package Manager.
 - The “Generate Code for SQLite3” Swift 5.6 **command plugin** 
   for Xcode and Swift Package Manager
-- The “swift2sqlite3” **tool** that can be used to generate SQLite code if the 
+- The “sqlite2swift” **tool** that can be used to generate SQLite code if the 
   environment doesn't allow for Xcode 14 or Swift 5.6 yet (the generated code
   runs against earlier version).
 
 There is also the the 
  [“Code for SQLite3” application](https://apps.apple.com/us/app/code-for-sqlite3/id1638111010).
-A macOS app that does the same like “swift2sqlite3”, but as an app.
+A macOS app that does the same like “sqlite2swift”, but as an app.
 If you want to support this project, consider buying a copy. Thank you!
 
 There are two associated repositories:

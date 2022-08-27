@@ -231,7 +231,7 @@ extension SQLDatabaseChangeOperations {
   {
     // "INSERT INTO table ( names ) WHERE ( ?, ?, ? ) RETURNING *"
     // RETURNING requires SQLite3 3.35.0+ (2021-03-12)
-    let supportsReturning = sqlite3_libversion_number() >= 3035000
+    let supportsReturning = sqlite3_libversion_number() >= 30_35_000
     let sql = supportsReturning ? T.Schema.insertReturning : T.Schema.insert
     
     var statement : OpaquePointer?

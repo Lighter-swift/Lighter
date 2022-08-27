@@ -37,7 +37,7 @@ Even with Xcode 13 the command plugin can be run using swift on the commandline.
 ### Using the "Code for SQLite3" Application
 
 [“Code for SQLite3” application](https://apps.apple.com/us/app/code-for-sqlite3/id1638111010)
-is a macOS app that does the same like the “`swift2sqlite3`” tool, but as an app.
+is a macOS app that does the same like the “`sqlite2swift`” tool, but as an app.
 It can be useful to play w/ the Lighter options and to manually generate the
 code.
 

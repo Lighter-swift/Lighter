@@ -163,13 +163,13 @@ extension Schema.ColumnType: CustomStringConvertible {
   /// Returns a debug description for the ColumnType.
   public var description: String {
     switch self {
-      case .integer : return "INT"
+      case .integer : return "INTEGER"
       case .real    : return "REAL"
       case .text    : return "TEXT"
       case .blob    : return "BLOB"
       case .any     : return "ANY"
         
-        // common SQL types
+      case .int                       : return "INT"
       case .boolean                   : return "BOOL"
       case .varchar(.some(let width)) : return "VARCHAR(\(width))"
       case .varchar(.none)            : return "VARCHAR"
@@ -209,8 +209,9 @@ fileprivate extension Schema.Column {
       return nil
     }
 
-    if let s = sqlite3_column_text(stmt, 2) {
-      type = Schema.ColumnType(rawValue: String(cString: s))
+    if let cstr = sqlite3_column_text(stmt, 2) {
+      let s = String(cString: cstr)
+      type = Schema.ColumnType(rawValue: s)
     }
     else {
       type = nil

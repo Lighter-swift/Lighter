@@ -189,7 +189,7 @@ try await db.transaction { tx in
   // Delete a record.
   try tx.delete(person)
   
-  // Reinsert thew same record
+  // Reinsert the same record
   let newPerson = try tx.insert(person) // gets new ID!
 }
 ```

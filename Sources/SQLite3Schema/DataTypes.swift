@@ -81,13 +81,14 @@ extension Schema {
   public enum ColumnType: Hashable, RawRepresentable {
     
     // strict types
-    case integer
+    case integer // this is really the exact `INTEGER`, not .int
     case real
     case text
     case blob
     case any
     
     // common SQL types
+    case int // `INT` (not `BIGINT` etc, those are `.custom`)
     case boolean
     case varchar(width: Int?)
     case date
@@ -99,58 +100,6 @@ extension Schema {
     // `CREATE TABLE B ( col MYTYPE );` works!
     case custom(String)
     
-    /**
-     * The ``Schema/TypeAffinity`` of the type.
-     *
-     * This is determined as described in
-     * https://www.sqlite.org/datatype3.html#determination_of_column_affinity
-     *
-     * Note that if no type is specified, the affinity is
-     * ``Schema/TypeAffinity/blob``.
-     */
-    public var affinity : TypeAffinity {
-      switch self {
-        case .integer : return .integer
-        case .real    : return .real
-        case .text    : return .text
-        case .blob    : return .blob
-        case .any     : return .numeric // TBD
-        
-        // common SQL types
-        case .boolean : return .numeric
-        case .date, .datetime, .timestamp: return .numeric // TBD
-        case .varchar : return .numeric
-        case .decimal : return .numeric
-        
-        // E.g. one can (and the OGo schema does) use own datatype names, e.g.
-        // `CREATE TABLE B ( col MYTYPE );` works!
-        case .custom(let s): // according to SQLite rules!
-          #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.6)
-          return s.withCString { cstr in
-            if strcasestr(cstr, "INT")  != nil { return .integer }
-            if strcasestr(cstr, "CHAR") != nil { return .text }
-            if strcasestr(cstr, "CLOB") != nil { return .text }
-            if strcasestr(cstr, "TEXT") != nil { return .text }
-            if strcasestr(cstr, "BLOB") != nil { return .blob }
-            if strcasestr(cstr, "REAL") != nil { return .real }
-            if strcasestr(cstr, "FLOA") != nil { return .real }
-            if strcasestr(cstr, "DOUB") != nil { return .real }
-            return .numeric
-          }
-          #else // Linux etc, strcasestr not exposed in Swift
-          let uc = s.uppercased()
-          if nil != strstr(uc, "INT")  { return .integer }
-          if nil != strstr(uc, "CHAR") { return .text }
-          if nil != strstr(uc, "CLOB") { return .text }
-          if nil != strstr(uc, "TEXT") { return .text }
-          if nil != strstr(uc, "BLOB") { return .blob }
-          if nil != strstr(uc, "REAL") { return .real }
-          if nil != strstr(uc, "FLOA") { return .real }
-          if nil != strstr(uc, "DOUB") { return .real }
-          return .numeric
-          #endif
-      }
-    }
     
     /// Initialize a `ColumnType` from a String. If it doesn't match any known,
     /// a `.custom` case will be used.
@@ -161,12 +110,13 @@ extension Schema {
       switch uc {
         // Note: Do not add aliases here, we want to preserve types not
         //       directly supported! (e.g. CLOB to .text)
-        case "INT", "INTEGER"  : self = .integer
+        case "INTEGER"         : self = .integer
         case "REAL"            : self = .real
         case "TEXT"            : self = .text
         case "BLOB"            : self = .blob
         case "ANY"             : self = .any
         
+        case "INT"             : self = .int
         case "BOOLEAN", "BOOL" : self = .boolean
         // Note: Not the `WITH TIME ZONE` variants!
         case "DATE"            : self = .date
@@ -194,6 +144,7 @@ extension Schema {
     public var rawValue: String {
       switch self {
         case .integer   : return "INTEGER"
+        case .int       : return "INT"
         case .real      : return "REAL"
         case .text      : return "TEXT"
         case .blob      : return "BLOB"
@@ -210,6 +161,63 @@ extension Schema {
 
         case .custom(let string): return string
       }
+    }
+  }
+}
+
+extension Schema.ColumnType {
+  
+  /**
+   * The ``Schema/TypeAffinity`` of the type.
+   *
+   * This is determined as described in
+   * https://www.sqlite.org/datatype3.html#determination_of_column_affinity
+   *
+   * Note that if no type is specified, the affinity is
+   * ``Schema/TypeAffinity/blob``.
+   */
+  public var affinity : Schema.TypeAffinity {
+    switch self {
+      case .integer : return .integer
+      case .real    : return .real
+      case .text    : return .text
+      case .blob    : return .blob
+      case .any     : return .numeric // TBD
+      
+      // common SQL types
+      case .int     : return .integer
+      case .boolean : return .numeric
+      case .date, .datetime, .timestamp: return .numeric // TBD
+      case .varchar : return .numeric
+      case .decimal : return .numeric
+      
+      // E.g. one can (and the OGo schema does) use own datatype names, e.g.
+      // `CREATE TABLE B ( col MYTYPE );` works!
+      case .custom(let s): // according to SQLite rules!
+        #if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.6)
+        return s.withCString { cstr in
+          if strcasestr(cstr, "INT")  != nil { return .integer }
+          if strcasestr(cstr, "CHAR") != nil { return .text }
+          if strcasestr(cstr, "CLOB") != nil { return .text }
+          if strcasestr(cstr, "TEXT") != nil { return .text }
+          if strcasestr(cstr, "BLOB") != nil { return .blob }
+          if strcasestr(cstr, "REAL") != nil { return .real }
+          if strcasestr(cstr, "FLOA") != nil { return .real }
+          if strcasestr(cstr, "DOUB") != nil { return .real }
+          return .numeric
+        }
+        #else // Linux etc, strcasestr not exposed in Swift
+        let uc = s.uppercased()
+        if nil != strstr(uc, "INT")  { return .integer }
+        if nil != strstr(uc, "CHAR") { return .text }
+        if nil != strstr(uc, "CLOB") { return .text }
+        if nil != strstr(uc, "TEXT") { return .text }
+        if nil != strstr(uc, "BLOB") { return .blob }
+        if nil != strstr(uc, "REAL") { return .real }
+        if nil != strstr(uc, "FLOA") { return .real }
+        if nil != strstr(uc, "DOUB") { return .real }
+        return .numeric
+        #endif
     }
   }
 }

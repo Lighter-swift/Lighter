@@ -525,7 +525,7 @@ extension EnlighterASTGenerator {
         returnType: .int32
       ),
       statements:
-        //let sql = sqlite3_libversion_number() >= 3035000
+        //let sql = sqlite3_libversion_number() >= 30_35_000
         // ? Person.Schema.insertReturning : Person.Schema.insert
         [ .let("sql", is:
             .conditional(

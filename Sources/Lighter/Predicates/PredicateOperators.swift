@@ -7,29 +7,58 @@
 
 public extension SQLPredicate {
   
-  /// Negate the `SQLPredicate`.
+  /**
+   * Negate the `SQLPredicate`.
+   *
+   * This just wraps the predicate in a ``SQLNotPredicate``.
+   * There is another `!` overload which unwraps the ``SQLNotPredicate``.
+   */
   @inlinable
   static prefix func !(predicate: Self) -> SQLNotPredicate<Self> {
     return SQLNotPredicate(predicate)
   }
 }
+
 public extension SQLNotPredicate {
   
-  /// Negate the `SQLNotPredicate`.
+  /**
+   * Negate the `SQLNotPredicate`.
+   *
+   * This just unwraps the predicate.
+   * There is another `!` overload which wraps other ``SQLPredicate``s.
+   */
   @inlinable
   static prefix func !(predicate: Self) -> P { predicate.predicate }
 }
+
 
 // MARK: - Compound Predicate
 
 public extension SQLPredicate {
   
+  /**
+   * Check whether both of the predicates are true.
+   *
+   * Example:
+   * ```swift
+   * $0.age > 10 && $0.name == "Duck"
+   * ```
+   */
   @inlinable
   static func &&<O: SQLPredicate>(lhs: Self, rhs: O)
          -> SQLCompoundPredicate<Self, O>
   {
     SQLCompoundPredicate(operation: .and, lhs: lhs, rhs: rhs)
   }
+  
+  /**
+   * Check whether one of the predicates is true.
+   *
+   * Example:
+   * ```swift
+   * $0.age > 10 || $0.name == "Duck"
+   * ```
+   */
   @inlinable
   static func ||<O: SQLPredicate>(lhs: Self, rhs: O)
          -> SQLCompoundPredicate<Self, O>
@@ -37,12 +66,34 @@ public extension SQLPredicate {
     SQLCompoundPredicate(operation: .or, lhs: lhs, rhs: rhs)
   }
 
+  /**
+   * Check whether both of the predicates are true.
+   *
+   * Example:
+   * ```swift
+   * $0.age > 10 && "name LIKE 'H%'"
+   * ```
+   *
+   * This is a variant which takes a ``SQLInterpolatedPredicate`` on the right
+   * side, which itself can be derive from an interpolation literal.
+   */
   @inlinable
   static func &&(lhs: Self, rhs: SQLInterpolatedPredicate)
          -> SQLCompoundPredicate<Self, SQLInterpolatedPredicate>
   {
     SQLCompoundPredicate(operation: .and, lhs: lhs, rhs: rhs)
   }
+  /**
+   * Check whether one of the predicates is true.
+   *
+   * Example:
+   * ```swift
+   * $0.age > 10 || "name LIKE 'H%'"
+   * ```
+   *
+   * This is a variant which takes a ``SQLInterpolatedPredicate`` on the right
+   * side, which itself can be derive from an interpolation literal.
+   */
   @inlinable
   static func ||(lhs: Self, rhs: SQLInterpolatedPredicate)
          -> SQLCompoundPredicate<Self, SQLInterpolatedPredicate>
@@ -50,6 +101,7 @@ public extension SQLPredicate {
     SQLCompoundPredicate(operation: .or, lhs: lhs, rhs: rhs)
   }
 }
+
 
 // MARK: - KeyValuePredicate
 
@@ -273,39 +325,118 @@ public extension SQLColumn where Self.Value: StringProtocol {
 
 public extension SQLColumn {
   
+  /**
+   * Checks whether the value of a column matches a set of given values.
+   *
+   * Example:
+   * ```swift
+   * $0.id.in([ 2, 3, 4 ])
+   * $0.name.in([ "Mouse", "Duck" ])
+   * ```
+   *
+   * Note: There is also a simpler version that takes the values inline like
+   *       `$0.id.in(2, 3, 4)`
+   */
   @inlinable
   func `in`(_ values: Set<Value>) -> SQLColumnValueSetPredicate<Self> {
     SQLColumnValueSetPredicate(self, values)
   }
+  
+  /**
+   * Checks whether the value of a column is different to a set of given values.
+   *
+   * Example:
+   * ```swift
+   * $0.id.notIn([ 2, 3, 4 ])
+   * $0.name.notIn([ "Mouse", "Duck" ])
+   * ```
+   *
+   * Note: There is also a simpler version that takes the values inline like
+   *       `$0.id.notIn(2, 3, 4)`
+   */
   @inlinable
   func notIn(_ values: Set<Value>) -> SQLColumnValueSetPredicate<Self> {
     SQLColumnValueSetPredicate(self, values, negate: true)
   }
   
+  /**
+   * Checks whether the value of a column matches a set of given values.
+   *
+   * Example:
+   * ```swift
+   * $0.id.in(2, 3, 4)
+   * $0.name.in("Mouse", "Duck")
+   * ```
+   */
   @inlinable
   func `in`(_ values: Value...) -> SQLColumnValueSetPredicate<Self> {
     SQLColumnValueSetPredicate(self, values)
   }
+
+  /**
+   * Checks whether the value of a column is different to a set of given values.
+   *
+   * Example:
+   * ```swift
+   * $0.id.notIn(2, 3, 4)
+   * $0.name.notIn("Mouse", "Duck")
+   * ```
+   */
+  @inlinable
+  func notIn(_ values: Value...) -> SQLColumnValueSetPredicate<Self> {
+    SQLColumnValueSetPredicate(self, values, negate: true)
+  }
+
+  /**
+   * Checks whether the value of a column matches a set of given values.
+   *
+   * Example:
+   * ```swift
+   * $0.id.in([ 2, 3, 4 ])
+   * $0.name.in([ "Mouse", "Duck" ])
+   * ```
+   *
+   * Note: There is also a simpler version that takes the values inline like
+   *       `$0.id.in(2, 3, 4)`
+   */
   @inlinable
   func `in`<S>(_ values: S) -> SQLColumnValueSetPredicate<Self>
          where S: Sequence, S.Element == Value
   {
     SQLColumnValueSetPredicate(self, values)
   }
+  
+  /**
+   * Checks whether the value of a column is different to a set of given values.
+   *
+   * Example:
+   * ```swift
+   * $0.id.notIn([ 2, 3, 4 ])
+   * $0.name.notIn([ "Mouse", "Duck" ])
+   * ```
+   *
+   * Note: There is also a simpler version that takes the values inline like
+   *       `$0.id.notIn(2, 3, 4)`
+   */
   @inlinable
   func notIn<S>(_ values: S) -> SQLColumnValueSetPredicate<Self>
          where S: Sequence, S.Element == Value
   {
     SQLColumnValueSetPredicate(self, values, negate: true)
   }
-  @inlinable
-  func notIn(_ values: Value...) -> SQLColumnValueSetPredicate<Self> {
-    SQLColumnValueSetPredicate(self, values, negate: true)
-  }
 }
 
 public extension Collection {
   
+  /**
+   * Checks whether the value of a column matches a set of given values.
+   *
+   * Example:
+   * ```swift
+   * [ 2, 3, 4 ].contains($0.id)
+   * [ "Mouse", "Duck" ].contains($0.name)
+   * ```
+   */
   @inlinable
   func contains<C>(_ column: C) -> SQLColumnValueSetPredicate<C>
          where C: SQLColumn, C.Value == Element
@@ -313,8 +444,17 @@ public extension Collection {
     SQLColumnValueSetPredicate<C>(column, self)
   }
 }
+
 public extension Range {
   
+  /**
+   * Checks whether the value of a column is in a specific range.
+   *
+   * Example:
+   * ```swift
+   * 13..<42>.contains($0.id)
+   * ```
+   */
   @inlinable
   func contains<C>(_ column: C) -> SQLColumnValueRangePredicate<C>
          where C: SQLColumn, C.Value == Element
@@ -322,8 +462,17 @@ public extension Range {
     SQLColumnValueRangePredicate<C>(column, self)
   }
 }
+
 public extension ClosedRange {
   
+  /**
+   * Checks whether the value of a column is in a specific range.
+   *
+   * Example:
+   * ```swift
+   * 13...14.contains($0.id)
+   * ```
+   */
   @inlinable
   func contains<C>(_ column: C) -> SQLColumnValueRangePredicate<C>
          where C: SQLColumn, C.Value == Element
@@ -334,6 +483,14 @@ public extension ClosedRange {
 
 public extension SQLColumn where Value: Comparable {
   
+  /**
+   * Checks whether the value of a column is in a specific range.
+   *
+   * Example:
+   * ```swift
+   * $0.id.in(13...14)
+   * ```
+   */
   @inlinable
   func `in`(_ values: ClosedRange<Value>)
        -> SQLColumnValueRangePredicate<Self>
@@ -344,6 +501,14 @@ public extension SQLColumn where Value: Comparable {
 
 public extension SQLKeyedTableSchema where PrimaryKeyColumn.Value: Comparable {
   
+  /**
+   * Checks whether the value of a records primary key is in a specific range.
+   *
+   * Example:
+   * ```swift
+   * $0.in(13...14)
+   * ```
+   */
   @inlinable
   func `in`(_ values: ClosedRange<PrimaryKeyColumn.Value>)
        -> SQLColumnValueRangePredicate<PrimaryKeyColumn>
@@ -353,7 +518,6 @@ public extension SQLKeyedTableSchema where PrimaryKeyColumn.Value: Comparable {
 }
 
 public extension SQLKeyedTableSchema {
-  // TBD: We could also match keyed records? (`$0.in(donald, mickey)`)
 
   /**
    * Check whether the primary key of a table is the same like the given value.
@@ -371,7 +535,7 @@ public extension SQLKeyedTableSchema {
   }
 
   /**
-   * Check whether the primary key of a table is a set of values
+   * Check whether the primary key of a table matches on of a set of values.
    *
    * Example:
    * ```swift
@@ -384,8 +548,9 @@ public extension SQLKeyedTableSchema {
   {
     Self.primaryKeyColumn.in(values)
   }
+  
   /**
-   * Check whether the primary key of a table is a set of values.
+   * Check whether the primary key of a table matches on of a set of values.
    *
    * Example:
    * ```swift
@@ -400,7 +565,7 @@ public extension SQLKeyedTableSchema {
   }
 
   /**
-   * Check whether the primary key of a table is a set of values.
+   * Check whether the primary key of a table is different to a set of values.
    *
    * Example:
    * ```swift
@@ -413,8 +578,9 @@ public extension SQLKeyedTableSchema {
   {
     Self.primaryKeyColumn.notIn(values)
   }
+  
   /**
-   * Check whether the primary key of a table is a set of values.
+   * Check whether the primary key of a table is different to a set of values.
    *
    * Example:
    * ```swift
@@ -430,7 +596,13 @@ public extension SQLKeyedTableSchema {
 }
 
 public extension SQLColumnValueSetPredicate {
-  
+
+  /**
+   * Negate the `SQLColumnValueSetPredicate`.
+   *
+   * This just toggles the `negate` property of the SQLColumnValueSetPredicate.
+   * There is another `!` overload which wraps other ``SQLPredicate``s.
+   */
   @inlinable
   static prefix func !(predicate: Self) -> SQLColumnValueSetPredicate<C> {
     SQLColumnValueSetPredicate(
