@@ -352,7 +352,7 @@ the dependency free, lower level SQLite API is not generated
 If it key is set to `"RecordType"` or `"attachToRecordType"`,
 the low level API will be generated as methods on the structures.
 E.g. instead of a global `sqlite3_fetch_people()` function, 
-the generator will generated:
+the generator will generate:
 ```swift
 extension Person {
   static func fetch(in database: OpaquePointer) -> [ Person ] {...}
