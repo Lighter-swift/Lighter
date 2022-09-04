@@ -180,6 +180,9 @@ extension Double : SQLiteValueType {
   }
 }
 
+// This isn't exported towards Swift by the SQLite3 module.
+@usableFromInline let SQLITE_STATIC : sqlite3_destructor_type? = nil
+
 extension String : SQLiteValueType {
   
   @inlinable
@@ -207,7 +210,7 @@ extension String : SQLiteValueType {
                    index: Int32, then execute: () -> Void)
   {
     withCString { cstr in
-      sqlite3_bind_text(stmt, index, cstr, -1, nil)
+      sqlite3_bind_text(stmt, index, cstr, -1, SQLITE_STATIC)
       execute()
     }
   }
@@ -237,7 +240,7 @@ extension Substring : SQLiteValueType {
                    index: Int32, then execute: () -> Void)
   {
     withCString { cstr in
-      sqlite3_bind_text(stmt, index, cstr, -1, nil)
+      sqlite3_bind_text(stmt, index, cstr, -1, SQLITE_STATIC)
       execute()
     }
   }
@@ -494,7 +497,7 @@ extension URL : SQLiteValueType {
                    index: Int32, then execute: () -> Void)
   {
     absoluteString.withCString { cstr in
-      sqlite3_bind_text(stmt, index, cstr, -1, nil)
+      sqlite3_bind_text(stmt, index, cstr, -1, SQLITE_STATIC)
       execute()
     }
   }
