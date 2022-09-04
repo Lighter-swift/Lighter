@@ -472,7 +472,7 @@ sqlite3_products_fetch(db, sql: "SELECT * FROM Products2022") {
 
 Another "hacky" variant is abusing the schema for a different table,
 sometimes also useful to perform migrations:
-```
+```swift
 sqlite3_products_fetch(db, sql: 
   """
   SELECT NewProductId    AS ProductId,
