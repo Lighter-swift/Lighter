@@ -459,7 +459,7 @@ i.e. using different tables with the same schema for different datasets.
 For example [Shrugs.app](https://shrugs.app), the chat client, creates
 [a message table for each channel](https://github.com/ZeeZide/Shrugs/wiki/Querying-the-SQLite-Cache)/conversation.
 
-The raw SQL select can we useful for such scenarios, while still using
+The raw SQL select can be useful for such scenarios, while still using
 features like Swift closure filtering:
 ```swift
 sqlite3_products_fetch(db, sql: "SELECT * FROM Products") {
@@ -472,7 +472,7 @@ sqlite3_products_fetch(db, sql: "SELECT * FROM Products2022") {
 
 Another "hacky" variant is abusing the schema for a different table,
 sometimes also useful to perform migrations:
-```
+```swift
 sqlite3_products_fetch(db, sql: 
   """
   SELECT NewProductId    AS ProductId,
