@@ -101,7 +101,7 @@ extension SQLConnectionHandler {
     private func scheduleGCIfNecessary() {
       lock.lock()
       if gc != nil { return lock.unlock() }
-      let wi = DispatchWorkItem(block: self._collect)
+      let wi = DispatchWorkItem { [weak self] in self?._collect() }
       gc = wi
       lock.unlock()
       
