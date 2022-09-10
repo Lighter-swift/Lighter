@@ -9,6 +9,9 @@ import struct Foundation.TimeInterval
 import struct Foundation.URL
 import Dispatch
 import func SQLite3.sqlite3_close
+#if os(iOS)
+import UIKit
+#endif
 
 extension SQLConnectionHandler {
   
@@ -33,6 +36,14 @@ extension SQLConnectionHandler {
     private var caches  = [ Configuration : [ Entry ] ]()
     private var gc      : DispatchWorkItem?
     
+    #if os(iOS) // Q: .main
+      private var allowPooling   = true
+      private var fgSubscription : NSObjectProtocol?
+      private var bgSubscription : NSObjectProtocol?
+    #else
+      private let allowPooling   = true
+    #endif
+    
     /// Initialize a simple pool.
     public init(url: URL, readOnly: Bool,
                 maxAge: TimeInterval = 3.0,
@@ -42,12 +53,60 @@ extension SQLConnectionHandler {
       self.maxAge              = maxAge
       self.maxPerConfiguration = maximumPoolSizePerConfiguration
       super.init(url: url, readOnly: readOnly, writeTimeout: writeTimeout)
+      
+      #if os(iOS)
+      subscribeForAppStateNotifications()
+      #endif
     }
     deinit {
       gc?.cancel(); gc = nil
       closePooledConnections()
+      
+      #if os(iOS)
+        unsubscribeFromAppStateNotifications()
+      #endif
     }
-        
+    
+    
+    // MARK: - App State Handling
+
+    #if os(iOS)
+    private func subscribeForAppStateNotifications() {
+      DispatchQueue.main.async {
+        let nc = NotificationCenter.default
+        self.fgSubscription = nc.addObserver(
+          forName: UIApplication.willEnterForegroundNotification, object: nil,
+          queue: nil) { [weak self] _ in self?.willEnterForeground() }
+        self.bgSubscription = nc.addObserver(
+          forName: UIApplication.didEnterBackgroundNotification, object: nil,
+          queue: nil) { [weak self] _ in self?.didEnterBackground() }
+      }
+    }
+    private func unsubscribeFromAppStateNotifications() {
+      DispatchQueue.main.async {
+        let nc = NotificationCenter.default
+        if let token = self.fgSubscription { nc.removeObserver(token) }
+        if let token = self.bgSubscription { nc.removeObserver(token) }
+        self.fgSubscription = nil
+        self.bgSubscription = nil
+      }
+    }
+    private func willEnterForeground() {
+      lock.lock()
+      allowPooling = true // re-enable pooling in case it was disabled
+      lock.unlock()
+    }
+    private func didEnterBackground() {
+      lock.lock()
+      allowPooling = false // disable pooling
+      lock.unlock()
+      closePooledConnections()
+    }
+    #endif
+    
+    
+    // MARK: - Connection Handling
+
     /// Synchronously closes all handles in the pool.
     public func closePooledConnections() {
       lock.lock()
@@ -86,8 +145,10 @@ extension SQLConnectionHandler {
       let entry = Entry(handle: connection, releaseDate: now)
       
       lock.lock()
-      if (caches[configuration]?.count ?? 0) > maxPerConfiguration {
-        return lock.unlock() // cache full
+      if !allowPooling ||
+        (caches[configuration]?.count ?? 0) > maxPerConfiguration
+      {
+        return lock.unlock() // cache full or backgrounding
       }
       
       if caches[configuration]?.append(entry) == nil {
@@ -101,7 +162,7 @@ extension SQLConnectionHandler {
     private func scheduleGCIfNecessary() {
       lock.lock()
       if gc != nil { return lock.unlock() }
-      let wi = DispatchWorkItem(block: self._collect)
+      let wi = DispatchWorkItem { [weak self] in self?._collect() }
       gc = wi
       lock.unlock()
       

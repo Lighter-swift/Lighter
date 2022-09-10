@@ -45,7 +45,7 @@ but it is easy to build such on top.
 
 One (and the recommended) SQLite way to communicate schema changes is the
 [`PRAGMA user_version`](https://www.sqlite.org/pragma.html#pragma_user_version).
-This pragma is simply an persistent integer value that the user can set to 
+This pragma is simply a persistent integer value that the user can set to 
 anything.
 But its most common use is as a schema change indicator.
 
@@ -139,7 +139,7 @@ name together, e.g. `BodiesDB.sql` and `BodiesDB-create-indices.sql` would both
 form a group that results in the `BodiesDB` database.
 
 Since the group is applied after being sorted, this can be used to implement
-a really easy migration mechanism. Simply put each migration into a simple
+a simple migration mechanism. Each migration can be placed into a separate
 file with the version being part of the file name:
 
 1. File `ContactsDB-001.sql`:
