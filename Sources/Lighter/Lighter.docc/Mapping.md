@@ -147,7 +147,7 @@ extension Category {
 
 ### Map Using a View Model
 
-Something which is commonly down anyways is mapping model data to a view model:
+Something which is commonly done anyways is mapping model data to a view model:
 ```swift
 struct CategoryViewMode: Equatable, Identifiable {
 
