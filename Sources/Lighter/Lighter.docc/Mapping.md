@@ -149,7 +149,7 @@ extension Category {
 
 Something which is commonly done anyways is mapping model data to a view model:
 ```swift
-struct CategoryViewMode: Equatable, Identifiable {
+struct CategoryViewModel: Equatable, Identifiable {
 
   let id    : Int
   let name  : String
@@ -163,10 +163,11 @@ struct CategoryViewMode: Equatable, Identifiable {
 }
 ```
 
-### Map Using `@dynamicMemberLookup`
+### Map using `@dynamicMemberLookup`
 
 The [`@dynamicMemberLookup`](http://www.alwaysrightinstitute.com/swift-dynamic-callable/)
-feature is useful during mapping, as it allows to easily wrap existing types.
+feature is useful during mapping, as it allows easing wrapping of existing
+types.
 
 For example to enhance the `Category` structure with the additional properties,
 but _also_ keep the `Category` properties available this can be done:
