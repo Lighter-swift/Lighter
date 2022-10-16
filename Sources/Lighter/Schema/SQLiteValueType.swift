@@ -130,6 +130,31 @@ extension RawRepresentable where Self.RawValue: SQLiteValueType {
   }
 }
 
+extension Bool : SQLiteValueType {
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = sqlite3_column_int64(stmt, column) != 0
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = sqlite3_value_int64(value) != 0
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) }
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_int64(stmt, index, self ? 1 : 0)
+    execute()
+  }
+}
+
 extension Int : SQLiteValueType {
   
   @inlinable
