@@ -89,19 +89,21 @@ extension SQLConnectionHandler {
     #if os(iOS)
     private func subscribeForAppStateNotifications() {
       let nc = NotificationCenter.default
-      if self.fgSubscription == nil {
+      if fgSubscription == nil {
         let name = isAppExtension
                  ? NSExtensionHostWillEnterForegroundNotification
                  : UIApplication.willEnterForegroundNotification
-        self.fgSubscription = nc.addObserver(forName: name, object: nil,
+        fgSubscription = nc.addObserver(forName: name, object: nil,
                queue: nil) { [weak self] _ in self?.willEnterForeground() }
       }
-      // TBD: Does background mean anything to us?
-      if self.bgSubscription == nil {
+      if bgSubscription == nil {
+        // When we go to the background, we can still operate, but won't pool
+        // connections anymore. This is because the watchdog can kill processes
+        // holding SQLite connections in a suspended state (to avoid deadlocks).
         let name = isAppExtension
                  ? NSExtensionHostDidEnterBackgroundNotification
                  : UIApplication.didEnterBackgroundNotification
-        self.bgSubscription = nc.addObserver(forName: name, object: nil,
+        bgSubscription = nc.addObserver(forName: name, object: nil,
                queue: nil) { [weak self] _ in self?.didEnterBackground() }
       }
     }
