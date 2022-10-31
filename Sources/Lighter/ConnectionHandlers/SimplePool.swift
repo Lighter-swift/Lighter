@@ -3,12 +3,16 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
+#if canImport(Foundation) // could drop this dep if required
+import class  Foundation.NSObject
+import class  Foundation.Bundle
 import class  Foundation.NSLock
 import struct Foundation.Date
 import struct Foundation.TimeInterval
 import struct Foundation.URL
 import Dispatch
 import func SQLite3.sqlite3_close
+
 #if os(iOS)
 import UIKit
 #endif
@@ -36,13 +40,8 @@ extension SQLConnectionHandler {
     private var caches  = [ Configuration : [ Entry ] ]()
     private var gc      : DispatchWorkItem?
     
-    #if os(iOS) // Q: .main
-      private var allowPooling   = true
-      private var fgSubscription : NSObjectProtocol?
-      private var bgSubscription : NSObjectProtocol?
-    #else
-      private let allowPooling   = true
-    #endif
+    private var allowPooling = true
+    private var lifecycle    : AppLifecycleHandler?
     
     /// Initialize a simple pool.
     public init(url: URL, readOnly: Bool,
@@ -52,57 +51,36 @@ extension SQLConnectionHandler {
     {
       self.maxAge              = maxAge
       self.maxPerConfiguration = maximumPoolSizePerConfiguration
+      
       super.init(url: url, readOnly: readOnly, writeTimeout: writeTimeout)
       
       #if os(iOS)
-      subscribeForAppStateNotifications()
+        lifecycle = AppLifecycleHandler(owner: self)
+        lifecycle?.resume()
       #endif
     }
     deinit {
       gc?.cancel(); gc = nil
       closePooledConnections()
-      
-      #if os(iOS)
-        unsubscribeFromAppStateNotifications()
-      #endif
+      lifecycle?.suspend()
     }
     
     
     // MARK: - App State Handling
-
+    
     #if os(iOS)
-    private func subscribeForAppStateNotifications() {
-      DispatchQueue.main.async {
-        let nc = NotificationCenter.default
-        self.fgSubscription = nc.addObserver(
-          forName: UIApplication.willEnterForegroundNotification, object: nil,
-          queue: nil) { [weak self] _ in self?.willEnterForeground() }
-        self.bgSubscription = nc.addObserver(
-          forName: UIApplication.didEnterBackgroundNotification, object: nil,
-          queue: nil) { [weak self] _ in self?.didEnterBackground() }
+      fileprivate func willEnterForeground() {
+        lock.lock()
+        allowPooling = true // re-enable pooling in case it was disabled
+        lock.unlock()
       }
-    }
-    private func unsubscribeFromAppStateNotifications() {
-      DispatchQueue.main.async {
-        let nc = NotificationCenter.default
-        if let token = self.fgSubscription { nc.removeObserver(token) }
-        if let token = self.bgSubscription { nc.removeObserver(token) }
-        self.fgSubscription = nil
-        self.bgSubscription = nil
+      fileprivate func didEnterBackground() {
+        lock.lock()
+        allowPooling = false // disable pooling
+        lock.unlock()
+        closePooledConnections()
       }
-    }
-    private func willEnterForeground() {
-      lock.lock()
-      allowPooling = true // re-enable pooling in case it was disabled
-      lock.unlock()
-    }
-    private func didEnterBackground() {
-      lock.lock()
-      allowPooling = false // disable pooling
-      lock.unlock()
-      closePooledConnections()
-    }
-    #endif
+    #endif // os(iOS)
     
     
     // MARK: - Connection Handling
@@ -206,3 +184,67 @@ extension SQLConnectionHandler {
     }
   }
 }
+
+fileprivate final class AppLifecycleHandler: NSObject {
+  
+  private weak var owner : SQLConnectionHandler.SimplePool?
+  
+  init(owner: SQLConnectionHandler.SimplePool) { self.owner = owner }
+  
+  func resume() {
+    #if os(iOS)
+      let me = self // keep alive
+      DispatchQueue.main.async {
+        let nc = NotificationCenter.default
+        nc.addObserver(me, selector: #selector(Self.willEnterForeground(_:)),
+                       name: Self.fgName, object: nil)
+        nc.addObserver(me, selector: #selector(Self.didEnterbackground(_:)),
+                       name: Self.bgName, object: nil)
+      }
+    #endif
+  }
+  func suspend() {
+    #if os(iOS)
+      let me = self
+      DispatchQueue.main.async {
+        let nc = NotificationCenter.default
+        nc.removeObserver(me)
+      }
+    #endif
+  }
+  
+  #if os(iOS)
+    @objc private func willEnterForeground(_ notification: Notification) {
+      owner?.willEnterForeground()
+    }
+    @objc private func didEnterbackground(_ notification: Notification) {
+      owner?.didEnterBackground()
+    }
+
+    private static let isAppExtension =
+      Bundle.main.bundleURL.pathExtension == "appex"
+  
+    private static let fgName : NSNotification.Name = {
+      if !isAppExtension {
+        return UIApplication.willEnterForegroundNotification
+      }
+      #if swift(>=5.7.1)
+        return NSNotification.Name.NSExtensionHostWillEnterForeground
+      #else
+        return NSExtensionHostWillEnterForegroundNotification
+      #endif
+    }()
+    private static let bgName : NSNotification.Name = {
+      if !isAppExtension {
+        return UIApplication.didEnterBackgroundNotification
+      }
+      #if swift(>=5.7.1)
+        return NSNotification.Name.NSExtensionHostDidEnterBackground
+      #else
+        return NSExtensionHostDidEnterBackgroundNotification
+      #endif
+    }()
+  #endif // os(iOS)
+}
+
+#endif // canImport(Foundation)
