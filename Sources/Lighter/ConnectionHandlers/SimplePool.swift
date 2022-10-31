@@ -228,7 +228,7 @@ fileprivate final class AppLifecycleHandler: NSObject {
       if !isAppExtension {
         return UIApplication.willEnterForegroundNotification
       }
-      #if swift(>=5.7.1)
+      #if swift(>=5.7)
         return NSNotification.Name.NSExtensionHostWillEnterForeground
       #else
         return NSExtensionHostWillEnterForegroundNotification
@@ -238,7 +238,7 @@ fileprivate final class AppLifecycleHandler: NSObject {
       if !isAppExtension {
         return UIApplication.didEnterBackgroundNotification
       }
-      #if swift(>=5.7.1)
+      #if swift(>=5.7)
         return NSNotification.Name.NSExtensionHostDidEnterBackground
       #else
         return NSExtensionHostDidEnterBackgroundNotification
