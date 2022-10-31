@@ -4,6 +4,7 @@
 //
 
 #if canImport(Foundation) // could drop this dep if required
+import class  Foundation.NSObject
 import class  Foundation.Bundle
 import class  Foundation.NSLock
 import struct Foundation.Date
