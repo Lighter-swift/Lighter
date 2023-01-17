@@ -22,7 +22,7 @@ struct EnlighterGroup: CustomStringConvertible {
   // URLs to all input files for the group, e.g. `Contacts.db`,
   // `Contacts-01.sql`.
   var matches      : [ URL ]
-  // All `matches` that match the resource pathes passed in to the `load`
+  // All `matches` that match the resource paths passed in to the `load`
   // function (i.e. all inputs that will be copied as resource files into the
   // target).
   var resourceURLs = [ URL ]()
@@ -41,7 +41,7 @@ struct EnlighterGroup: CustomStringConvertible {
   }
   
   static func load(from    baseURL : URL,
-                   resourcesPathes : Set<String>,
+                   resourcesPaths : Set<String>,
                    configuration   : EnlighterTargetConfig)
                 throws -> [ EnlighterGroup ]
   {
@@ -69,7 +69,7 @@ struct EnlighterGroup: CustomStringConvertible {
         groups[stem] = EnlighterGroup(stem: stem, matches: [ url ])
       }
       
-      if resourcesPathes.contains(url.path) {
+      if resourcesPaths.contains(url.path) {
         groups[stem]?.resourceURLs.append(url)
       }
     }

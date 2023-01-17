@@ -3,7 +3,7 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
-// Later: Rework to use String pathes by default and only resort to URLs in
+// Later: Rework to use String paths by default and only resort to URLs in
 //        a canImport section.
 import struct Foundation.URL
 

@@ -171,7 +171,7 @@ struct Enlighter: BuildToolPlugin {
   {
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
-      resourcesPathes:
+      resourcesPaths:
         collectResources(in: target, extensions: configuration.extensions),
       configuration: configuration
     )
@@ -335,7 +335,7 @@ extension Enlighter: XcodeBuildToolPlugin {
   {
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
-      resourcesPathes:
+      resourcesPaths:
         collectResources(in: target, extensions: configuration.extensions),
       configuration: configuration
     )
