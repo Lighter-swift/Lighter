@@ -190,7 +190,7 @@ struct GenerateCodeForSQLite: CommandPlugin {
   {
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
-      resourcesPathes:
+      resourcesPaths:
         collectResources(in: target, extensions: configuration.extensions),
       configuration: configuration
     )
@@ -354,7 +354,7 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
   {
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
-      resourcesPathes:
+      resourcesPaths:
         collectResources(in: target, extensions: configuration.extensions),
       configuration: configuration
     )
