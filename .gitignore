@@ -10,4 +10,5 @@ DerivedData/
 .swiftpm
 TestGeneration.txt
 .docker.build
+.DS_Store
 
