@@ -1,7 +1,11 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2023 ZeeZide GmbH.
 //
+
+#if canImport(Foundation)
+  import Foundation
+#endif
 
 /**
  * A helper struct to build SQL queries.
@@ -42,9 +46,19 @@ public struct SQLBuilder<Base: SQLRecord> {
   /// Escape the `id` (e.g. a column or table name) and surround it by quotes.
   @inlinable
   public func escapeAndQuoteIdentifier(_ id: String) -> String {
-    id.contains("\"")
-      ? "\"\(id.replacingOccurrences(of: "\"", with: "\"\""))\""
-      : "\"\(id)\""
+    guard id.contains("\"") else { return "\"\(id)\"" }
+
+    #if canImport(Foundation)
+      return "\"\(id.replacingOccurrences(of: "\"", with: "\"\""))\""
+    #else
+      if #available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *) {
+        // Tie to Swift version on Linux?
+        return id.replacing("\"", with: "\"\"")
+      }
+      else {
+        fatalError("Can't escape identifier w/o Foundation.")
+      }
+    #endif
   }
 
   

@@ -35,7 +35,7 @@ import Northwind    // @Lighter-swift/NorthwindSQLite.swift
 let db  = Northwind.module!
 let app = express()
 
-app.get("/api/products") { _, res, _ in
+app.get("/api/products") { _, res in
   res.send(try db.products.fetch())
 }
 
@@ -60,7 +60,7 @@ var package = Package(
     .package(url: "https://Lighter-swift/NorthwindSQLite.swift.git",
              from: "1.0.0"),
     .package(url: "https://github.com/Macro-swift/MacroExpress.git",
-             from: "0.8.8")
+             from: "1.0.2")
   ],
   
   targets: [
