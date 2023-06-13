@@ -11,7 +11,7 @@ import Foundation
 final class FiveThirtyEightTests: XCTestCase {
   
   let fm  = FileManager.default
-  let url = URL(fileURLWithPath: "/Users/helge/Dropbox/fivethirtyeight.db")
+  let url = URL(fileURLWithPath: "/Users/helge/Dropbox/OpenData/FiveThirtyEight.db")
   
   func testLoadSchema() throws {
     try XCTSkipUnless(fm.isReadableFile(atPath: url.path),"helge specific test")
