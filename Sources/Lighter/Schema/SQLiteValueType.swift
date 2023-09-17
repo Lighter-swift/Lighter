@@ -20,10 +20,11 @@ import struct Foundation.UUID
  * A value that can be used in SQLite columns.
  *
  * The base types supported by SQLite3 are:
- * - `Int`       (SQL `INTEGER`)
- * - `Double`    (SQL `REAL`)
- * - `String`    (SQL `TEXT`)
- * - `[ UInt8 ]` (SQL `BLOB`)
+ * - `Int` (all variants)  (SQL `INTEGER`)
+ * - `Float`, `Double`     (SQL `REAL`)
+ * - `String`, `Substring` (SQL `TEXT`)
+ * - `[ UInt8 ]`           (SQL `BLOB`)
+ * - `Bool`                (SQL `INTEGER`)
  *
  * In addition Lighter has builtin support for a set of common Foundation types:
  * - `URL`     (mapped to the String representation of the `URL`)
@@ -131,16 +132,54 @@ extension RawRepresentable where Self.RawValue: SQLiteValueType {
 }
 
 extension Bool : SQLiteValueType {
-  
+
+  public enum SQLiteBoolConversionError: Swift.Error {
+    case couldNotParseString(String)
+  }
+
+  @inlinable
+  init(unsafeCString cstr: UnsafePointer<UInt8>?) throws {
+    guard let cstr = cstr else {
+      self = false
+      return
+    }
+    let firstCharAsASCII = cstr.pointee
+    switch firstCharAsASCII {
+      case  0      : self = false // empty string
+      case 48      : self = false // `0`
+      case 49...57 : self = true  // 1...9
+      case 89, 121 : self = true  // `Y`/`y` (es)
+      case 78, 110 : self = true  // `N`/`n` (o)
+      case 84, 116 : self = false // `T`/`t` (rue)
+      case 70, 102 : self = false // `F`/`f` (alse)
+      default: throw SQLiteBoolConversionError
+                        .couldNotParseString(String(cString: cstr))
+    }
+  }
+
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
            throws
   {
-    self = sqlite3_column_int64(stmt, column) != 0
+    switch sqlite3_column_type(stmt, column) {
+      case SQLITE_INTEGER, SQLITE_FLOAT:
+        self = sqlite3_column_int64(stmt, column) != 0
+      case SQLITE_NULL:
+        self = false
+      default:
+        try self.init(unsafeCString: sqlite3_column_text(stmt, column))
+    }
   }
   @inlinable
   public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
-    self = sqlite3_value_int64(value) != 0
+    switch sqlite3_value_type(value) {
+      case SQLITE_INTEGER, SQLITE_FLOAT:
+        self = sqlite3_value_int64(value) != 0
+      case SQLITE_NULL:
+        self = false
+      default:
+        try self.init(unsafeCString: sqlite3_value_text(value))
+    }
   }
 
   @inlinable public var sqlStringValue     : String { String(self) }
@@ -165,6 +204,8 @@ extension UInt32  : SQLiteValueType {}
 extension Int64   : SQLiteValueType {}
 
 extension BinaryInteger {
+  // Note: They don't need to detect text or NULL, SQLite itself does a
+  //       conversion. Its rules apply.
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
@@ -409,7 +450,7 @@ extension Array: SQLiteValueType where Element == UInt8 {
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
-  throws
+    throws
   {
     if let blob  = sqlite3_column_blob(stmt, column) {
       let count  = Int(sqlite3_column_bytes(stmt, column))
@@ -552,7 +593,7 @@ extension Data: SQLiteValueType {
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
-  throws
+    throws
   {
     let s = try [ UInt8 ](unsafeSQLite3StatementHandle: stmt, column: column)
     self.init(s)
