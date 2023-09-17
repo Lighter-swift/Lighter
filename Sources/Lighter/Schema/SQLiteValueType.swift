@@ -36,6 +36,14 @@ import struct Foundation.UUID
  * An `Optional` can be used for optional values (e.g. `String?` for
  * `TEXT NULL`).
  *
+ * Finally `RawRepresentable` types, like `enum`s, that have a
+ * `RawRepresentable` value can also be used, e.g.:
+ * ```swift
+ * enum Colors: String {
+ *   case red, green, blue
+ * }
+ * ```
+ *
  * Note: `SQLiteValueType`s are usually `Hashable`, making record types
  *       Hashable too!
  */
@@ -89,6 +97,16 @@ public protocol SQLiteValueType {
 }
 
 /**
+ * An error happened while converting between SQLite types and a
+ * `RawRepresentable`.
+ */
+public enum SQLiteRawConversionError<RawValue>: Swift.Error {
+  
+  /// The raw value initializers returned `nil` for the given raw value.
+  case couldNotConvertRawValue(RawValue)
+}
+
+/**
  * This extension allows one to use `RawRepresentable`s that have a
  * `SQLiteValueType` as their raw value, to be `SQLiteValueType`s themselves.
  *
@@ -105,16 +123,20 @@ extension RawRepresentable where Self.RawValue: SQLiteValueType {
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
            throws
   {
-    self.init(rawValue:
-      try RawValue(unsafeSQLite3StatementHandle: stmt, column: column)
-    )! // Hm, not optimal
+    let value = try RawValue(unsafeSQLite3StatementHandle: stmt, column: column)
+    guard let me = Self(rawValue: value) else {
+      throw SQLiteRawConversionError.couldNotConvertRawValue(value)
+    }
+    self = me
   }
 
   @inlinable
   public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
-    self.init(rawValue:
-      try RawValue(unsafeSQLite3ValueHandle: value)
-    )! // Hm, not optimal
+    let value = try RawValue(unsafeSQLite3ValueHandle: value)
+    guard let me = Self(rawValue: value) else {
+      throw SQLiteRawConversionError.couldNotConvertRawValue(value)
+    }
+    self = me
   }
   
   @inlinable public var sqlStringValue     : String { rawValue.sqlStringValue }
