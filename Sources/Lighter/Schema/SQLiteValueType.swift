@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2023 ZeeZide GmbH.
 //
 
 import SQLite3
@@ -20,10 +20,11 @@ import struct Foundation.UUID
  * A value that can be used in SQLite columns.
  *
  * The base types supported by SQLite3 are:
- * - `Int`       (SQL `INTEGER`)
- * - `Double`    (SQL `REAL`)
- * - `String`    (SQL `TEXT`)
- * - `[ UInt8 ]` (SQL `BLOB`)
+ * - `Int` (all variants)  (SQL `INTEGER`)
+ * - `Float`, `Double`     (SQL `REAL`)
+ * - `String`, `Substring` (SQL `TEXT`)
+ * - `[ UInt8 ]`           (SQL `BLOB`)
+ * - `Bool`                (SQL `INTEGER`)
  *
  * In addition Lighter has builtin support for a set of common Foundation types:
  * - `URL`     (mapped to the String representation of the `URL`)
@@ -34,6 +35,14 @@ import struct Foundation.UUID
  *
  * An `Optional` can be used for optional values (e.g. `String?` for
  * `TEXT NULL`).
+ *
+ * Finally `RawRepresentable` types, like `enum`s, that have a
+ * `RawRepresentable` value can also be used, e.g.:
+ * ```swift
+ * enum Colors: String {
+ *   case red, green, blue
+ * }
+ * ```
  *
  * Note: `SQLiteValueType`s are usually `Hashable`, making record types
  *       Hashable too!
@@ -88,6 +97,16 @@ public protocol SQLiteValueType {
 }
 
 /**
+ * An error happened while converting between SQLite types and a
+ * `RawRepresentable`.
+ */
+public enum SQLiteRawConversionError<RawValue>: Swift.Error {
+  
+  /// The raw value initializers returned `nil` for the given raw value.
+  case couldNotConvertRawValue(RawValue)
+}
+
+/**
  * This extension allows one to use `RawRepresentable`s that have a
  * `SQLiteValueType` as their raw value, to be `SQLiteValueType`s themselves.
  *
@@ -104,16 +123,20 @@ extension RawRepresentable where Self.RawValue: SQLiteValueType {
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
            throws
   {
-    self.init(rawValue:
-      try RawValue(unsafeSQLite3StatementHandle: stmt, column: column)
-    )! // Hm, not optimal
+    let value = try RawValue(unsafeSQLite3StatementHandle: stmt, column: column)
+    guard let me = Self(rawValue: value) else {
+      throw SQLiteRawConversionError.couldNotConvertRawValue(value)
+    }
+    self = me
   }
 
   @inlinable
   public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
-    self.init(rawValue:
-      try RawValue(unsafeSQLite3ValueHandle: value)
-    )! // Hm, not optimal
+    let value = try RawValue(unsafeSQLite3ValueHandle: value)
+    guard let me = Self(rawValue: value) else {
+      throw SQLiteRawConversionError.couldNotConvertRawValue(value)
+    }
+    self = me
   }
   
   @inlinable public var sqlStringValue     : String { rawValue.sqlStringValue }
@@ -131,16 +154,54 @@ extension RawRepresentable where Self.RawValue: SQLiteValueType {
 }
 
 extension Bool : SQLiteValueType {
-  
+
+  public enum SQLiteBoolConversionError: Swift.Error {
+    case couldNotParseString(String)
+  }
+
+  @inlinable
+  init(unsafeCString cstr: UnsafePointer<UInt8>?) throws {
+    guard let cstr = cstr else {
+      self = false
+      return
+    }
+    let firstCharAsASCII = cstr.pointee
+    switch firstCharAsASCII {
+      case  0      : self = false // empty string
+      case 48      : self = false // `0`
+      case 49...57 : self = true  // 1...9
+      case 89, 121 : self = true  // `Y`/`y` (es)
+      case 78, 110 : self = true  // `N`/`n` (o)
+      case 84, 116 : self = false // `T`/`t` (rue)
+      case 70, 102 : self = false // `F`/`f` (alse)
+      default: throw SQLiteBoolConversionError
+                        .couldNotParseString(String(cString: cstr))
+    }
+  }
+
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
            throws
   {
-    self = sqlite3_column_int64(stmt, column) != 0
+    switch sqlite3_column_type(stmt, column) {
+      case SQLITE_INTEGER, SQLITE_FLOAT:
+        self = sqlite3_column_int64(stmt, column) != 0
+      case SQLITE_NULL:
+        self = false
+      default:
+        try self.init(unsafeCString: sqlite3_column_text(stmt, column))
+    }
   }
   @inlinable
   public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
-    self = sqlite3_value_int64(value) != 0
+    switch sqlite3_value_type(value) {
+      case SQLITE_INTEGER, SQLITE_FLOAT:
+        self = sqlite3_value_int64(value) != 0
+      case SQLITE_NULL:
+        self = false
+      default:
+        try self.init(unsafeCString: sqlite3_value_text(value))
+    }
   }
 
   @inlinable public var sqlStringValue     : String { String(self) }
@@ -155,17 +216,28 @@ extension Bool : SQLiteValueType {
   }
 }
 
-extension Int : SQLiteValueType {
+extension Int     : SQLiteValueType {}
+extension Int8    : SQLiteValueType {}
+extension UInt8   : SQLiteValueType {}
+extension Int16   : SQLiteValueType {}
+extension UInt16  : SQLiteValueType {}
+extension Int32   : SQLiteValueType {}
+extension UInt32  : SQLiteValueType {}
+extension Int64   : SQLiteValueType {}
+
+extension BinaryInteger {
+  // Note: They don't need to detect text or NULL, SQLite itself does a
+  //       conversion. Its rules apply.
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
            throws
   {
-    self = Int(sqlite3_column_int64(stmt, column))
+    self = Self(sqlite3_column_int64(stmt, column))
   }
   @inlinable
   public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
-    self = Int(sqlite3_value_int64(value))
+    self = Self(sqlite3_value_int64(value))
   }
 
   @inlinable public var sqlStringValue     : String { String(self) }
@@ -176,6 +248,86 @@ extension Int : SQLiteValueType {
                    index: Int32, then execute: () -> Void)
   {
     sqlite3_bind_int64(stmt, index, Int64(self))
+    execute()
+  }
+}
+
+extension UInt: SQLiteValueType { // This can overflow Int64 on 64bit archs
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = MemoryLayout<UInt>.size < 8
+      ? Self(sqlite3_column_int64(stmt, column))
+      : Self(UInt64(bitPattern: sqlite3_column_int64(stmt, column)))
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = MemoryLayout<UInt>.size < 8
+      ? Self(sqlite3_value_int64(value))
+      : Self(UInt64(bitPattern: sqlite3_value_int64(value)))
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) }
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_int64(stmt, index, MemoryLayout<UInt>.size < 8
+                       ? Int64(self) : Int64(bitPattern: UInt64(self)))
+    execute()
+  }
+}
+
+extension UInt64: SQLiteValueType { // This can overflow Int64
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = UInt64(bitPattern: sqlite3_column_int64(stmt, column))
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = UInt64(bitPattern: sqlite3_value_int64(value))
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) }
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_int64(stmt, index, Int64(bitPattern: self))
+    execute()
+  }
+}
+
+extension Float : SQLiteValueType {
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = Float(sqlite3_column_double(stmt, column))
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = Float(sqlite3_value_double(value))
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) } // TBD!
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_double(stmt, index, Double(self))
     execute()
   }
 }
@@ -320,7 +472,7 @@ extension Array: SQLiteValueType where Element == UInt8 {
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
-  throws
+    throws
   {
     if let blob  = sqlite3_column_blob(stmt, column) {
       let count  = Int(sqlite3_column_bytes(stmt, column))
@@ -463,7 +615,7 @@ extension Data: SQLiteValueType {
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
-  throws
+    throws
   {
     let s = try [ UInt8 ](unsafeSQLite3StatementHandle: stmt, column: column)
     self.init(s)
