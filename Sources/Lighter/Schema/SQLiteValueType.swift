@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2023 ZeeZide GmbH.
 //
 
 import SQLite3
@@ -155,17 +155,26 @@ extension Bool : SQLiteValueType {
   }
 }
 
-extension Int : SQLiteValueType {
+extension Int     : SQLiteValueType {}
+extension Int8    : SQLiteValueType {}
+extension UInt8   : SQLiteValueType {}
+extension Int16   : SQLiteValueType {}
+extension UInt16  : SQLiteValueType {}
+extension Int32   : SQLiteValueType {}
+extension UInt32  : SQLiteValueType {}
+extension Int64   : SQLiteValueType {}
+
+extension BinaryInteger {
   
   @inlinable
   public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
            throws
   {
-    self = Int(sqlite3_column_int64(stmt, column))
+    self = Self(sqlite3_column_int64(stmt, column))
   }
   @inlinable
   public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
-    self = Int(sqlite3_value_int64(value))
+    self = Self(sqlite3_value_int64(value))
   }
 
   @inlinable public var sqlStringValue     : String { String(self) }
@@ -176,6 +185,86 @@ extension Int : SQLiteValueType {
                    index: Int32, then execute: () -> Void)
   {
     sqlite3_bind_int64(stmt, index, Int64(self))
+    execute()
+  }
+}
+
+extension UInt: SQLiteValueType { // This can overflow Int64 on 64bit archs
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = MemoryLayout<UInt>.size < 8
+      ? Self(sqlite3_column_int64(stmt, column))
+      : Self(UInt64(bitPattern: sqlite3_column_int64(stmt, column)))
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = MemoryLayout<UInt>.size < 8
+      ? Self(sqlite3_value_int64(value))
+      : Self(UInt64(bitPattern: sqlite3_value_int64(value)))
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) }
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_int64(stmt, index, MemoryLayout<UInt>.size < 8
+                       ? Int64(self) : Int64(bitPattern: UInt64(self)))
+    execute()
+  }
+}
+
+extension UInt64: SQLiteValueType { // This can overflow Int64
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = UInt64(bitPattern: sqlite3_column_int64(stmt, column))
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = UInt64(bitPattern: sqlite3_value_int64(value))
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) }
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_int64(stmt, index, Int64(bitPattern: self))
+    execute()
+  }
+}
+
+extension Float : SQLiteValueType {
+  
+  @inlinable
+  public init(unsafeSQLite3StatementHandle stmt: OpaquePointer!, column: Int32)
+           throws
+  {
+    self = Float(sqlite3_column_double(stmt, column))
+  }
+  @inlinable
+  public init(unsafeSQLite3ValueHandle value: OpaquePointer?) throws {
+    self = Float(sqlite3_value_double(value))
+  }
+
+  @inlinable public var sqlStringValue     : String { String(self) } // TBD!
+  @inlinable public var requiresSQLBinding : Bool   { false        }
+
+  @inlinable
+  public func bind(unsafeSQLite3StatementHandle stmt: OpaquePointer!,
+                   index: Int32, then execute: () -> Void)
+  {
+    sqlite3_bind_double(stmt, index, Double(self))
     execute()
   }
 }
