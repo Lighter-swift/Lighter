@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2023 ZeeZide GmbH.
 //
 
 /// A comment on top of e.g. a class or struct.
@@ -19,7 +19,7 @@ public struct TypeComment: Equatable {
     /// Initialize a new type example.
     public init(headline: String, code: String, language: String? = "swift") {
       self.headline = headline
-      self.code     = code
+      self.code     = code.replacingOccurrences(of: "\r\n", with: "\n")
       self.language = language
     }
   }
