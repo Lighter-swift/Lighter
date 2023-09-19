@@ -105,7 +105,7 @@ final class ASTRecordMatcherGenerationTests: XCTestCase {
       builder.generateExtension(e)
       return builder.source
     }()
-    print("GOT:\n-----\n\(source)\n-----")
+    //print("GOT:\n-----\n\(source)\n-----")
     
     XCTAssertTrue(source.contains("func registerSwiftMatcher("))
     XCTAssertTrue(source.contains("func unregisterSwiftMatcher("))
