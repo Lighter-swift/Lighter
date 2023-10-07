@@ -176,8 +176,8 @@ struct Enlighter: BuildToolPlugin {
       configuration: configuration
     )
     guard !groups.isEmpty else {
-      print("Target contains not matching files:", target.name)
-      debugLog("Target contains not matching files:", target.name)
+      print("Could not find matching files in", target.directory)
+      debugLog("Could not find matching files in", target.directory)
       return []
     }
 
@@ -340,8 +340,8 @@ extension Enlighter: XcodeBuildToolPlugin {
       configuration: configuration
     )
     guard !groups.isEmpty else {
-      print("Target contains not matching files:", target.name)
-      debugLog("Target contains not matching files:", target.name)
+      print("Could not find matching files in", target.directory)
+      debugLog("Could not find matching files in", target.directory)
       return []
     }
 
