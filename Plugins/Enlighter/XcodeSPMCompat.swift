@@ -54,10 +54,30 @@ extension XcodeTarget {
     if let matching = directories.first(where: { $0.string.hasSuffix(match) }) {
       return matching
     }
+    if let root = findRootForTarget(named: name, in: directories) {
+      return root
+    }
     // give up and use first :-)
+    print("Could not infer target root, using an arbitrary directory")
     return directories[0]
   }
-  
+
+  func findRootForTarget(named name: String, in directories: [Path]) -> Path? {
+    // find the longest path containing the target name
+    let innerMatch = "/" + name + "/"
+    guard let path = directories
+      .filter({ $0.string.contains(innerMatch) })
+      .max(by: { $0.string.count > $1.string.count })
+    else { return nil }
+
+    // drop everything after the last path component that matches the target name
+    let components = path.string.split(separator: "/")
+    let index = components.distance(from: components.startIndex,
+                                    to: components.reversed().firstIndex(where: { $0 == name })!)
+    let targetPathComponents = components.prefix(components.count - index)
+    return Path("/").appending(targetPathComponents.map({ String($0) }))
+  }
+
   func doesRecursivelyDependOnTarget(named name: String) -> Bool {
     for dep in self.dependencies {
       switch dep {
