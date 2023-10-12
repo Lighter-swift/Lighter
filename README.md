@@ -265,7 +265,7 @@ needed.
 The Lighter code generator can also generate API comments for the database
 types.
 
-Example: [Northwind Database](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/employee).
+Example: [Northwind Database](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/employee).
   
 <img src="https://zeezide.com/img/lighter/docc-record-type.png" />
 <img src="https://zeezide.com/img/lighter/docc-target.png" />

@@ -30,7 +30,7 @@ Example server:
 ```swift
 #!/usr/bin/swift sh
 import MacroExpress // @Macro-swift
-import Northwind    // @Lighter-swift/NorthwindSQLite.swift
+import Northwind    // @Northwind-swift/NorthwindSQLite.swift
 
 let db  = Northwind.module!
 let app = express()
@@ -57,7 +57,7 @@ var package = Package(
   
   dependencies: [
     .package(url: "https://Lighter-swift/Lighter.git", from: "1.0.2"),
-    .package(url: "https://Lighter-swift/NorthwindSQLite.swift.git",
+    .package(url: "https://Northwind-swift/NorthwindSQLite.swift.git",
              from: "1.0.0"),
     .package(url: "https://github.com/Macro-swift/MacroExpress.git",
              from: "1.0.2")

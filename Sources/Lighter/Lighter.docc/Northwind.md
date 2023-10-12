@@ -7,7 +7,7 @@ Using the Northwind example database.
 The Northwind database is a common database example that has been ported
 to SQLite. 
 Lighter provides a Swift version of that in the
-[NorthwindSQLite.swift](https://github.com/Lighter-swift/NorthwindSQLite.swift)
+[NorthwindSQLite.swift](https://github.com/Northwind-swift/NorthwindSQLite.swift)
 repository.
 
 > Note: The particular SQLite version of the Northwind database is quite 
@@ -16,11 +16,11 @@ repository.
 > That actually makes it a good example on how to deal with such databases in
 > Lighter.
 
-The Swift Northwind API: [Documentation](https://Lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/).
+The Swift Northwind API: [Documentation](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/).
 
 ## Demos
 
-Examples based on the [Northwind](https://Lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/) Database:
+Examples based on the [Northwind](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/) Database:
 
 - [NorthwindWebAPI](https://github.com/Lighter-swift/Examples/tree/develop/Sources/NorthwindWebAPI/) 
   (A server side Swift example
@@ -34,7 +34,7 @@ Examples based on the [Northwind](https://Lighter-swift.github.io/NorthwindSQLit
 
 ## Getting Started
 
-Add the `https://Lighter-swift.github.io/NorthwindSQLite.swift` as a package
+Add the `https://Northwind-swift.github.io/NorthwindSQLite.swift` as a package
 dependency to a Swift Package Manager package.
 
 Then just import `Northwind` and run queries against the database:

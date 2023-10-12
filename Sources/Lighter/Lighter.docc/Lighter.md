@@ -58,7 +58,7 @@ let product = try await db.products.find(42)
 let orders  = try await db.orders.fetch(for: product)
 ```
 If desired, it generates beautiful DocC documentation within the generated code
-([Example](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/employee)).
+([Example](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/employee)).
 
 
 ## Lighter Toolkit Components
@@ -83,10 +83,10 @@ There are two associated repositories:
 - [Examples](https://github.com/Lighter-swift/Examples/):
   Contains examples on how to use the toolset, including a few SwiftUI
   applications and even a server side API.
-- [NorthwindSQLite.swift](https://github.com/Lighter-swift/NorthwindSQLite.swift):
+- [NorthwindSQLite.swift](https://github.com/Northwind-swift/NorthwindSQLite.swift):
   A version of the Microsoft Access 2000 Northwind sample database, 
   re-engineered for SQLite3, and packaged up as a Swift package
-  ([DocC Documentation](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/))!
+  ([DocC Documentation](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/))!
 
 
 ## Topics

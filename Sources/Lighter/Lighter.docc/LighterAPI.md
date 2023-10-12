@@ -22,10 +22,10 @@ dependency free code for a database: <doc:SQLiteAPI>.
 
 The code generators generate one Swift structure representing the Database
 itself (e.g. 
-[Northwind](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/northwind))
+[Northwind](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/northwind))
 and one Swift structure for each SQL table or view
 (e.g.
-[Product](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product)).
+[Product](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product)).
 
 If the database is embedded into the app or library (as a resource file), it
 can be directly used like this:
@@ -96,17 +96,17 @@ async let category = database.categories.find(for: product)
 
 The code generators generate one Swift structure representing the Database
 itself (e.g. 
-[Northwind](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/northwind))
+[Northwind](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/northwind))
 and one Swift structure for each SQL table or view
 (e.g.
-[Product](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product)).
+[Product](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product)).
 
 ### Database Structure
 
 The name of the structure is derived from the database file name. E.g. if it
 is called "northwind.db", the default name mapping produces a structure with
 the name 
-"[Northwind](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/northwind)".
+"[Northwind](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/northwind)".
 
 Depending on the <doc:Configuration>, the database structure conforms to e.g.:
 - ``SQLDatabase``: This handles opening the database etc.
@@ -320,7 +320,7 @@ ORDER BY City, CompanyName
 ```
 
 Northwind comes with a set of example views, e.g.
-[CustomerAndSuppliersByCity](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/customerandsuppliersbycity).
+[CustomerAndSuppliersByCity](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/customerandsuppliersbycity).
 
 
 ## Topics
