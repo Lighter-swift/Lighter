@@ -127,7 +127,7 @@ public struct Category : Identifiable, Codable {
 ```
 
 It carries an embedded JPEG in the
-[picture](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/category/picture)
+[picture](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/category/picture)
 column, as a BLOB (i.e. just bytes).
 It would be nice to have this mapped to a `UIImage` for display.
 And maybe make the `categoryName` available as just `name`, and remove the
