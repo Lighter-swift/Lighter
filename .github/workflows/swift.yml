@@ -11,8 +11,8 @@ jobs:
       fail-fast: false
       matrix:
         image:
-          - swift:5.8.1-jammy
           - swift:5.9.2-focal
+          - swift:5.10-jammy
     container: ${{ matrix.image }}
     steps:
       - name: Install SQLite
