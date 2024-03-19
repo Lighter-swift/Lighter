@@ -11,7 +11,7 @@ import Foundation
 final class NorthwindTests: XCTestCase {
   
   let url = URL(fileURLWithPath:
-                  "/Users/helge/dev/Swift/Lighter/NorthwindSQLite.swift/src/create.sql"
+                  "/Users/helge/dev/Swift/Northwind/NorthwindSQLite.swift/src/create.sql"
   )
   var hasFile: Bool {
     FileManager.default.isReadableFile(atPath: url.path)

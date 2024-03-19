@@ -24,7 +24,7 @@ Five quick steps:
    make sure it is copied into the project (i.e. not a reference to some 
    outside file).
    Don't have one handy? The
-   [Northwind](https://github.com/Lighter-swift/NorthwindSQLite.swift) 
+   [Northwind](https://github.com/Northwind-swift/NorthwindSQLite.swift) 
    database is a nice one to play with:
    [download here](https://github.com/Lighter-swift/NorthwindSQLite.swift/blob/develop/dist/northwind.db).
    **Make sure it is** selected as **a resource** of the Xcode target.

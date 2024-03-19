@@ -114,7 +114,7 @@ Those are the things required during column mapping both ways.
 There are various options on where to place more general mapping code.
 
 Let's assume the record structure mapped for the Northwind 
-[Product Category](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/category)
+[Product Category](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/category)
 table. It looks like this:
 ```swift
 public struct Category : Identifiable, Codable {
@@ -127,7 +127,7 @@ public struct Category : Identifiable, Codable {
 ```
 
 It carries an embedded JPEG in the
-[picture](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/category/picture)
+[picture](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/category/picture)
 column, as a BLOB (i.e. just bytes).
 It would be nice to have this mapped to a `UIImage` for display.
 And maybe make the `categoryName` available as just `name`, and remove the

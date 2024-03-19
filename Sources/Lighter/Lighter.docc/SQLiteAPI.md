@@ -250,7 +250,7 @@ ORDER BY City, CompanyName
 ```
 
 Northwind comes with a set of example views, e.g.
-[CustomerAndSuppliersByCity](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/customerandsuppliersbycity).
+[CustomerAndSuppliersByCity](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/customerandsuppliersbycity).
 
 
 ### Advanced SQLite API
@@ -403,11 +403,11 @@ It has a slight overhead over just extracting the values directly
 and the default values need to be applied).
 
 An example just selecting the 
-[`id`](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/id-7350h/), 
+[`id`](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/id-7350h/), 
 the
-[`name`](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/productname/) 
+[`name`](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/productname/) 
 and the
-[`quantityPerUnit`](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/quantityperunit/):
+[`quantityPerUnit`](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/quantityperunit/):
 ```swift
 sqlite3_prepare_v2(
   db,
@@ -441,7 +441,7 @@ CREATE TABLE Products (
 );
 ```
 The `product` value would contain `nil` for the
-[`categoryId`](https://lighter-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/categoryid) 
+[`categoryId`](https://Northwind-swift.github.io/NorthwindSQLite.swift/documentation/northwind/product/categoryid) 
 property (because it is optional) and
 `0` for the `discontinued` property 
 (because that is the specified table default value).
