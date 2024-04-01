@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 // The async/await variants of the SQLDatabase transaction operations,
@@ -23,17 +23,23 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    *   try tx.update(person)
    * }
    * ```
-   * If the transaction is read-only (just runs a few selects),
-   * the optimized ``SQLDatabase/readTransaction(execute:)-8mbsj`` can be used.
+   * If the transaction is read-only (does no modifications to the database),
+   * the ``SQLDatabase/readTransaction(execute:)-8mbsj`` should be used.
+   * SQLite only supports one writer per database, using this method will
+   * acquire such a lock by default. Using `readTransaction` avoids that
+   * (multiple readers are allowed, in particular if the DB is set to the WAL
+   *  mode).
    *
    * Note: Within a transaction async calls are not allowed (as they can
    *       block the transaction, and with it the database, for a unforseeable
    *       time).
    *
    * - Parameters:
-   *   - mode:    Can be used to acquire a write lock right away. Defaults to
-   *              ``SQLTransactionType/deferred``, which keeps the tx in read
-   *              mode until the first change operation is issued.
+   *   - mode:    The mode defaults to ``SQLTransactionType/immediate``, which
+   *              opens/waits for the database lock right away.
+   *              It can be set to ``SQLTransactionType/deferred`` to start with
+   *              a read-lock, but note that upgrades on locked databases will
+   *              fail w/ `SQLITE_BUSY` immediately.
    *   - execute: The code which is executed within the transaction
    * - Returns:   The result of the `execute` closure if the transaction got
    *              committed successfully.

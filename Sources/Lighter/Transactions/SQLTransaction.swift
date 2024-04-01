@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -28,6 +28,10 @@
  * ```
  *
  * Note: Within a transaction async calls are not allowed.
+ *       This is intentional. A transaction can lock database objects,
+ *       often the whole database. An async call can take an unspecified amount
+ *       of time and there are no guarantees when it completes as it is
+ *       cooperatively scheduled. This should leave a DB tx hanging.
  *
  * #### Performance
  *
