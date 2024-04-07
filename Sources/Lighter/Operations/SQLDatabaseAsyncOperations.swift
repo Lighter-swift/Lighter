@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import Dispatch
@@ -15,7 +15,7 @@ import Dispatch
  * - ``SQLDatabaseFetchOperations``
  * - ``SQLDatabaseAsyncChangeOperations``
  */
-public protocol SQLDatabaseAsyncOperations: SQLDatabaseOperations {
+public protocol SQLDatabaseAsyncOperations: SQLDatabaseOperations, Sendable {
   
   /**
    * The queue that is used to run concurrent async SQL operations.
@@ -51,7 +51,7 @@ public extension SQLDatabaseAsyncOperations {
    */
   @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
   @inlinable
-  func runOnDatabaseQueue<R>(block: @escaping () throws -> R) async throws -> R
+  func runOnDatabaseQueue<R>(block: @Sendable @escaping () throws -> R) async throws -> R
   {
     return try await withCheckedThrowingContinuation { continuation in
       asyncDatabaseQueue.async {

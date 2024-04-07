@@ -1,13 +1,13 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
  * A generic constraint attached to a ``FunctionDeclaration`` generic parameter
  * or an ``Extension``.
  */
-public enum GenericConstraint: Equatable {
+public enum GenericConstraint: Equatable, Sendable {
   
   /// `C1: SQLColumn`
   case conformance(name: String, type: TypeReference)

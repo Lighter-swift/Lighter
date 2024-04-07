@@ -1,18 +1,18 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
  * An AST node for a Swift statement.
  */
-public enum Statement: Equatable {
+public enum Statement: Equatable, Sendable {
   
   /**
    * A pair for an `if`, `else if` statement, consisting of a condition and the
    * associated ``Statement``s.
    */
-  public struct ConditionStatementPair: Equatable {
+  public struct ConditionStatementPair: Equatable, Sendable {
     
     /// The condition that must be true to have the ``statements`` executed.
     public var condition  : Expression

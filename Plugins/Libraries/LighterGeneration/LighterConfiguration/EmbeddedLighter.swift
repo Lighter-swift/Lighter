@@ -1,15 +1,15 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension LighterConfiguration {
 
-  struct EmbeddedLighter: Equatable {
+  struct EmbeddedLighter: Equatable, Sendable {
     
-    public struct Selects: Equatable {
+    public struct Selects: Equatable, Sendable {
       
-      public struct Config: Equatable {
+      public struct Config: Equatable, Sendable {
         public var columns : Int
         public var sorts   : Int
         
@@ -39,7 +39,7 @@ public extension LighterConfiguration {
       }
     }
     
-    public struct Updates: Equatable {
+    public struct Updates: Equatable, Sendable {
       
       public var keyBased       : Int
       public var predicateBased : Int

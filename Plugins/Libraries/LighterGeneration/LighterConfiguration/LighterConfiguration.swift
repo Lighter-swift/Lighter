@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -30,7 +30,7 @@ import LighterCodeGenAST
  * }
  * ```
  */
-public struct LighterConfiguration: Equatable {
+public struct LighterConfiguration: Equatable, Sendable {
   
   public static let filename = "Lighter.json"
   

@@ -1,12 +1,12 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
  * The schema information for either a SQLite table or view.
  */
-public protocol SQLEntitySchema {
+public protocol SQLEntitySchema: Sendable {
 
   /**
    * A tuple containing the SQL statement (or parameter) index of each

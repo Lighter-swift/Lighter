@@ -189,7 +189,7 @@ extension EnlighterASTGenerator {
     let pkeys = entity.primaryKeyProperties
     return Struct(
       public: options.public, name: "ID",
-      conformances: [ .name("Hashable") ],
+      conformances: [ .name("Swift.Hashable") ],
       variables: pkeys.map { property in
         .let(public: options.public, property.name, type(for: property),
              comment: nil)

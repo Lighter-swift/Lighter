@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3Schema
@@ -36,7 +36,7 @@ import struct Foundation.CharacterSet
  */
 public final class Fancifier {
   
-  public struct Options: Equatable {
+  public struct Options: Equatable, Sendable {
     
     // Detect Keys
 

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3Schema
@@ -10,12 +10,12 @@ public extension EntityInfo {
   /**
    * A property represents a column in a SQL table or view.
    */
-  struct Property: Equatable {
+  struct Property: Equatable, Sendable {
     
     /**
      * The Swift type of the property.
      */
-    public enum PropertyType: Equatable { // `SQLiteValueType`
+    public enum PropertyType: Equatable, Sendable { // `SQLiteValueType`
       case integer
       case double
       case string

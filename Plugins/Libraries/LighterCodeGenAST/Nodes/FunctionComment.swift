@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -8,10 +8,10 @@
  *
  * Has all the function specific things, like parameters and such.
  */
-public struct FunctionComment: Equatable {
+public struct FunctionComment: Equatable, Sendable {
   
   /// A comment for a function parameter.
-  public struct Parameter: Equatable {
+  public struct Parameter: Equatable, Sendable {
     
     /// The name of the function parameter being documented.
     public var name : String
