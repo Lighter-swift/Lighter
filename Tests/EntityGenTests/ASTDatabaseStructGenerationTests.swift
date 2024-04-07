@@ -34,7 +34,7 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     
     XCTAssertTrue(source.contains("SQLDatabase, SQLDatabaseAsyncChangeOperations"))
     XCTAssertTrue(source.contains("public struct TestDB"))
-    XCTAssertTrue(source.contains("public struct RecordTypes"))
+    XCTAssertTrue(source.contains("public struct RecordTypes : Swift.Sendable"))
     XCTAssertTrue(source.contains("public let people = Person.self"))
     XCTAssertTrue(source.contains("public static let recordTypes = RecordTypes()"))
     // has not dates!:
@@ -68,7 +68,7 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     
     XCTAssertTrue(source.contains("SQLDatabase, SQLDatabaseAsyncChangeOperations"))
     XCTAssertTrue(source.contains("public struct TestDB"))
-    XCTAssertTrue(source.contains("public struct RecordTypes"))
+    XCTAssertTrue(source.contains("public struct RecordTypes : Swift.Sendable"))
     XCTAssertTrue(source.contains("public let people = Person.self"))
     XCTAssertTrue(source.contains("public static let recordTypes = RecordTypes()"))
     // has not dates!:
@@ -101,7 +101,7 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     XCTAssertFalse(source.contains("SQLDatabase"))
     XCTAssertFalse(source.contains("SQLDatabaseAsyncChangeOperations"))
     XCTAssertTrue(source.contains("public struct TestDB"))
-    XCTAssertFalse(source.contains("public struct RecordTypes"))
+    XCTAssertFalse(source.contains("public struct RecordTypes : Swift.Sendable"))
     XCTAssertFalse(source.contains("public let people = Person.self"))
     XCTAssertFalse(source.contains("public static let recordTypes = RecordTypes()"))
     // has not dates!:

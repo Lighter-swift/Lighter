@@ -134,8 +134,8 @@ public final class EnlighterASTGenerator {
     public var markRawStructsAsHashable     = true
     
     /// Additional protocol conformances that should be attached to the
-    /// record structures. Defaults to `Codable`.
-    public var extraRecordConformances  = [ "Codable" ]
+    /// record structures. Defaults to `Codable` and `Sendable`.
+    public var extraRecordConformances  = [ "Codable", "Sendable" ]
     
     /// Whether Swift filter matcher should be generated.
     /// (i.e. the ability to use a Swift closure instead of a SQL where).

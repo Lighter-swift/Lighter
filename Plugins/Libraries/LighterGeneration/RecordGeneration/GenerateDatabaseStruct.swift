@@ -557,7 +557,9 @@ extension EnlighterASTGenerator {
   {
     let firstEntity = database.entities.first ?? .init(name: "NoTypes")
     return Struct(
-      public: options.public, name: api.recordTypeLookupTarget,
+      public: options.public,
+      name: api.recordTypeLookupTarget,
+      conformances: [ .name("Swift.Sendable") ],
       variables: database.entities.map {
         let name = "\($0.name)\(suffix ?? "")"
         return .let(
