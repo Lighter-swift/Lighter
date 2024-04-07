@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -19,17 +19,17 @@ public final class EnlighterASTGenerator {
   /// The name of the Swift file that is being generated.
   public let filename : String
   
-  public struct Options: Equatable {
+  public struct Options: Equatable, Sendable {
     
     /// How to bind Date values into the database.
-    public enum DateStorageStyle: String {
+    public enum DateStorageStyle: String, Sendable {
       /// Save as a REAL containing the unix timestamp
       case timeIntervalSince1970 = "utime"
       /// Save as text, using a formatter.
       case formatter
     }
     /// How to store UUID columns, as strings or blobs
-    public enum UUIDStorageStyle: String {
+    public enum UUIDStorageStyle: String, Sendable {
       /// Store UUIDs as string, e.g. `81E42B93-3DA3-47BB-8D82-9BDE9E60242F`
       case text
       /// Store UUIDs as compact 16-byte BLOBs (efficient)
@@ -37,14 +37,14 @@ public final class EnlighterASTGenerator {
     }
     
     /// How the generated code should import Lighter (if enabled)
-    public enum LighterImport: String {
+    public enum LighterImport: String, Sendable {
       case none
       case `import`
       case reexport
     }
     
     /// Whether or how to generate low-level SQLite functions.
-    public enum RawFunctionStyle: Hashable {
+    public enum RawFunctionStyle: Hashable, Sendable {
       /// Do not generate low level `sqlite3_record_fetch` style functions.
       case omit
       /// Attach the low-level functions to the Record type itself,
@@ -55,7 +55,7 @@ public final class EnlighterASTGenerator {
       case globalFunctions(prefix: String) // default prefix: `sqlite3_`
     }
     
-    public enum RawOperationNames: Equatable {
+    public enum RawOperationNames: Equatable, Sendable {
       case lowercaseAndPluralize
     }
     

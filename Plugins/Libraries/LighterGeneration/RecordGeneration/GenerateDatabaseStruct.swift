@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -600,7 +600,7 @@ extension EnlighterASTGenerator {
     }
   }
 
-  fileprivate static let defaultSQLiteDateFormatterExpression =
+  fileprivate static var defaultSQLiteDateFormatterExpression : Expression {
     Expression.inlineClosureCall([
       .let("formatter", is: .call(name: "DateFormatter")),
       .set(instance: "formatter", "dateFormat",
@@ -610,4 +610,5 @@ extension EnlighterASTGenerator {
                   [ ("identifier", .string("en_US_POSIX"))])),
       .return(.variable("formatter"))
      ])
+  }
 }

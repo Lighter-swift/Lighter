@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -8,12 +8,15 @@
  */
 public struct SQLTruePredicate: SQLPredicate {
 
-  /// A shared instance of the true predicate.
-  public static let shared = SQLTruePredicate()
-  
+  @inlinable
+  static var shared : SQLTruePredicate { SQLTruePredicate() }
+
   // MARK: - SQL Generation
 
   static let sql = "1 = 1"
+  
+  @inlinable
+  public init() {}
   
   public func generateSQL<Base>(into builder: inout SQLBuilder<Base>) {
     builder.append(Self.sql)
@@ -22,7 +25,8 @@ public struct SQLTruePredicate: SQLPredicate {
 
 extension SQLPredicate where Self == SQLTruePredicate {
   
-  static var `true` : SQLTruePredicate { .shared }
+  @inlinable
+  static var `true` : SQLTruePredicate { SQLTruePredicate() }
 }
 
 /**
@@ -30,10 +34,15 @@ extension SQLPredicate where Self == SQLTruePredicate {
  */
 public struct SQLBoolPredicate: SQLPredicate {
 
-  public static let `true`  = Self(value: true)
-  public static let `false` = Self(value: false)
+  @inlinable
+  public static var `true`  : Self { Self(true)  }
+  @inlinable
+  public static var `false` : Self { Self(false) }
   
   public let value : Bool
+  
+  @inlinable
+  public init(_ value: Bool) { self.value = value }
   
   public func generateSQL<Base>(into builder: inout SQLBuilder<Base>) {
     builder.append(value ? "1 = 1" : "1 = 0")

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2023 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3
@@ -47,7 +47,7 @@ import struct Foundation.UUID
  * Note: `SQLiteValueType`s are usually `Hashable`, making record types
  *       Hashable too!
  */
-public protocol SQLiteValueType {
+public protocol SQLiteValueType: Sendable {
   
   /**
    * Initialize a SQLite value from a column in the given SQLite3 prepared
