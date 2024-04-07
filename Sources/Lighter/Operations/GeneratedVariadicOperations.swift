@@ -1,4 +1,4 @@
-// Autocreated by GenerateInternalVariadics at 2022-08-17T15:57:10Z
+// Autocreated by GenerateInternalVariadics at 2024-04-07T13:46:27Z
 
 public extension SQLDatabaseFetchOperations {
   
@@ -31,8 +31,9 @@ public extension SQLDatabaseFetchOperations {
     var builder = SQLBuilder<T>()
     builder.addColumn(column)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ C.Value ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
     }
     return records
@@ -70,8 +71,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column1)
     builder.addColumn(column2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
       )
@@ -121,8 +123,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column2)
     builder.addColumn(column3)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
       )
@@ -177,8 +180,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column3)
     builder.addColumn(column4)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
       )
@@ -238,8 +242,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column4)
     builder.addColumn(column5)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
       )
@@ -297,8 +302,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column5)
     builder.addColumn(column6)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
       )
@@ -341,8 +347,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ C.Value ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
     }
     return records
@@ -393,8 +400,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column2)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
       )
@@ -452,8 +460,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column3)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
       )
@@ -516,8 +525,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column4)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
       )
@@ -585,8 +595,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column5)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
       )
@@ -651,8 +662,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column6)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
       )
@@ -707,8 +719,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ C.Value ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
     }
     return records
@@ -766,8 +779,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
       )
@@ -832,8 +846,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
       )
@@ -903,8 +918,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
       )
@@ -979,8 +995,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
       )
@@ -1052,8 +1069,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
       )
@@ -1088,8 +1106,9 @@ public extension SQLDatabaseFetchOperations {
     var builder = SQLBuilder<T>()
     builder.addColumn(column)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ C.Value ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
     }
     return records
@@ -1125,8 +1144,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column1)
     builder.addColumn(column2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
       )
@@ -1167,8 +1187,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column2)
     builder.addColumn(column3)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
       )
@@ -1220,8 +1241,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column3)
     builder.addColumn(column4)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
       )
@@ -1278,8 +1300,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column4)
     builder.addColumn(column5)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
       )
@@ -1334,8 +1357,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column5)
     builder.addColumn(column6)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
       )
@@ -1376,8 +1400,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ C.Value ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
     }
     return records
@@ -1419,8 +1444,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column2)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
       )
@@ -1475,8 +1501,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column3)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
       )
@@ -1536,8 +1563,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column4)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
       )
@@ -1602,8 +1630,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column5)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
       )
@@ -1665,8 +1694,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addColumn(column6)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
       )
@@ -1712,8 +1742,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ C.Value ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
     }
     return records
@@ -1768,8 +1799,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
       )
@@ -1831,8 +1863,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
       )
@@ -1899,8 +1932,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
       )
@@ -1972,8 +2006,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
       )
@@ -2042,8 +2077,9 @@ public extension SQLDatabaseFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-    try fetch(sql, builder.bindings) { ( stmt, _ ) in
+    try fetch(sql, bindings) { ( stmt, _ ) in
       records.append(
         ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
       )
@@ -2086,9 +2122,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     var builder = SQLBuilder<T>()
     builder.addColumn(column)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ C.Value ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
       }
       return records
@@ -2127,9 +2164,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column1)
     builder.addColumn(column2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
         )
@@ -2180,9 +2218,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column2)
     builder.addColumn(column3)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
         )
@@ -2238,9 +2277,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column3)
     builder.addColumn(column4)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
         )
@@ -2301,9 +2341,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column4)
     builder.addColumn(column5)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
         )
@@ -2362,9 +2403,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column5)
     builder.addColumn(column6)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
         )
@@ -2408,9 +2450,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ C.Value ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
       }
       return records
@@ -2462,9 +2505,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column2)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
         )
@@ -2523,9 +2567,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column3)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
         )
@@ -2589,9 +2634,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column4)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
         )
@@ -2660,9 +2706,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column5)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
         )
@@ -2728,9 +2775,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column6)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
         )
@@ -2786,9 +2834,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ C.Value ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
       }
       return records
@@ -2847,9 +2896,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
         )
@@ -2915,9 +2965,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
         )
@@ -2988,9 +3039,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
         )
@@ -3066,9 +3118,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
         )
@@ -3141,9 +3194,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: predicate(T.schema))
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
         )
@@ -3179,9 +3233,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     var builder = SQLBuilder<T>()
     builder.addColumn(column)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ C.Value ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
       }
       return records
@@ -3218,9 +3273,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column1)
     builder.addColumn(column2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
         )
@@ -3262,9 +3318,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column2)
     builder.addColumn(column3)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
         )
@@ -3317,9 +3374,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column3)
     builder.addColumn(column4)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
         )
@@ -3377,9 +3435,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column4)
     builder.addColumn(column5)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
         )
@@ -3435,9 +3494,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column5)
     builder.addColumn(column6)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
         )
@@ -3479,9 +3539,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ C.Value ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
       }
       return records
@@ -3524,9 +3585,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column2)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
         )
@@ -3582,9 +3644,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column3)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
         )
@@ -3645,9 +3708,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column4)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
         )
@@ -3713,9 +3777,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column5)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
         )
@@ -3778,9 +3843,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addColumn(column6)
     builder.addSort(sortColumn, direction)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
         )
@@ -3827,9 +3893,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ C.Value ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(try C.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0))
       }
       return records
@@ -3885,9 +3952,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1) )
         )
@@ -3950,9 +4018,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2) )
         )
@@ -4020,9 +4089,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3) )
         )
@@ -4095,9 +4165,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4) )
         )
@@ -4167,9 +4238,10 @@ public extension SQLDatabaseAsyncFetchOperations {
     builder.addSort(sortColumn1, direction1)
     builder.addSort(sortColumn2, direction2)
     let sql = builder.generateSelect(limit: limit, predicate: SQLTruePredicate.shared)
+    let bindings = builder.bindings
     return try await runOnDatabaseQueue() {
       var records = [ ( column1: C1.Value, column2: C2.Value, column3: C3.Value, column4: C4.Value, column5: C5.Value, column6: C6.Value ) ]()
-      try fetch(sql, builder.bindings) { ( stmt, _ ) in
+      try fetch(sql, bindings) { ( stmt, _ ) in
         records.append(
           ( try C1.Value.init(unsafeSQLite3StatementHandle: stmt, column: 0), try C2.Value.init(unsafeSQLite3StatementHandle: stmt, column: 1), try C3.Value.init(unsafeSQLite3StatementHandle: stmt, column: 2), try C4.Value.init(unsafeSQLite3StatementHandle: stmt, column: 3), try C5.Value.init(unsafeSQLite3StatementHandle: stmt, column: 4), try C6.Value.init(unsafeSQLite3StatementHandle: stmt, column: 5) )
         )
