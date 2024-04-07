@@ -12,7 +12,7 @@ import SQLite3
  *
  * This can be subclassed by users to implement custom pooling strategies.
  */
-open class SQLConnectionHandler {
+open class SQLConnectionHandler: @unchecked Sendable {
   
   /**
    * Returns a connection handler that will open a new database handle on
