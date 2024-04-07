@@ -1,12 +1,12 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
  * A reference to some type, e.g. `Void` or `Person` or `Int`.
  */
-public indirect enum TypeReference: Equatable {
+public indirect enum TypeReference: Equatable, Sendable {
   
   /// `Void`
   case void

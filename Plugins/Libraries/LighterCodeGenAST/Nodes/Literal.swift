@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -8,7 +8,7 @@
  *
  * E.g. as used in default values like: `limit: Int? = nil` (the `nil`).
  */
-public enum Literal: Equatable {
+public enum Literal: Equatable, Sendable {
 
   /// `nil`
   case `nil`

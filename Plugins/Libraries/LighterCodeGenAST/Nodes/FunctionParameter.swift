@@ -1,13 +1,13 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension FunctionDeclaration {
   
   /// A parameter, like `from table: KeyPath<Self.RecordTypes, T.Type>`
   /// Or: `limit: Int? = nil`
-  struct Parameter: Equatable {
+  struct Parameter: Equatable, Sendable {
     
     /// The "label" of the parameter, e.g. the `from` in `select(from table:)`.
     /// Can be `nil` for a wildcard (`_`).

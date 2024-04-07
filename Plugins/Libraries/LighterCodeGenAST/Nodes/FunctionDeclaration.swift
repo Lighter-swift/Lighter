@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -19,7 +19,7 @@
  * where C1: SQLColumn, C2: SQLColumn, T == C1.T, T == C2.T
  * ```
  */
-public struct FunctionDeclaration: Equatable {
+public struct FunctionDeclaration: Equatable, Sendable {
   
   /// Is the function public?
   public let `public`              : Bool

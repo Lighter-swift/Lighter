@@ -1,15 +1,15 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
  * An AST node for various Swift expressions.
  */
-public indirect enum Expression: Equatable {
+public indirect enum Expression: Equatable, Sendable {
   
   /// The operators for ``compare(lhs:operator:rhs:)`` expressions.
-  public enum Operator: String {
+  public enum Operator: String, Sendable {
     case equal              = "=="
     case notEqual           = "!="
     case greaterThanOrEqual = ">="
@@ -82,12 +82,12 @@ public indirect enum Expression: Equatable {
  *
  * Used as the value for ``Expression/functionCall(_:)``.
  */
-public struct FunctionCall: Equatable {
+public struct FunctionCall: Equatable, Sendable {
   
   /**
    * A parameter passed as part of the function call.
    */
-  public struct Parameter: Equatable {
+  public struct Parameter: Equatable, Sendable {
     
     /// The keyword/label of the parameter, can be `nil` if it is a wildcard
     /// (unlabled) parameter.
@@ -105,7 +105,7 @@ public struct FunctionCall: Equatable {
   /**
    * A trailing closure attached to a function call.
    */
-  public struct TrailingClosure: Equatable {
+  public struct TrailingClosure: Equatable, Sendable {
     
     /// The parameter list of the trailing closure (e.g. `( a, b ) in`).
     public let parameters: [ String    ]
