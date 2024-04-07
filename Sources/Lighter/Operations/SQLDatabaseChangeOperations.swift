@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3
@@ -44,7 +44,7 @@ public extension SQLDatabaseChangeOperations {
          throws
          where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
-    try delete(from: table) {_ in T.Schema.primaryKeyColumn == id }
+    try delete(from: table) { _ in T.Schema.primaryKeyColumn == id }
   }
 
   /**
