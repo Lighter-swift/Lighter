@@ -523,6 +523,21 @@ extension Date : SQLiteValueType {
     case timeIntervalSince1970
     case formatter(DateFormatter)
   }
+#if swift(>=5.10)
+  /// The style is non-isolated and should only be set once on startup.
+  nonisolated(unsafe)
+  public static var sqlDateStorageStyle =
+                      SQLiteDateStorageStyle.timeIntervalSince1970
+  /// The style is non-isolated and should only be set once on startup.
+  nonisolated(unsafe) 
+  public static var defaultSQLiteDateFormatter : DateFormatter = {
+    // `SELECT datetime();` gives: `2004-08-19 18:51:06` in UTC
+    let df = DateFormatter()
+    df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    df.locale     = Locale(identifier: "en_US_POSIX")
+    return df
+  }()
+#else
   public static var sqlDateStorageStyle =
                       SQLiteDateStorageStyle.timeIntervalSince1970
   public static var defaultSQLiteDateFormatter : DateFormatter = {
@@ -532,6 +547,7 @@ extension Date : SQLiteValueType {
     df.locale     = Locale(identifier: "en_US_POSIX")
     return df
   }()
+#endif
   
   public enum SQLiteDateConversionError: Swift.Error, Sendable {
     case unexpectedNull
@@ -741,7 +757,13 @@ extension UUID : SQLiteValueType {
     case string
     case blob
   }
+#if swift(>=5.10)
+  /// The style is non-isolated and should only be set once on startup.
+  nonisolated(unsafe)
   public static var sqlUUIDStorageStyle = SQLiteUUIDStorageStyle.blob
+#else
+  public static var sqlUUIDStorageStyle = SQLiteUUIDStorageStyle.blob
+#endif
   
   public enum SQLCouldNotLoadUUID: Swift.Error, Sendable {
     case couldNotParseString(String)
