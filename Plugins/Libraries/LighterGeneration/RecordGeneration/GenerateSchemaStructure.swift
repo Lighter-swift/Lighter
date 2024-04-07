@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -288,6 +288,12 @@ extension EnlighterASTGenerator {
       },
       computedProperties: computedProps,
       typeFunctions: typeFunctions,
+      functions: [
+        .init(
+          declaration: .makeInit(public: options.public),
+          statements: []
+        )
+      ],
       comment: .init(
         headline:
           "Static type information for the ``\(entity.name)`` record (`\(entity.externalName)` SQL table).",
