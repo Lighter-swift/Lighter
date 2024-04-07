@@ -200,6 +200,7 @@ public extension SQLRecordFetchOperations { // sync fetches
    *                schema as the first argument (e.g. `$0.personId == 10`).
    * - Returns:     An array of ``SQLRecord``s matching the type specified.
    */
+  @inlinable
   func fetch<SC, P>(limit           : Int? = nil,
                     orderBy  column : KeyPath<T.Schema, SC>,
                     _     direction : SQLSortOrder = .ascending,
@@ -207,13 +208,41 @@ public extension SQLRecordFetchOperations { // sync fetches
          throws -> [ T ]
          where SC: SQLColumn, SC.T == T, P: SQLPredicate
   {
-    var builder = SQLBuilder<T>()
+    try fetch(limit: limit, orderBy: T.schema[keyPath: column], direction,
+              where: predicate)
+  }
+  /**
+   * Fetch filtered records of a view/table in a sorted manner.
+   *
+   * Example:
+   * ```
+   * let people = try db.people.fetch(orderBy: Person.schema.name) {
+   *   $0.name.hasPrefix("Du")
+   * }
+   * ```
+   *
+   * - Parameters:
+   *   - limit:     An optional fetch limit (defaults to no limit)
+   *   - column:    The column to sort the results by.
+   *   - direction: The sort direction (ascending or descending)
+   *   - predicate: A closure returning a filter predicate, receives the record
+   *                schema as the first argument (e.g. `$0.personId == 10`).
+   * - Returns:     An array of ``SQLRecord``s matching the type specified.
+   */
+  func fetch<SC, P>(limit           : Int? = nil,
+                    orderBy  column : SC,
+                    _     direction : SQLSortOrder = .ascending,
+                    where predicate : ( T.Schema ) -> P)
+         throws -> [ T ]
+         where SC: SQLColumn, SC.T == T, P: SQLPredicate
+  {
+    var builder  = SQLBuilder<T>()
     builder.addSort(column, direction)
     builder.generateSelect(limit: limit, predicate: predicate(T.schema))
     return try fetch(verbatim: builder.sql, bindings: builder.bindings,
                      indices: T.Schema.selectColumnIndices)
   }
-  
+
   /**
    * Fetch filtered records of a view/table in a sorted manner.
    *
@@ -247,6 +276,45 @@ public extension SQLRecordFetchOperations { // sync fetches
          where SC1: SQLColumn, SC1.T == T, SC2: SQLColumn, SC2.T == T,
                P: SQLPredicate
   {
+    try fetch(limit: limit, 
+              orderBy: T.schema[keyPath: column1], direction1,
+              T.schema[keyPath: column2], direction2,
+              where: predicate)
+  }
+  
+  /**
+   * Fetch filtered records of a view/table in a sorted manner.
+   *
+   * Example:
+   * ```
+   * let persons = try db.fetch(\.people, orderBy: \.lastname,  .ascending,
+   *                                               \.firstname, .descending)
+   * {
+   *   $0.name.hasPrefix("Du")
+   * }
+   * ```
+   *
+   * - Parameters:
+   *   - from:       A KeyPath leading to a ``SQLRecord`` type, e.g. `\.person`
+   *   - limit:      An optional fetch limit (defaults to no limit)
+   *   - column1:    The first column to sort the results by.
+   *   - direction1: The first sort direction (ascending or descending)
+   *   - column2:    The second column to sort the results by.
+   *   - direction2: The second sort direction (ascending or descending)
+   *   - predicate:  A closure returning a filter predicate, receives the record
+   *                 schema as the first argument (e.g. `$0.personId == 10`).
+   * - Returns:      An array of ``SQLRecord``s matching the type specified.
+   */
+  func fetch<SC1, SC2, P>(limit            : Int? = nil,
+                          orderBy  column1 : SC1,
+                          _     direction1 : SQLSortOrder, // can't be optional!
+                          _        column2 : SC2,
+                          _     direction2 : SQLSortOrder = .ascending,
+                          where predicate : ( T.Schema ) -> P)
+         throws -> [ T ]
+         where SC1: SQLColumn, SC1.T == T, SC2: SQLColumn, SC2.T == T,
+               P: SQLPredicate
+  {
     var builder = SQLBuilder<T>()
     builder.addSort(column1, direction1)
     builder.addSort(column2, direction2)
@@ -254,7 +322,7 @@ public extension SQLRecordFetchOperations { // sync fetches
     return try fetch(verbatim: builder.sql, bindings: builder.bindings,
                      indices: T.Schema.selectColumnIndices)
   }
-  
+
   /**
    * Fetch records of a certain type using a custom query.
    *
@@ -324,10 +392,11 @@ public extension SQLRecordFetchOperations { // sync finds
   @inlinable
   func find<C>(by matchColumn : KeyPath<T.Schema, C>,
                _        value : C.Value) throws -> T?
-  where C: SQLColumn, T == C.T
+         where C: SQLColumn, T == C.T
   {
     (try fetch(limit: 1) { $0[keyPath: matchColumn] == value }).first
   }
+  
 }
 
 
