@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -358,7 +358,9 @@ public final class SelectFunctionGeneration: FunctionGenerator {
       if columnParameterNames.count > 1 {
         return .array(.tuple(
           names: columnParameterNames,
-          types: Cs.map { .qualifiedType(baseName: $0, name: api.columnValuePAT) }
+          types: Cs.map {
+            .qualifiedType(baseName: $0, name: api.columnValuePAT)
+          }
         ))
       }
       else {
@@ -489,7 +491,7 @@ public final class SelectFunctionGeneration: FunctionGenerator {
       
         .call(try: true, name: "fetch", parameters: [
           ( nil, .variable("sql") ),
-          ( nil, .variable(builderVariableName, "bindings" ) )
+          ( nil, .variable("bindings" ) )
         ], trailing: ( parameters: [ "stmt", "_" ], statements: [
           .call(instance: "records", name: "append",
                 parameters: [ ( nil, // could generate the labels
@@ -501,6 +503,8 @@ public final class SelectFunctionGeneration: FunctionGenerator {
         .return(.variable("records"))
       ]
 
+      statements.append(.let("bindings",
+                             is: .variable(builderVariableName, "bindings")))
       if asyncFunctions {
         // try await runOnDatabaseQueue { try fetch(from, limit: limit) }
         statements.append(
