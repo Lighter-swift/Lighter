@@ -181,6 +181,10 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     
     XCTAssertTrue(source.contains("static var _dateFormatter : DateFormatter?"))
     XCTAssertTrue(source.contains(
+      "nonisolated(unsafe) static var _dateFormatter : DateFormatter?"))
+    XCTAssertTrue(source.contains("#if swift(>=5.10)"))
+
+    XCTAssertTrue(source.contains(
       "public static var dateFormatter : DateFormatter? {"))
     XCTAssertTrue(source.contains(
       "_dateFormatter ?? Date.defaultSQLiteDateFormatter"))

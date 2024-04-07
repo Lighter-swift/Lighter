@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -12,31 +12,69 @@ public extension CodeGenerator {
                                 omitPublic : Bool = false)
   {
     assert(value.type != nil || value.value != nil)
-
-    if let ( major, minor ) = value.minimumSwiftVersion {
-      assert(major >= 5)
-      writeln("#if swift(>=\(major).\(minor))")
+    
+    func writeBody() {
+      if value.public && !omitPublic { append("public ") }
+      if `static` { append("static ") }
+      append(value.let ? "let " : "var ")
+      append(tickedWhenReserved(value.name))
+      if let type = value.type {
+        append(configuration.propertyTypeSeparator) // " : "
+        append(string(for: type))
+      }
+      if let value = value.value {
+        append(configuration.propertyValueSeparator) // " = "
+        append(string(for: value))
+      }
+      appendEOL()
     }
     
-    writePropertyComment(value.comment)
-    appendIndent()
-    if value.public && !omitPublic { append("public ") }
-    if `static` { append("static ") }
-    append(value.let ? "let " : "var ")
-    append(tickedWhenReserved(value.name))
-    if let type = value.type {
-      append(configuration.propertyTypeSeparator) // " : "
-      append(string(for: type))
-    }
-    if let value = value.value {
-      append(configuration.propertyValueSeparator) // " = "
-      append(string(for: value))
-    }
-    appendEOL()
+    func writePlain() {
+      if let ( major, minor ) = value.minimumSwiftVersion {
+        assert(major >= 5)
+        writeln("#if swift(>=\(major).\(minor))")
+      }
+      
+      writePropertyComment(value.comment)
+      appendIndent()
+      writeBody()
 
-    if let ( major, minor ) = value.minimumSwiftVersion {
-      assert(major >= 5)
-      writeln("#endif // swift(>=\(major).\(minor))")
+      if let ( major, minor ) = value.minimumSwiftVersion {
+        assert(major >= 5)
+        writeln("#endif // swift(>=\(major).\(minor))")
+      }
+    }
+    
+    if value.nonIsolatedUnsafe {
+      if let ( major, minor ) = value.minimumSwiftVersion,
+         (major > 5) || (major >= 5 && minor >= 10)
+      {
+        writePlain()
+      }
+      else {
+        writeln("#if swift(>=5.10)")
+
+        writePropertyComment(value.comment)
+        appendIndent()
+        append("nonisolated(unsafe) ")
+        writeBody()
+
+        if let ( major, minor ) = value.minimumSwiftVersion {
+          assert(major >= 5)
+          writeln("#elseif swift(>=\(major).\(minor))")
+        }
+        else {
+          writeln("#else")
+        }
+        
+        writePropertyComment(value.comment)
+        appendIndent()
+        writeBody()
+        writeln("#endif")
+      }
+    }
+    else {
+      writePlain()
     }
   }
   

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -11,8 +11,10 @@ public struct Struct {
   /**
    * An instance variable of a ``Struct``.
    */
-  public struct InstanceVariable {
+  public struct InstanceVariable: Sendable {
         
+    /// Whether the definition is `nonisolated(unsafe)`, requires Swift 5.10+
+    public var nonIsolatedUnsafe      : Bool
     /// Is the property public?
     public var `public` : Bool
     /// Is the property readonly.
@@ -31,7 +33,9 @@ public struct Struct {
     public var minimumSwiftVersion : ( major: Int, minor: Int )?
 
     /// Initialize a new instance variable node.
-    public init(public: Bool = true, `let`: Bool = true, _ name: String,
+    public init(nonIsolatedUnsafe: Bool = false,
+                public: Bool = true, `let`: Bool = true,
+                _ name: String,
                 type: TypeReference? = nil, value: Expression? = nil,
                 minimumSwiftVersion : ( major: Int, minor: Int )? = nil,
                 comment: String? = nil)
@@ -43,6 +47,7 @@ public struct Struct {
       self.value               = value
       self.minimumSwiftVersion = minimumSwiftVersion
       self.comment             = comment
+      self.nonIsolatedUnsafe   = nonIsolatedUnsafe
     }
   }
 
@@ -159,11 +164,13 @@ public extension Struct.InstanceVariable {
   }
   
   /// Initialize a new instance variable node for a `var`.
-  static func `var`(public: Bool = true, _ name: String, _ type: TypeReference,
+  static func `var`(nonIsolatedUnsafe: Bool = false,
+                    public: Bool = true, _ name: String, _ type: TypeReference,
                     comment: String? = nil)
               -> Self
   {
-    .init(public: `public`, let: false, name, type: type, value: nil,
+    .init(nonIsolatedUnsafe: nonIsolatedUnsafe, public: `public`,
+          let: false, name, type: type, value: nil,
           comment: comment)
   }
 }

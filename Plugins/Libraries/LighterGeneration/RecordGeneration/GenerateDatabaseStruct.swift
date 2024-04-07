@@ -104,7 +104,8 @@ extension EnlighterASTGenerator {
       let comment = "The `DateFormatter` used for parsing string date values."
       if options.useLighter {
         typeVariables.append(
-          .var(public: false, "_\(name)", type, comment: comment)
+          .var(nonIsolatedUnsafe: true,
+               public: false, "_\(name)", type, comment: comment)
         )
         computedTypeProperties.append(
           .var(public: options.public, inlinable: false,
