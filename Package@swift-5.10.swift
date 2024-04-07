@@ -2,6 +2,12 @@
 
 import PackageDescription
 
+#if swift(>=5.10)
+let settings = [ SwiftSetting.enableExperimentalFeature("StrictConcurrency") ]
+#else
+let settings = [ SwiftSetting ]()
+#endif
+
 var package = Package(
   name: "Lighter",
 
@@ -28,7 +34,7 @@ var package = Package(
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter"),
+    .target(name: "Lighter", swiftSettings: settings),
 
 
     // MARK: - Plugin Support
@@ -37,14 +43,15 @@ var package = Package(
     // Swift source code.
     .target(name    : "LighterCodeGenAST",
             path    : "Plugins/Libraries/LighterCodeGenAST",
-            exclude : [ "README.md" ]),
+            exclude : [ "README.md" ], swiftSettings: settings),
     
     // This library contains all the code generation, to be used by different
     // clients.
     .target(name         : "LighterGeneration",
             dependencies : [ "LighterCodeGenAST", "SQLite3Schema" ],
             path         : "Plugins/Libraries/LighterGeneration",
-            exclude      : [ "README.md", "LighterConfiguration/README.md" ]),
+            exclude      : [ "README.md", "LighterConfiguration/README.md" ],
+            swiftSettings: settings),
 
     
     // MARK: - Tests

@@ -63,8 +63,10 @@ public extension SQLRecordFetchOperations
          async throws -> [ T ]
          where SC: SQLColumn, SC.T == T
   {
-    try await runOnDatabaseQueue {
-      try fetch(limit: limit, orderBy: column, direction)
+    let column = T.schema[keyPath: column]
+    return try await runOnDatabaseQueue {
+      try fetch(limit: limit, orderBy: column, direction,
+                where: { _ in SQLTruePredicate.shared })
     }
   }
 
@@ -94,7 +96,8 @@ public extension SQLRecordFetchOperations
          async throws -> [ T ]
          where SC: SQLColumn, SC.T == T, P: SQLPredicate
   {
-    try await runOnDatabaseQueue {
+    let column = T.schema[keyPath: column]
+    return try await runOnDatabaseQueue {
       try fetch(limit: limit, orderBy: column, direction, where: predicate)
     }
   }
@@ -132,7 +135,9 @@ public extension SQLRecordFetchOperations
          where SC1: SQLColumn, SC1.T == T, SC2: SQLColumn, SC2.T == T,
                P: SQLPredicate
   {
-    try await runOnDatabaseQueue {
+    let column1 = T.schema[keyPath: column1]
+    let column2 = T.schema[keyPath: column2]
+    return try await runOnDatabaseQueue {
       try fetch(limit: limit,
                 orderBy: column1, direction1, column2, direction2,
                 where: predicate)
@@ -183,7 +188,15 @@ public extension SQLRecordFetchOperations
          async throws -> T?
          where C: SQLColumn, T == C.T
   {
-    try await runOnDatabaseQueue { try find(by: matchColumn, value) }
+    let matchColumn = T.schema[keyPath: matchColumn]
+    var builder = SQLBuilder<T>()
+    builder.generateSelect(limit: 1, predicate: matchColumn == value)
+    
+    let cb = builder
+    return try await runOnDatabaseQueue {
+      try fetch(verbatim: cb.sql, bindings: cb.bindings,
+                indices: T.Schema.selectColumnIndices).first
+    }
   }
   
   /**
@@ -278,7 +291,8 @@ public extension SQLRecordFetchOperations
                FK.Value == FK.DestinationColumn.Value,
                S: Sequence & Sendable, S.Element == FK.Destination
   {
-    try await runOnDatabaseQueue {
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
       try fetch(for: foreignKey, in: destinationRecords,
                 omitEmpty: omitEmpty, limit: limit)
     }
@@ -308,9 +322,10 @@ public extension SQLRecordFetchOperations
          async throws -> [ FK.DestinationColumn.Value : [ T ] ]
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == FK.DestinationColumn.Value,
-               S: Sequence, S.Element == FK.DestinationColumn.Value
+               S: Sequence & Sendable, S.Element == FK.DestinationColumn.Value
   {
-    try await runOnDatabaseQueue {
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
       try fetch(for: foreignKey, in: destinationsColumns,
                 omitEmpty: omitEmpty, limit: limit)
     }
@@ -334,7 +349,8 @@ public extension SQLRecordFetchOperations
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == FK.DestinationColumn.Value
   {
-    try await runOnDatabaseQueue {
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
       try fetch(for: foreignKey, in: destinationRecord, limit: limit)
     }
   }
@@ -354,7 +370,8 @@ public extension SQLRecordFetchOperations
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == FK.DestinationColumn.Value?
   {
-    try await runOnDatabaseQueue {
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
       try fetch(for: foreignKey, in: destinationRecord, limit: limit)
     }
   }
@@ -374,7 +391,8 @@ public extension SQLRecordFetchOperations
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value? == FK.DestinationColumn.Value
   {
-    try await runOnDatabaseQueue {
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
       try fetch(for: foreignKey, in: destinationRecord, limit: limit)
     }
   }
@@ -396,7 +414,10 @@ public extension SQLRecordFetchOperations
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == FK.DestinationColumn.Value
   {
-    try await runOnDatabaseQueue { try findTarget(for: foreignKey, in: record) }
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
+      try findTarget(for: foreignKey, in: record)
+    }
   }
   
   /**
@@ -413,7 +434,10 @@ public extension SQLRecordFetchOperations
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == Optional<FK.DestinationColumn.Value>
   {
-    try await runOnDatabaseQueue { try findTarget(for: foreignKey, in: record) }
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
+      try findTarget(for: foreignKey, in: record)
+    }
   }
   
   /**
@@ -430,7 +454,10 @@ public extension SQLRecordFetchOperations
          where FK: SQLForeignKeyColumn, FK.T == T,
                Optional<FK.Value> == FK.DestinationColumn.Value
   {
-    try await runOnDatabaseQueue { try findTarget(for: foreignKey, in: record) }
+    let foreignKey = T.schema[keyPath: foreignKey]
+    return try await runOnDatabaseQueue {
+      try findTarget(for: foreignKey, in: record)
+    }
   }
 }
 

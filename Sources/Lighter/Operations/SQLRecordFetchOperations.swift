@@ -42,6 +42,11 @@ public struct SQLRecordFetchOperations<Ops, T: SQLRecord>
   public init(_ operations: Ops) { self.operations = operations }
 }
 
+#if swift(>=5.5) && canImport(_Concurrency)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension SQLRecordFetchOperations: Sendable
+    where Ops: SQLDatabaseAsyncOperations {}
+#endif
 
 public extension SQLDatabaseFetchOperations { // this is what DB/TX conform to
   

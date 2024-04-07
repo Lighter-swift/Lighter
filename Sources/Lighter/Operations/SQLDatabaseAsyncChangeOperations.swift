@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 // Same like `SQLDatabaseChangeOperations`, async/await variant if available.
@@ -41,7 +41,9 @@ public extension SQLDatabaseAsyncChangeOperations {
          async throws
          where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
-    try await runOnDatabaseQueue { try delete(from: table, id: id) }
+    try await runOnDatabaseQueue {
+      try delete(from: T.self) { _ in T.Schema.primaryKeyColumn == id }
+    }
   }
 
   /**
@@ -65,8 +67,9 @@ public extension SQLDatabaseAsyncChangeOperations {
          async throws
          where C: SQLColumn, T == C.T, T: SQLDeletableRecord
   {
+    let ref = T.schema[keyPath: column]
     try await runOnDatabaseQueue {
-      try delete(from: table, where: column, is: value)
+      try delete(from: T.self) { _ in ref == value }
     }
   }
 
@@ -87,12 +90,18 @@ public extension SQLDatabaseAsyncChangeOperations {
    *   - predicate: The qualifier selecting the records to delete.
    */
   @inlinable
-  func delete<T, P>(from  table : KeyPath<Self.RecordTypes, T.Type>,
-                    where     p : @escaping ( T.Schema ) -> P)
+  func delete<T, P>(from      table : KeyPath<Self.RecordTypes, T.Type>,
+                    where predicate : @escaping ( T.Schema ) -> P)
          async throws
          where T: SQLDeletableRecord, P: SQLPredicate
   {
-    try await runOnDatabaseQueue { try delete(from: table, where: p) }
+    var builder = SQLBuilder<T>()
+    builder.generateDelete(from: T.Schema.externalName,
+                           where: predicate(T.schema))
+    let cb = builder
+    try await runOnDatabaseQueue {
+      try execute(cb.sql, cb.bindings, readOnly: false)
+    }
   }
 }
 

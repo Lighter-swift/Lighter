@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import Dispatch
@@ -15,7 +15,7 @@ import Dispatch
  * - ``SQLDatabaseFetchOperations``
  * - ``SQLDatabaseAsyncChangeOperations``
  */
-public protocol SQLDatabaseAsyncOperations: SQLDatabaseOperations {
+public protocol SQLDatabaseAsyncOperations: SQLDatabaseOperations, Sendable {
   
   /**
    * The queue that is used to run concurrent async SQL operations.

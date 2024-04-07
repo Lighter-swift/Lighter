@@ -48,7 +48,7 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
   @discardableResult
   func transaction<R>(
     mode    : SQLTransactionType = .default,
-    execute : @escaping ( SQLChangeTransaction<Self> ) throws -> R
+    execute : @Sendable @escaping ( SQLChangeTransaction<Self> ) throws -> R
   ) async throws -> R
   {
     try await runOnDatabaseQueue {
@@ -83,7 +83,8 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    */
   @inlinable
   @discardableResult
-  func readTransaction<R>(execute: @escaping (SQLTransaction<Self>) throws -> R)
+  func readTransaction<R>(execute: @Sendable @escaping
+                                   (SQLTransaction<Self>) throws -> R)
          async throws -> R
   {
     try await runOnDatabaseQueue {
