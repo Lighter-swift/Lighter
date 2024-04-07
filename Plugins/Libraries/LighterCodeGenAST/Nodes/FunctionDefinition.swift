@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -9,7 +9,7 @@
  *
  * Plus extra annotations like ``inlinable`` and the ``comment``.
  */
-public struct FunctionDefinition: Equatable {
+public struct FunctionDefinition: Equatable, Sendable {
   
   /// Whether the definition is `@inlinable` (included in the module header).
   public var inlinable    : Bool

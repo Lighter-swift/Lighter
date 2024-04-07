@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 extension Schema {
@@ -10,7 +10,7 @@ extension Schema {
    *
    * The information as-is returned by `PRAGMA table_info($table)`.
    */
-  public struct Column: Hashable, Identifiable {
+  public struct Column: Hashable, Identifiable, Sendable {
 
     /**
      * An enum that represents a default value set for a SQLite column.
@@ -18,7 +18,7 @@ extension Schema {
      * Can be `null`, an `integer`, a `real`, a `text` or a `blob` (the
      * possible types returned by `sqlite3_column_type`).
      */
-    public enum DefaultValue: Hashable {
+    public enum DefaultValue: Hashable, Sendable {
       
       case null
       
@@ -47,11 +47,24 @@ extension Schema {
     /// Whether the column is the / part of the primary key of a table.
     public let isPrimaryKey : Bool
     
-    /// Initialize a new `Column` structure.
-    public init(id: Int64, name: String, type: ColumnType? = .text,
-                isNotNull: Bool = false,
-                defaultValue: DefaultValue? = nil,
-                isPrimaryKey: Bool = false)
+    /**
+     * Initialize a new `Column` structure.
+     *
+     * - Parameters:
+     *   - id:           The id associated w/ the column in the database.
+     *   - name:         The name of the column.
+     *   - type:         The type of the column, defaults to `.text`.
+     *   - isNotNull:    Whether the column has a not-null constraint.
+     *   - defaultValue: The columns default value, if there is one assigned.
+     *   - isPrimaryKey: Whether the column is part, or the, primary key.
+     */
+    @inlinable
+    public init(id           : Int64,
+                name         : String,
+                type         : ColumnType?   = .text,
+                isNotNull    : Bool          = false,
+                defaultValue : DefaultValue? = nil,
+                isPrimaryKey : Bool          = false)
     {
       self.id           = id
       self.name         = name

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2023 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3
@@ -47,7 +47,7 @@ import struct Foundation.UUID
  * Note: `SQLiteValueType`s are usually `Hashable`, making record types
  *       Hashable too!
  */
-public protocol SQLiteValueType {
+public protocol SQLiteValueType: Sendable {
   
   /**
    * Initialize a SQLite value from a column in the given SQLite3 prepared
@@ -100,7 +100,8 @@ public protocol SQLiteValueType {
  * An error happened while converting between SQLite types and a
  * `RawRepresentable`.
  */
-public enum SQLiteRawConversionError<RawValue>: Swift.Error {
+public enum SQLiteRawConversionError<RawValue: Sendable>: Swift.Error, Sendable
+{
   
   /// The raw value initializers returned `nil` for the given raw value.
   case couldNotConvertRawValue(RawValue)
@@ -518,10 +519,25 @@ extension Array: SQLiteValueType where Element == UInt8 {
 
 extension Date : SQLiteValueType {
   
-  public enum SQLiteDateStorageStyle: Hashable {
+  public enum SQLiteDateStorageStyle: Hashable, Sendable {
     case timeIntervalSince1970
     case formatter(DateFormatter)
   }
+#if swift(>=5.10)
+  /// The style is non-isolated and should only be set once on startup.
+  nonisolated(unsafe)
+  public static var sqlDateStorageStyle =
+                      SQLiteDateStorageStyle.timeIntervalSince1970
+  /// The style is non-isolated and should only be set once on startup.
+  nonisolated(unsafe) 
+  public static var defaultSQLiteDateFormatter : DateFormatter = {
+    // `SELECT datetime();` gives: `2004-08-19 18:51:06` in UTC
+    let df = DateFormatter()
+    df.dateFormat = "yyyy-MM-dd HH:mm:ss"
+    df.locale     = Locale(identifier: "en_US_POSIX")
+    return df
+  }()
+#else
   public static var sqlDateStorageStyle =
                       SQLiteDateStorageStyle.timeIntervalSince1970
   public static var defaultSQLiteDateFormatter : DateFormatter = {
@@ -531,8 +547,9 @@ extension Date : SQLiteValueType {
     df.locale     = Locale(identifier: "en_US_POSIX")
     return df
   }()
+#endif
   
-  public enum SQLiteDateConversionError: Swift.Error {
+  public enum SQLiteDateConversionError: Swift.Error, Sendable {
     case unexpectedNull
     case couldNotParseDateString(String)
   }
@@ -644,7 +661,7 @@ extension Data: SQLiteValueType {
 
 extension URL : SQLiteValueType {
   
-  public struct SQLCouldNotParseURL: Swift.Error {
+  public struct SQLCouldNotParseURL: Swift.Error, Sendable {
     public let string : String
     public init(string: String) { self.string = string }
   }
@@ -682,7 +699,7 @@ extension URL : SQLiteValueType {
 
 extension Decimal : SQLiteValueType {
   
-  public struct SQLCouldNotParseDecimal: Swift.Error {
+  public struct SQLCouldNotParseDecimal: Swift.Error, Sendable {
     public let string : String
     public init(string: String) { self.string = string }
   }
@@ -736,13 +753,19 @@ extension Decimal : SQLiteValueType {
 
 extension UUID : SQLiteValueType {
   
-  public enum SQLiteUUIDStorageStyle: Hashable {
+  public enum SQLiteUUIDStorageStyle: Hashable, Sendable {
     case string
     case blob
   }
+#if swift(>=5.10)
+  /// The style is non-isolated and should only be set once on startup.
+  nonisolated(unsafe)
   public static var sqlUUIDStorageStyle = SQLiteUUIDStorageStyle.blob
+#else
+  public static var sqlUUIDStorageStyle = SQLiteUUIDStorageStyle.blob
+#endif
   
-  public enum SQLCouldNotLoadUUID: Swift.Error {
+  public enum SQLCouldNotLoadUUID: Swift.Error, Sendable {
     case couldNotParseString(String)
     case dataWithInvalidLength(Int)
   }

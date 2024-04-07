@@ -137,7 +137,7 @@ final class NorthwindTests: XCTestCase {
     }()
     // print("GOT:\n-----\n\(source)\n-----")
 
-    XCTAssertTrue(source.contains("public struct ID : Hashable"))
+    XCTAssertTrue(source.contains("public struct ID : Swift.Hashable"))
     XCTAssertTrue(source.contains(
       "public init(_ customerID: String, _ customerTypeID: String)"))
     XCTAssertTrue(source.contains(

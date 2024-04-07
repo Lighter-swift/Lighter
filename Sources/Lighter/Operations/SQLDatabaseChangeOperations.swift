@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3
@@ -44,7 +44,7 @@ public extension SQLDatabaseChangeOperations {
          throws
          where T: SQLDeletableRecord, T.Schema: SQLKeyedTableSchema
   {
-    try delete(from: table) {_ in T.Schema.primaryKeyColumn == id }
+    try delete(from: table) { _ in T.Schema.primaryKeyColumn == id }
   }
 
   /**
@@ -83,7 +83,29 @@ public extension SQLDatabaseChangeOperations {
    *   - table:     A KeyPath to the table to use, e.g. `\.people`.
    *   - predicate: The qualifier selecting the records to delete.
    */
+  @inlinable
   func delete<T, P>(from      table : KeyPath<Self.RecordTypes, T.Type>,
+                    where predicate : ( T.Schema ) -> P) throws
+         where T: SQLDeletableRecord, P: SQLPredicate
+  {
+    try delete(from: T.self, where: predicate)
+  }
+
+  /**
+   * Delete records from a table that match a certain predicate.
+   *
+   * Example:
+   * ```swift
+   * try db.delete(from: \.people) {
+   *   $0.isArchived == 1
+   * }
+   * ```
+   *
+   * - Parameters:
+   *   - table:     A KeyPath to the table to use, e.g. `\.people`.
+   *   - predicate: The qualifier selecting the records to delete.
+   */
+  func delete<T, P>(from      table : T.Type,
                     where predicate : ( T.Schema ) -> P) throws
          where T: SQLDeletableRecord, P: SQLPredicate
   {
@@ -92,6 +114,7 @@ public extension SQLDatabaseChangeOperations {
                            where: predicate(T.schema))
     try execute(builder.sql, builder.bindings, readOnly: false)
   }
+
 }
 
 public extension SQLDatabaseChangeOperations {

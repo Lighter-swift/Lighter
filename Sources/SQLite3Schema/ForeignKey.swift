@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -23,12 +23,12 @@ extension Schema {
    * Note that to enforce foreign key constraints, the setting must be
    * esplicitly enabled on a connection, via `PRAGMA foreignkeys = ON;`.
    */
-  public struct ForeignKey: Hashable, Identifiable {
+  public struct ForeignKey: Hashable, Identifiable, Sendable {
 
     /**
      * The action to take on updates/deletes affecting a constraint.
      */
-    public enum Action: String {
+    public enum Action: String, Sendable {
 
       /// No action is performed, the foreign key might become a "dangling"
       /// pointer.
@@ -54,7 +54,7 @@ extension Schema {
     
     /// The foreign key match strategy.
     /// SQLite can only do `simple`, this has no actual effect (as of today).
-    public enum Match: String {
+    public enum Match: String, Sendable {
       
       case none    = "NONE"
       case simple  = "SIMPLE"
@@ -85,12 +85,14 @@ extension Schema {
     public let match             : Match
     
     /// Initialize a new `ForeignKey` structure.
-    public init(id: Int64, seq: Int64 = 0,
+    public init(id                : Int64,
+                seq               : Int64 = 0,
                 sourceColumn      : String,
                 destinationTable  : String,
                 destinationColumn : String? = nil,
                 updateAction      : Action = .noAction,
-                deleteAction      : Action = .noAction, match: Match = .simple)
+                deleteAction      : Action = .noAction,
+                match             : Match = .simple)
     {
       self.id                = id
       self.seq               = seq

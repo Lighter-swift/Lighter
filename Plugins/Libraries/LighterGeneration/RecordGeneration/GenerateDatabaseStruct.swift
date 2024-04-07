@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -68,7 +68,7 @@ extension EnlighterASTGenerator {
     
     // Schema version
     
-    typeVariables.append(.var(
+    typeVariables.append(.let(
       public: options.public, "userVersion",
       is: .integer(database.userVersion),
       comment: "User version of the database (`PRAGMA user_version`)."
@@ -84,7 +84,7 @@ extension EnlighterASTGenerator {
     
     // Whether SQLite3 supports returning (the user can override!)
   
-    typeVariables.append(.var(
+    typeVariables.append(.let(
       public: options.public, "useInsertReturning",
       is: .cmp(
         .call(name: "sqlite3_libversion_number"),
@@ -104,7 +104,8 @@ extension EnlighterASTGenerator {
       let comment = "The `DateFormatter` used for parsing string date values."
       if options.useLighter {
         typeVariables.append(
-          .var(public: false, "_\(name)", type, comment: comment)
+          .var(nonIsolatedUnsafe: true,
+               public: false, "_\(name)", type, comment: comment)
         )
         computedTypeProperties.append(
           .var(public: options.public, inlinable: false,
@@ -557,7 +558,9 @@ extension EnlighterASTGenerator {
   {
     let firstEntity = database.entities.first ?? .init(name: "NoTypes")
     return Struct(
-      public: options.public, name: api.recordTypeLookupTarget,
+      public: options.public,
+      name: api.recordTypeLookupTarget,
+      conformances: [ .name("Swift.Sendable") ],
       variables: database.entities.map {
         let name = "\($0.name)\(suffix ?? "")"
         return .let(
@@ -600,7 +603,7 @@ extension EnlighterASTGenerator {
     }
   }
 
-  fileprivate static let defaultSQLiteDateFormatterExpression =
+  fileprivate static var defaultSQLiteDateFormatterExpression : Expression {
     Expression.inlineClosureCall([
       .let("formatter", is: .call(name: "DateFormatter")),
       .set(instance: "formatter", "dateFormat",
@@ -610,4 +613,5 @@ extension EnlighterASTGenerator {
                   [ ("identifier", .string("en_US_POSIX"))])),
       .return(.variable("formatter"))
      ])
+  }
 }

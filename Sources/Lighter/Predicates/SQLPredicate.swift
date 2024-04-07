@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -24,7 +24,7 @@
  * person_id = 10
  * ```
  */
-public protocol SQLPredicate {
+public protocol SQLPredicate: Sendable {
   
   /**
    * Append the SQL representing the predicate to the ``SQLBuilder``.

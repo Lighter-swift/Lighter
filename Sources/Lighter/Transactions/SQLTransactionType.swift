@@ -14,7 +14,7 @@
  * immediately fail w/ `SQLITE_BUSY` if the database lock is in use.
  * While an immediate transaction will wait to acquire the lock.
  */
-public enum SQLTransactionType: String {
+public enum SQLTransactionType: String, Sendable {
   
   /// Start a read transaction on the first SELECT and upgrade to a write
   /// transaction on the first modification.
@@ -31,5 +31,6 @@ public enum SQLTransactionType: String {
   /// reads in others.
   case exclusive = "EXCLUSIVE"
   
-  public static let `default` = SQLTransactionType.immediate
+  @inlinable
+  public static var `default` : SQLTransactionType { .immediate }
 }

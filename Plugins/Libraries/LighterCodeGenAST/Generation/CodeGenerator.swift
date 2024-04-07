@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 // Yes, this isn't particularily nice, but does the job. Keep in mind that
@@ -14,10 +14,10 @@
 public final class CodeGenerator {
   
   /// The configuration of the CodeGenerator.
-  public struct Configuration: Equatable {
+  public struct Configuration: Equatable, Sendable {
     
     /// How comments should be rendered.
-    public enum CommentStyle: String {
+    public enum CommentStyle: String, Sendable {
       case dashes = "//", tripleDashes = "///"
       case stars  = "*",  doubleStars  = "**"
       case noComments = ""

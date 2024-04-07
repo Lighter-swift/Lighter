@@ -185,7 +185,7 @@ extension SQLConnectionHandler {
   }
 }
 
-fileprivate final class AppLifecycleHandler: NSObject {
+fileprivate final class AppLifecycleHandler: NSObject, @unchecked Sendable {
   
   private weak var owner : SQLConnectionHandler.SimplePool?
   
@@ -224,7 +224,8 @@ fileprivate final class AppLifecycleHandler: NSObject {
     private static let isAppExtension =
       Bundle.main.bundleURL.pathExtension == "appex"
   
-    private static let fgName : NSNotification.Name = {
+    @MainActor
+    private static var fgName : NSNotification.Name = {
       if !isAppExtension {
         return UIApplication.willEnterForegroundNotification
       }
@@ -234,7 +235,8 @@ fileprivate final class AppLifecycleHandler: NSObject {
         return NSExtensionHostWillEnterForegroundNotification
       #endif
     }()
-    private static let bgName : NSNotification.Name = {
+    @MainActor
+    private static var bgName : NSNotification.Name = {
       if !isAppExtension {
         return UIApplication.didEnterBackgroundNotification
       }

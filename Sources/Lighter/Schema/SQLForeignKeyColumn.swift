@@ -1,13 +1,13 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
  * A ``SQLColumn`` that is a (single) foreign key targetting a different column
  * in another table.
  */
-public protocol SQLForeignKeyColumn: SQLColumn {
+public protocol SQLForeignKeyColumn: SQLColumn, Sendable {
 
   /// The type of the ``SQLColumn`` the foreign key is targetting.
   associatedtype DestinationColumn : SQLColumn
@@ -25,7 +25,9 @@ public protocol SQLForeignKeyColumn: SQLColumn {
  *
  * Checkout the ``SQLForeignKeyColumn`` description for more information.
  */
-public struct MappedForeignKey<T, Value, DestinationColumn>: SQLForeignKeyColumn
+public struct MappedForeignKey<T, Value, DestinationColumn>
+              : SQLForeignKeyColumn,
+                @unchecked Sendable // to workaround `KeyPath` Sendability.
          where T: SQLRecord, Value: SQLiteValueType & Hashable,
                DestinationColumn: SQLColumn
 {
@@ -43,7 +45,8 @@ public struct MappedForeignKey<T, Value, DestinationColumn>: SQLForeignKeyColumn
   @inlinable
   public init(externalName: String, defaultValue: Value,
               keyPath: KeyPath<T, Value>,
-              destinationColumn: @escaping @autoclosure () -> DestinationColumn)
+              destinationColumn:
+                @Sendable @escaping @autoclosure () -> DestinationColumn)
   {
     self.externalName       = externalName
     self.defaultValue       = defaultValue

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -16,7 +16,7 @@
  * Note that SQLite itself (w/o STRICT mode) allows columns to have arbitrary
  * types.
  */
-public protocol SQLColumn: Hashable {
+public protocol SQLColumn: Hashable, Sendable {
   
   /// The ``SQLTableRecord`` or ``SQLViewRecord`` of the column.
   associatedtype T     : SQLRecord
@@ -58,7 +58,8 @@ public protocol SQLColumn: Hashable {
  *
  * Checkout the ``SQLColumn`` description for more information.
  */
-public struct MappedColumn<T, Value>: SQLColumn
+public struct MappedColumn<T, Value>: SQLColumn,
+         @unchecked Sendable // to workaround `KeyPath` Sendability.
          where T: SQLRecord, Value: SQLiteValueType & Hashable
 {
   // the column itself doesn't need to have identity (though it has in SQLite)

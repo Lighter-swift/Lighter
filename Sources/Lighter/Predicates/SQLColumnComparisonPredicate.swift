@@ -20,7 +20,7 @@ public struct SQLColumnComparisonPredicate<L, R>: SQLPredicate
                       L.Value == R.Value
 {
   
-  public enum ComparisonOperator: String {
+  public enum ComparisonOperator: String, Sendable {
     
     /**
      * Check whether the ``SQLColumn`` is the same like the other column

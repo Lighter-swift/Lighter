@@ -1,12 +1,12 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
-public struct SQLInterpolation: StringInterpolationProtocol {
+public struct SQLInterpolation: StringInterpolationProtocol, Sendable {
   
   @usableFromInline
-  enum Fragment {
+  enum Fragment: Sendable {
     // Would be nice to support columns, but those would make the fragment
     // generic and non-hashable?
     case raw      (String)

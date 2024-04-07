@@ -1,13 +1,13 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import Foundation
 
 /// The settings specific to the API usage of the Lighter lib
 /// (embedded or not).
-public struct LighterAPI: Equatable {
+public struct LighterAPI: Equatable, Sendable {
   
   /// `SQLRecord`
   public var recordType               = "SQLRecord"
