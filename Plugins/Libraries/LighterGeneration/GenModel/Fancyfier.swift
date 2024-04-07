@@ -153,7 +153,7 @@ public final class Fancifier {
       "UUID"      : .uuid,
       "url"       : .url,
       "URL"       : .url,
-      "Data"      : .date,
+      "Data"      : .data,
       "DECIMAL"   : .decimal,
       "decimal"   : .decimal,
       "NUMERIC"   : .decimal,
