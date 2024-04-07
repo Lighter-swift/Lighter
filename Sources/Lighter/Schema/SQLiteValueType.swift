@@ -100,7 +100,8 @@ public protocol SQLiteValueType: Sendable {
  * An error happened while converting between SQLite types and a
  * `RawRepresentable`.
  */
-public enum SQLiteRawConversionError<RawValue>: Swift.Error {
+public enum SQLiteRawConversionError<RawValue: Sendable>: Swift.Error, Sendable
+{
   
   /// The raw value initializers returned `nil` for the given raw value.
   case couldNotConvertRawValue(RawValue)
@@ -518,7 +519,7 @@ extension Array: SQLiteValueType where Element == UInt8 {
 
 extension Date : SQLiteValueType {
   
-  public enum SQLiteDateStorageStyle: Hashable {
+  public enum SQLiteDateStorageStyle: Hashable, Sendable {
     case timeIntervalSince1970
     case formatter(DateFormatter)
   }
@@ -532,7 +533,7 @@ extension Date : SQLiteValueType {
     return df
   }()
   
-  public enum SQLiteDateConversionError: Swift.Error {
+  public enum SQLiteDateConversionError: Swift.Error, Sendable {
     case unexpectedNull
     case couldNotParseDateString(String)
   }
@@ -644,7 +645,7 @@ extension Data: SQLiteValueType {
 
 extension URL : SQLiteValueType {
   
-  public struct SQLCouldNotParseURL: Swift.Error {
+  public struct SQLCouldNotParseURL: Swift.Error, Sendable {
     public let string : String
     public init(string: String) { self.string = string }
   }
@@ -682,7 +683,7 @@ extension URL : SQLiteValueType {
 
 extension Decimal : SQLiteValueType {
   
-  public struct SQLCouldNotParseDecimal: Swift.Error {
+  public struct SQLCouldNotParseDecimal: Swift.Error, Sendable {
     public let string : String
     public init(string: String) { self.string = string }
   }
@@ -736,13 +737,13 @@ extension Decimal : SQLiteValueType {
 
 extension UUID : SQLiteValueType {
   
-  public enum SQLiteUUIDStorageStyle: Hashable {
+  public enum SQLiteUUIDStorageStyle: Hashable, Sendable {
     case string
     case blob
   }
   public static var sqlUUIDStorageStyle = SQLiteUUIDStorageStyle.blob
   
-  public enum SQLCouldNotLoadUUID: Swift.Error {
+  public enum SQLCouldNotLoadUUID: Swift.Error, Sendable {
     case couldNotParseString(String)
     case dataWithInvalidLength(Int)
   }

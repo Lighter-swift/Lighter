@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -19,7 +19,7 @@
  * Note that all `SQLRecord`s are always `Hashable`, because all the SQLite base
  * types are `Hashable`.
  */
-public protocol SQLRecord: Hashable {
+public protocol SQLRecord: Hashable, Sendable {
   
   /// The ``SQLEntitySchema`` associated with the record. The schema contains
   /// the static type information for the SQL schema.

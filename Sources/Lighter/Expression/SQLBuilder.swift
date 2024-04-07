@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2023 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 #if canImport(Foundation)
@@ -10,7 +10,7 @@
 /**
  * A helper struct to build SQL queries.
  */
-public struct SQLBuilder<Base: SQLRecord> {
+public struct SQLBuilder<Base: SQLRecord>: Sendable {
   // Called `SQLExpression` in ZeeQL/EOF
   
   @usableFromInline var sql      = ""

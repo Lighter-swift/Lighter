@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 #if canImport(Foundation)
@@ -20,7 +20,7 @@ import struct Foundation.Data
  */
 public struct SQLColumnValuePredicate<C: SQLColumn>: SQLPredicate {
   
-  public enum ComparisonOperator: String {
+  public enum ComparisonOperator: String, Sendable {
     
     /**
      * Check whether the ``SQLColumn`` is the same like the given value.

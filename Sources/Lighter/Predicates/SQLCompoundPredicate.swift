@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -21,7 +21,7 @@ public struct SQLCompoundPredicate<L, R>: SQLPredicate
   /**
    * The operator by which the predicates are joined.
    */
-  public enum Operator: String {
+  public enum Operator: String, Sendable {
     /// Both predicates must be true for the whole predicate to be true.
     case and = "AND"
     /// Either predicate must be true for the whole predicate to be true.
