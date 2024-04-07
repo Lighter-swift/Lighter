@@ -192,7 +192,7 @@ public extension SQLDatabaseAsyncChangeOperations {
    */
   @inlinable
   func delete<S>(_ records: S) async throws
-         where S: Sequence,
+         where S: Sequence & Sendable,
                S.Element: SQLDeletableRecord,
                S.Element.Schema: SQLKeyedTableSchema
   {
@@ -216,7 +216,7 @@ public extension SQLDatabaseAsyncChangeOperations {
    */
   @inlinable
   func update<S>(_ records: S) async throws
-         where S: Sequence,
+         where S: Sequence & Sendable,
                S.Element: SQLUpdatableRecord,
                S.Element.Schema: SQLKeyedTableSchema
   {
@@ -248,7 +248,7 @@ public extension SQLDatabaseAsyncChangeOperations {
   @inlinable
   @discardableResult
   func insert<S>(_ records: S) async throws -> [ S.Element ]
-         where S: Sequence, S.Element: SQLInsertableRecord
+         where S: Sequence & Sendable, S.Element: SQLInsertableRecord
   {
     try await runOnDatabaseQueue { try insert(records) }
   }

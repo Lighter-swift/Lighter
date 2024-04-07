@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 // Same like `SQLRecordFetchOperations`, async/await variant if available.
@@ -22,7 +22,8 @@ public extension SQLRecordFetchOperations
    * - Throws:  Rethrows any errors the block throws.
    */
   @inlinable
-  func runOnDatabaseQueue<R>(block: @escaping () throws -> R) async throws -> R
+  func runOnDatabaseQueue<R>(block: @Sendable @escaping () throws -> R)
+         async throws -> R
   {
     try await operations.runOnDatabaseQueue(block: block)
   }
@@ -89,7 +90,7 @@ public extension SQLRecordFetchOperations
   func fetch<SC, P>(limit           : Int? = nil,
                     orderBy  column : KeyPath<T.Schema, SC>,
                     _     direction : SQLSortOrder = .ascending,
-                    where predicate : @escaping ( T.Schema ) -> P)
+                    where predicate : @Sendable @escaping ( T.Schema ) -> P)
          async throws -> [ T ]
          where SC: SQLColumn, SC.T == T, P: SQLPredicate
   {
@@ -126,7 +127,7 @@ public extension SQLRecordFetchOperations
                           _     direction1 : SQLSortOrder, // can't be optional!
                           _        column2 : KeyPath<T.Schema, SC2>,
                           _     direction2 : SQLSortOrder = .ascending,
-                          where  predicate : @escaping ( T.Schema ) -> P)
+                          where  predicate : @Sendable @escaping (T.Schema)->P)
          async throws -> [ T ]
          where SC1: SQLColumn, SC1.T == T, SC2: SQLColumn, SC2.T == T,
                P: SQLPredicate
@@ -154,7 +155,7 @@ public extension SQLRecordFetchOperations
    */
   @inlinable
   func fetch<P>(limit           : Int? = nil,
-                where predicate : @escaping ( T.Schema ) -> P)
+                where predicate : @Sendable @escaping ( T.Schema ) -> P)
          async throws -> [ T ]
          where P: SQLPredicate
   {
@@ -237,7 +238,7 @@ public extension SQLRecordFetchOperations
    * - Returns: The number of records matching the predicate.
    */
   @inlinable
-  func fetchCount<P>(where predicate: @escaping ( T.Schema ) -> P)
+  func fetchCount<P>(where predicate: @Sendable @escaping ( T.Schema ) -> P)
          async throws -> Int
          where P: SQLPredicate
   {
@@ -275,7 +276,7 @@ public extension SQLRecordFetchOperations
          async throws -> [ FK.Destination : [ T ] ]
          where FK: SQLForeignKeyColumn, FK.T == T,
                FK.Value == FK.DestinationColumn.Value,
-               S: Sequence, S.Element == FK.Destination
+               S: Sequence & Sendable, S.Element == FK.Destination
   {
     try await runOnDatabaseQueue {
       try fetch(for: foreignKey, in: destinationRecords,
