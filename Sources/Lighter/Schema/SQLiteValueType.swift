@@ -5,15 +5,24 @@
 
 import SQLite3
 #if canImport(Foundation)
-import struct Foundation.URL
-import struct Foundation.Date
-import struct Foundation.TimeInterval
-import class  Foundation.DateFormatter
-import struct Foundation.Data
-import struct Foundation.Decimal
-import func   Foundation.NSDecimalString
-import struct Foundation.Locale
-import struct Foundation.UUID
+#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && swift(>=5.10)
+  @preconcurrency import Foundation
+  #if compiler(<6) // seems necessary?
+    extension Decimal : @unchecked Sendable {}
+    extension Locale  : @unchecked Sendable {}
+    extension URL     : @unchecked Sendable {}
+  #endif
+#else
+  import struct Foundation.URL
+  import struct Foundation.Date
+  import struct Foundation.TimeInterval
+  import class  Foundation.DateFormatter
+  import struct Foundation.Data
+  import struct Foundation.Decimal
+  import func   Foundation.NSDecimalString
+  import struct Foundation.Locale
+  import struct Foundation.UUID
+#endif // Darwin
 #endif
 
 /**
@@ -659,8 +668,8 @@ extension Data: SQLiteValueType {
   }
 }
 
-extension URL : SQLiteValueType {
-  
+extension URL : SQLiteValueType {}
+extension URL {
   public struct SQLCouldNotParseURL: Swift.Error, Sendable {
     public let string : String
     public init(string: String) { self.string = string }

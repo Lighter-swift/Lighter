@@ -12,11 +12,15 @@ public protocol SQLCreationStatementsHolder {
   static var creationSQL : String { get }
 }
 
-
 #if canImport(Foundation)
+#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && swift(>=5.10)
+@preconcurrency import Foundation
+#else
 import struct Foundation.URL
 import class  Foundation.FileManager
+#endif
 import SQLite3
+
 
 public extension SQLDatabase {
   

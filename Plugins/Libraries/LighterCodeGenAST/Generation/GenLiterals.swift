@@ -78,12 +78,18 @@ fileprivate func poundsForString(_ string: String, max: Int = 10) -> String? {
   return nil
 }
 
-fileprivate let unsafeSwiftStringLiteralCharacters : CharacterSet = {
-  var safeCharacters = CharacterSet.alphanumerics
-  safeCharacters.formUnion(.whitespaces)
-  safeCharacters.formUnion(.init(charactersIn: "_,;&'@#!$(){}+-*/:."))
-  return safeCharacters.inverted
-}()
+fileprivate struct UnsafeLiteralCharacters: @unchecked Sendable {
+  
+  private let set : CharacterSet = {
+    var safeCharacters = CharacterSet.alphanumerics
+    safeCharacters.formUnion(.whitespaces)
+    safeCharacters.formUnion(.init(charactersIn: "_,;&'@#!$(){}+-*/:."))
+    return safeCharacters.inverted
+  }()
+  
+  func contains(_ c: Unicode.Scalar) -> Bool { return set.contains(c) }
+}
+fileprivate let unsafeSwiftStringLiteralCharacters = UnsafeLiteralCharacters()
 
 extension String {
   
