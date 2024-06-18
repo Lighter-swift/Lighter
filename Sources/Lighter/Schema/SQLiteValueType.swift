@@ -5,9 +5,10 @@
 
 import SQLite3
 #if canImport(Foundation)
-#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && swift(>=5.10)
+#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && swift(>=5.9)
   @preconcurrency import Foundation
   #if compiler(<6) // seems necessary?
+    extension Date    : @unchecked Sendable {}
     extension Decimal : @unchecked Sendable {}
     extension Locale  : @unchecked Sendable {}
     extension URL     : @unchecked Sendable {}

@@ -1,11 +1,16 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import SQLite3
 import SQLite3Schema
-import Foundation
+#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && swift(>=5.9)
+@preconcurrency import Foundation
+#else
+import class  Foundation.FileManager
+import struct Foundation.URL
+#endif
 
 /**
  * A helper class that can load schemas from SQLite database *and* a set of
