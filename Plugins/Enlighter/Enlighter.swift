@@ -92,10 +92,12 @@ struct Enlighter: BuildToolPlugin {
     
     let debugFH = fopen("/tmp/zzdebug.log", "a")
     assert(debugFH != nil)
-    fputs(msg, debugFH)
-    fflush(debugFH)
-    fclose(debugFH)
-    #endif
+    if let debugFH = debugFH {
+      fputs(msg, debugFH)
+      fflush(debugFH)
+      fclose(debugFH)
+    }
+    #endif // DEBUG || true
   }
 
   fileprivate func dbExtensions(in rootJSON: [ String : Any ], target: String)
