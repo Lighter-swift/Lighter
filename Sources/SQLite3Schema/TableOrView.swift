@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS)
@@ -189,3 +189,8 @@ extension Schema.View: CustomStringConvertible {
     return ms
   }
 }
+
+#if swift(>=5.5)
+extension Schema.Table : Sendable {}
+extension Schema.View  : Sendable {}
+#endif

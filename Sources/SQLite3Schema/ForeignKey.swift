@@ -23,12 +23,12 @@ extension Schema {
    * Note that to enforce foreign key constraints, the setting must be
    * esplicitly enabled on a connection, via `PRAGMA foreignkeys = ON;`.
    */
-  public struct ForeignKey: Hashable, Identifiable, Sendable {
+  public struct ForeignKey: Hashable, Identifiable {
 
     /**
      * The action to take on updates/deletes affecting a constraint.
      */
-    public enum Action: String, Sendable {
+    public enum Action: String {
 
       /// No action is performed, the foreign key might become a "dangling"
       /// pointer.
@@ -54,7 +54,7 @@ extension Schema {
     
     /// The foreign key match strategy.
     /// SQLite can only do `simple`, this has no actual effect (as of today).
-    public enum Match: String, Sendable {
+    public enum Match: String {
       
       case none    = "NONE"
       case simple  = "SIMPLE"
@@ -283,3 +283,9 @@ fileprivate extension Schema.ForeignKey.Match {
     else { self = .simple }
   }
 }
+
+#if swift(>=5.5)
+extension Schema.ForeignKey        : Sendable {}
+extension Schema.ForeignKey.Action : Sendable {}
+extension Schema.ForeignKey.Match  : Sendable {}
+#endif

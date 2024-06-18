@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -176,3 +176,7 @@ extension Schema: CustomStringConvertible {
     return ms
   }
 }
+
+#if swift(>=5.5)
+extension Schema: Sendable {}
+#endif

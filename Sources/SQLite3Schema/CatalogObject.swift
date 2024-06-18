@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension Schema {
@@ -203,3 +203,8 @@ fileprivate extension Schema.CatalogObject {
     assert(!sql.isEmpty || name.hasPrefix("sqlite_autoindex_"), "SQL not set?")
   }
 }
+
+#if swift(>=5.5)
+extension Schema.CatalogObjectType : Sendable {}
+extension Schema.CatalogObject     : Sendable {}
+#endif

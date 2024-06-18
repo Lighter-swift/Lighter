@@ -58,7 +58,7 @@ extension Schema {
    * To learn more about type affinity:
    * https://www.sqlite.org/datatype3.html#type_affinity
    */
-  public enum TypeAffinity: String, Hashable, Sendable {
+  public enum TypeAffinity: String, Hashable {
     
     case text    = "TEXT"
     case numeric = "NUMERIC" // either INTEGER or REAL
@@ -78,7 +78,7 @@ extension Schema {
    * For example `VARCHAR(255)` is not a SQLite type, but SQLite detects it
    * properly and assigns it ``TypeAffinity/text``.
    */
-  public enum ColumnType: Hashable, RawRepresentable, Sendable {
+  public enum ColumnType: Hashable, RawRepresentable {
     
     // strict types
     case integer // this is really the exact `INTEGER`, not .int
@@ -221,3 +221,9 @@ extension Schema.ColumnType {
     }
   }
 }
+
+#if swift(>=5.5)
+extension Schema.StrictType   : Sendable {}
+extension Schema.TypeAffinity : Sendable {}
+extension Schema.ColumnType   : Sendable {}
+#endif
