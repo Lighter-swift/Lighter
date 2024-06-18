@@ -6,13 +6,13 @@
 /**
  * An AST node for a Swift statement.
  */
-public enum Statement: Equatable, Sendable {
+public enum Statement: Equatable {
   
   /**
    * A pair for an `if`, `else if` statement, consisting of a condition and the
    * associated ``Statement``s.
    */
-  public struct ConditionStatementPair: Equatable, Sendable {
+  public struct ConditionStatementPair: Equatable {
     
     /// The condition that must be true to have the ``statements`` executed.
     public var condition  : Expression
@@ -173,3 +173,8 @@ public extension Statement {
           parameters: parameters.map { ( nil, $0 ) })
   }
 }
+
+#if swift(>=5.5)
+extension Statement                        : Sendable {}
+extension Statement.ConditionStatementPair : Sendable {}
+#endif

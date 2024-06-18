@@ -7,7 +7,7 @@ public extension FunctionDeclaration {
   
   /// A parameter, like `from table: KeyPath<Self.RecordTypes, T.Type>`
   /// Or: `limit: Int? = nil`
-  struct Parameter: Equatable, Sendable {
+  struct Parameter: Equatable {
     
     /// The "label" of the parameter, e.g. the `from` in `select(from table:)`.
     /// Can be `nil` for a wildcard (`_`).
@@ -92,3 +92,7 @@ public extension FunctionDeclaration.Parameter {
     )
   }
 }
+
+#if swift(>=5.5)
+extension FunctionDeclaration.Parameter: Sendable {}
+#endif

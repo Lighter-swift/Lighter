@@ -19,7 +19,7 @@
  * where C1: SQLColumn, C2: SQLColumn, T == C1.T, T == C2.T
  * ```
  */
-public struct FunctionDeclaration: Equatable, Sendable {
+public struct FunctionDeclaration: Equatable {
   
   /// Is the function public?
   public let `public`              : Bool
@@ -95,3 +95,7 @@ public extension FunctionDeclaration {
               returnType: .void, genericConstraints: [])
   }
 }
+
+#if swift(>=5.5)
+extension FunctionDeclaration: Sendable {}
+#endif

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -86,3 +86,7 @@ public extension ComputedPropertyDefinition {
           comment: comment, inlinable: inlinable)
   }
 }
+
+#if swift(>=5.5)
+extension ComputedPropertyDefinition : Sendable {}
+#endif

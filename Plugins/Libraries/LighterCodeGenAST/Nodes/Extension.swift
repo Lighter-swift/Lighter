@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -60,3 +60,7 @@ public struct Extension {
     functions.isEmpty && structures.isEmpty && typeFunctions.isEmpty
   }
 }
+
+#if swift(>=5.5)
+extension Extension: Sendable {}
+#endif

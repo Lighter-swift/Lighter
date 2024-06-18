@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2023 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /// A comment on top of e.g. a class or struct.
@@ -47,3 +47,8 @@ public struct TypeComment: Equatable {
     self.sql      = sql
   }
 }
+
+#if swift(>=5.5)
+extension TypeComment         : Sendable {}
+extension TypeComment.Example : Sendable {}
+#endif

@@ -6,7 +6,7 @@
 /**
  * An AST node for various Swift expressions.
  */
-public indirect enum Expression: Equatable, Sendable {
+public indirect enum Expression: Equatable {
   
   /// The operators for ``compare(lhs:operator:rhs:)`` expressions.
   public enum Operator: String, Sendable {
@@ -280,3 +280,7 @@ public extension Expression {
     .conditional(condition: condition, true: `true`, false: `false`)
   }
 }
+
+#if swift(>=5.5)
+extension Expression : Sendable {}
+#endif

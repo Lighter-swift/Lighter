@@ -8,10 +8,10 @@
  *
  * Has all the function specific things, like parameters and such.
  */
-public struct FunctionComment: Equatable, Sendable {
+public struct FunctionComment: Equatable {
   
   /// A comment for a function parameter.
-  public struct Parameter: Equatable, Sendable {
+  public struct Parameter: Equatable {
     
     /// The name of the function parameter being documented.
     public var name : String
@@ -53,3 +53,8 @@ public struct FunctionComment: Equatable, Sendable {
     self.returnInfo = returnInfo
   }
 }
+
+#if swift(>=5.5)
+extension FunctionComment           : Sendable {}
+extension FunctionComment.Parameter : Sendable {}
+#endif

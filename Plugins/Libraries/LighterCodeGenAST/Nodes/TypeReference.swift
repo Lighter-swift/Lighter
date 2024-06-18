@@ -6,7 +6,7 @@
 /**
  * A reference to some type, e.g. `Void` or `Person` or `Int`.
  */
-public indirect enum TypeReference: Equatable, Sendable {
+public indirect enum TypeReference: Equatable {
   
   /// `Void`
   case void
@@ -76,3 +76,7 @@ public extension TypeReference {
   /// A Foundation `UUID`.
   static var uuid        : TypeReference { .name("UUID")     }
 }
+
+#if swift(>=5.5)
+extension TypeReference : Sendable {}
+#endif
