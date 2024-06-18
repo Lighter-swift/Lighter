@@ -27,14 +27,32 @@ var package = Package(
   ],
   
   targets: [
+    .systemLibrary(name: "SQLite3",
+                   path: "Sources/SQLite3-Linux",
+                   providers: [ .apt(["libsqlite3-dev"]) ]),
+    
     // A small library used to fetch schema information from SQLite3 databases.
-    .target(name: "SQLite3Schema", exclude: [ "README.md" ]),
+    .target(name: "SQLite3Schema",
+            dependencies: [
+              .target(name: "SQLite3",
+                      condition: .when(platforms: [
+                        .linux, .android, .windows, .openbsd
+                      ])),
+            ],
+            exclude: [ "README.md" ]),
     
     // Lighter is a shared lib providing common protocols used by Enlighter
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter", swiftSettings: settings),
+    .target(name: "Lighter", 
+            dependencies: [
+              .target(name: "SQLite3",
+                      condition: .when(platforms: [
+                        .linux, .android, .windows, .openbsd
+                      ])),
+            ],
+            swiftSettings: settings),
 
 
     // MARK: - Plugin Support
@@ -124,18 +142,3 @@ var package = Package(
                 dependencies: [ "LighterGeneration" ])
   ]
 )
-
-#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
-package.products += [ .library(name: "SQLite3", targets: [ "SQLite3" ]) ]
-package.targets += [
-  .systemLibrary(name: "SQLite3",
-                 path: "Sources/SQLite3-Linux",
-                 providers: [ .apt(["libsqlite3-dev"]) ])
-]
-package.targets
-  .first(where: { $0.name == "SQLite3Schema" })?
-  .dependencies.append("SQLite3")
-package.targets
-  .first(where: { $0.name == "Lighter" })?
-  .dependencies.append("SQLite3")
-#endif // not-Darwin
