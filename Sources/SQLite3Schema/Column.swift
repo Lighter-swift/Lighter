@@ -10,7 +10,7 @@ extension Schema {
    *
    * The information as-is returned by `PRAGMA table_info($table)`.
    */
-  public struct Column: Hashable, Identifiable, Sendable {
+  public struct Column: Hashable, Identifiable {
 
     /**
      * An enum that represents a default value set for a SQLite column.
@@ -18,7 +18,7 @@ extension Schema {
      * Can be `null`, an `integer`, a `real`, a `text` or a `blob` (the
      * possible types returned by `sqlite3_column_type`).
      */
-    public enum DefaultValue: Hashable, Sendable {
+    public enum DefaultValue: Hashable {
       
       case null
       
@@ -297,3 +297,8 @@ fileprivate extension Schema.Column.DefaultValue {
     }
   }
 }
+
+#if swift(>=5.5)
+extension Schema.Column              : Sendable {}
+extension Schema.Column.DefaultValue : Sendable {}
+#endif

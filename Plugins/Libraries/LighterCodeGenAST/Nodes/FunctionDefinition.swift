@@ -9,7 +9,7 @@
  *
  * Plus extra annotations like ``inlinable`` and the ``comment``.
  */
-public struct FunctionDefinition: Equatable, Sendable {
+public struct FunctionDefinition: Equatable {
   
   /// Whether the definition is `@inlinable` (included in the module header).
   public var inlinable    : Bool
@@ -54,3 +54,7 @@ public extension FunctionDefinition {
     self.init(declaration: declaration, statements: statements)
   }
 }
+
+#if swift(>=5.5)
+extension FunctionDefinition: Sendable {}
+#endif

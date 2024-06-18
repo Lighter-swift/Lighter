@@ -17,7 +17,7 @@ extension SQLConnectionHandler {
    * It is only applicable if operations are executed in a strictly serial
    * manner.
    */
-  public final class UnsafeReuse: SQLConnectionHandler {
+  public final class UnsafeReuse: SQLConnectionHandler, @unchecked Sendable {
     
     public private(set) var handle            : OpaquePointer?
     public private(set) var openConfiguration : Configuration?

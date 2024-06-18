@@ -8,7 +8,7 @@
  *
  * E.g. as used in default values like: `limit: Int? = nil` (the `nil`).
  */
-public enum Literal: Equatable, Sendable {
+public enum Literal: Equatable {
 
   /// `nil`
   case `nil`
@@ -29,3 +29,7 @@ public enum Literal: Equatable, Sendable {
   /// A literal array, like `[ 1973, 1, 31 ]`
   case integerArray([ Int ])
 }
+
+#if swift(>=5.5)
+extension Literal: Sendable {}
+#endif

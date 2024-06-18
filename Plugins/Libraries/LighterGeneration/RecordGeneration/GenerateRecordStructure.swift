@@ -3,11 +3,12 @@
 //  Copyright © 2022 ZeeZide GmbH.
 //
 
-import Foundation
 import LighterCodeGenAST
 
 extension EnlighterASTGenerator {
-  
+
+  typealias Expression = LighterCodeGenAST.Expression
+
   func ivar(_ name: String) -> Expression {
     .variableReference(instance: options.qualifiedSelf ? "self" : nil,
                        name: name)

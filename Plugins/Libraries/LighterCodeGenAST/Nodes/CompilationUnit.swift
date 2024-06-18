@@ -53,3 +53,7 @@ public extension CompilationUnit {
     extensions.append(ext)
   }
 }
+
+#if swift(>=5.5)
+extension CompilationUnit: Sendable {}
+#endif

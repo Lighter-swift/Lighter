@@ -284,10 +284,9 @@ We like feedback, GitHub stars, cool contract work,
 presumably any form of praise you can think of.
 
 **Want to support my work**?
-Buy an app:
+Buy an [app](https://zeezide.de/en/products/products.html):
 [Code for SQLite3](https://apps.apple.com/us/app/code-for-sqlite3/id1638111010/),
 [Past for iChat](https://apps.apple.com/us/app/past-for-ichat/id1554897185),
 [SVG Shaper](https://apps.apple.com/us/app/svg-shaper-for-swiftui/id1566140414),
-[Shrugs](https://shrugs.app/),
 [HMScriptEditor](https://apps.apple.com/us/app/hmscripteditor/id1483239744).
 You don't have to use it! 😀

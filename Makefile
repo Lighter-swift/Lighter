@@ -9,7 +9,9 @@ CONFIGURATION=debug
 DOCKER=/usr/local/bin/docker
 
 # docker config (5.6.1 seems the first w/ aarch64)
-SWIFT_BUILD_IMAGE="swift:5.6.2-focal"
+#SWIFT_BUILD_IMAGE="swift:5.6.2-focal"
+#SWIFT_BUILD_IMAGE=swift:5.9.0-focal
+SWIFT_BUILD_IMAGE=swift:5.10.1-noble
 DOCKER_BUILD_DIR=".docker$(SWIFT_BUILD_DIR)"
 SWIFT_DOCKER_BUILD_DIR="$(DOCKER_BUILD_DIR)/aarch64-unknown-linux/$(CONFIGURATION)"
 DOCKER_BUILD_PRODUCT="$(DOCKER_BUILD_DIR)/$(TOOL_NAME)"

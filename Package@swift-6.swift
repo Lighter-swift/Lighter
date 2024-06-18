@@ -1,19 +1,11 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 
 import PackageDescription
-
-#if swift(>=5.10)
-let settings = [ SwiftSetting.enableExperimentalFeature("StrictConcurrency") ]
-#else
-let settings = [ SwiftSetting ]()
-#endif
 
 var package = Package(
   name: "Lighter",
 
-  platforms: [ 
-    .macOS(.v10_15), .iOS(.v13), .visionOS(.v1), .watchOS(.v7), .tvOS(.v12)
-  ],
+  platforms: [ .macOS(.v10_15), .iOS(.v13) ],
   
   products: [
     .library(name: "Lighter",         targets: [ "Lighter"       ]),
@@ -27,32 +19,14 @@ var package = Package(
   ],
   
   targets: [
-    .systemLibrary(name: "SQLite3",
-                   path: "Sources/SQLite3-Linux",
-                   providers: [ .apt(["libsqlite3-dev"]) ]),
-    
     // A small library used to fetch schema information from SQLite3 databases.
-    .target(name: "SQLite3Schema",
-            dependencies: [
-              .target(name: "SQLite3",
-                      condition: .when(platforms: [
-                        .linux, .android, .windows, .openbsd
-                      ])),
-            ],
-            exclude: [ "README.md" ]),
+    .target(name: "SQLite3Schema", exclude: [ "README.md" ]),
     
     // Lighter is a shared lib providing common protocols used by Enlighter
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter", 
-            dependencies: [
-              .target(name: "SQLite3",
-                      condition: .when(platforms: [
-                        .linux, .android, .windows, .openbsd
-                      ])),
-            ],
-            swiftSettings: settings),
+    .target(name: "Lighter"),
 
 
     // MARK: - Plugin Support
@@ -61,15 +35,14 @@ var package = Package(
     // Swift source code.
     .target(name    : "LighterCodeGenAST",
             path    : "Plugins/Libraries/LighterCodeGenAST",
-            exclude : [ "README.md" ], swiftSettings: settings),
+            exclude : [ "README.md" ]),
     
     // This library contains all the code generation, to be used by different
     // clients.
     .target(name         : "LighterGeneration",
             dependencies : [ "LighterCodeGenAST", "SQLite3Schema" ],
             path         : "Plugins/Libraries/LighterGeneration",
-            exclude      : [ "README.md", "LighterConfiguration/README.md" ],
-            swiftSettings: settings),
+            exclude      : [ "README.md", "LighterConfiguration/README.md" ]),
 
     
     // MARK: - Tests
@@ -140,5 +113,7 @@ var package = Package(
                 dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "NorthwindTests",
                 dependencies: [ "LighterGeneration" ])
-  ]
+  ],
+  
+  swiftLanguageVersions: [ .v5, .v6 ]
 )

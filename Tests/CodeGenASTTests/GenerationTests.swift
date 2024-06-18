@@ -4,10 +4,11 @@
 //
 
 import XCTest
-import Foundation
 @testable import LighterCodeGenAST
 
 final class GenerationTests: XCTestCase {
+  
+  typealias Expression = LighterCodeGenAST.Expression
   
   func testExtensionWithTypeConstraint() {
     /*

@@ -7,7 +7,7 @@
  * A generic constraint attached to a ``FunctionDeclaration`` generic parameter
  * or an ``Extension``.
  */
-public enum GenericConstraint: Equatable, Sendable {
+public enum GenericConstraint: Equatable {
   
   /// `C1: SQLColumn`
   case conformance(name: String, type: TypeReference)
@@ -34,3 +34,7 @@ public extension GenericConstraint {
            type: .qualifiedType(baseName: typeNameBase, name: typeName))
   }
 }
+
+#if swift(>=5.5)
+extension GenericConstraint: Sendable {}
+#endif

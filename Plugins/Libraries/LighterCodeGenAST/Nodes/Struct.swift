@@ -174,3 +174,7 @@ public extension Struct.InstanceVariable {
           comment: comment)
   }
 }
+
+#if swift(>=5.5)
+extension Struct : Sendable {}
+#endif
