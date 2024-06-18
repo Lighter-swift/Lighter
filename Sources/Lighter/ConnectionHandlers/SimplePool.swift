@@ -22,7 +22,7 @@ extension SQLConnectionHandler {
   /**
    * A simple connection pool that can free pooled connections after a timeout.
    */
-  public final class SimplePool: SQLConnectionHandler {
+  public final class SimplePool: SQLConnectionHandler, @unchecked Sendable {
 
     /// The maximum age of a pooled connection (after that it will be closed).
     public let maxAge              : TimeInterval
