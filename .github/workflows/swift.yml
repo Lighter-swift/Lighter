@@ -39,6 +39,8 @@ jobs:
           xcode-version: latest
       - name: Checkout Repository
         uses: actions/checkout@v2
+      - name: Log Swift Version
+        run: swift --version
       - name: Install Override Package.swift
         run: cp .github/_support/Package.swift .github/_support/Package\@swift-5.swift .
       - name: Build Swift Debug Package
