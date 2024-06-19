@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import PackagePlugin
@@ -10,6 +10,9 @@ import PackagePlugin
 // in SPM is also a protocol.
 
 import XcodeProjectPlugin
+#if compiler(>=6) && canImport(Foundation)
+import Foundation
+#endif
 
 extension XcodePluginContext {
 
@@ -27,6 +30,31 @@ extension XcodeTarget {
   
   var name : String { product?.name ?? displayName }
   
+  #if compiler(>=6) && canImport(Foundation)
+  var directoryURL : URL {
+    // heuristics, in Xcode the input files can come from anywhere
+    var directories = [ URL ]()
+    for file in inputFiles {
+      let dir = file.url.deletingLastPathComponent()
+      if !directories.contains(dir) {
+        directories.append(dir)
+      }
+    }
+    if directories.isEmpty {
+      assertionFailure("Target has no input files!")
+      return URL(fileURLWithPath: "/tmp/")
+    }
+
+    if directories.count == 1, let sole = directories.first { return sole }
+
+    if let matching = directories.first(where: { $0.lastPathComponent == name })
+    {
+      return matching
+    }
+    // give up and use first :-)
+    return directories[0]
+  }
+  #else
   var directory : Path {
     // heuristics, in Xcode the input files can come from anywhere
     var directories = [ Path ]()
@@ -50,6 +78,7 @@ extension XcodeTarget {
     // give up and use first :-)
     return directories[0]
   }
+  #endif
 }
 
 #endif // canImport(XcodeProjectPlugin)

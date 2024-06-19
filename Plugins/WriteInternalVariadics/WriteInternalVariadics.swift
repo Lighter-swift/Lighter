@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import PackagePlugin
@@ -41,6 +41,19 @@ struct WriteInternalVariadics: CommandPlugin {
   {
     // Lookup Configuration (init is per-target)
 
+    #if compiler(>=6)
+    let configURL = context.package.directoryURL
+                       .appending(component: "Ligher.json")
+    guard FileManager.default.isReadableFile(atPath: configURL.path) else {
+      throw WriteInternalVariadicsError
+              .couldNotFindConfigurationFile(configURL.path)
+    }
+    
+    let operationsFolder = target.directoryURL
+          .appending(component: "Operations", directoryHint: .isDirectory)
+    let outputFile = "GeneratedVariadicOperations.swift"
+    let outputURL = operationsFolder.appending(component: outputFile)
+    #else
     let configPath = context.package.directory
                        .appending(subpath: "Lighter.json")
     guard FileManager.default.isReadableFile(atPath: configPath.string) else {
@@ -52,10 +65,11 @@ struct WriteInternalVariadics: CommandPlugin {
           .directory.appending(subpath: "Operations")
     let outputFile = "GeneratedVariadicOperations.swift"
     let outputPath = operationsFolder.appending(subpath: outputFile)
-
     let configURL  = URL(fileURLWithPath: configPath.string)
-    let targetName = target.name
     let outputURL  = URL(fileURLWithPath: outputPath.string)
+    #endif
+
+    let targetName = target.name
 
     #if DEBUG || true
     let debugFH = fopen("/tmp/zzdebug.log", "w")
@@ -70,7 +84,11 @@ struct WriteInternalVariadics: CommandPlugin {
     let tool = try context.tool(named: "GenerateInternalVariadics")
     
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: tool.path.string)
+    #if compiler(>=6) && canImport(Foundation)
+      process.executableURL = tool.url
+    #else
+      process.executableURL = URL(fileURLWithPath: tool.path.string)
+    #endif
     process.arguments = [ configURL.path, targetName, outputURL.path ]
     
     try process.run()
