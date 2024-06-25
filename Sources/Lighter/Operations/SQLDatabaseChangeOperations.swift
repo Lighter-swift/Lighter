@@ -270,6 +270,7 @@ extension SQLDatabaseChangeOperations { // MARK: - Update
     
     for record in records {
       try bindUpdateAndExecute(record, using: statement, in: db)
+      sqlite3_reset(statement)
     }
   }
 
@@ -383,6 +384,8 @@ extension SQLDatabaseChangeOperations { // MARK: - Insert
         in: db
       )
       results.append(result)
+      sqlite3_reset(statement)
+      sqlite3_reset(fetchStatement)
     }
     return results
   }
