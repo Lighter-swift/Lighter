@@ -224,10 +224,10 @@ public extension SQLDatabaseAsyncChangeOperations {
    *   - records: The records to update.
    */
   @inlinable
-  func update<S>(_ records: S) async throws
-         where S: Sequence & Sendable,
-               S.Element: SQLUpdatableRecord,
-               S.Element.Schema: SQLKeyedTableSchema
+  func update<C>(_ records: C) async throws
+         where C: Collection & Sendable,
+               C.Element: SQLUpdatableRecord,
+               C.Element.Schema: SQLKeyedTableSchema
   {
     try await runOnDatabaseQueue { try update(records) }
   }
@@ -256,8 +256,8 @@ public extension SQLDatabaseAsyncChangeOperations {
    */
   @inlinable
   @discardableResult
-  func insert<S>(_ records: S) async throws -> [ S.Element ]
-         where S: Sequence & Sendable, S.Element: SQLInsertableRecord
+  func insert<C>(_ records: C) async throws -> [ C.Element ]
+    where C: Collection & Sendable, C.Element: SQLInsertableRecord
   {
     try await runOnDatabaseQueue { try insert(records) }
   }

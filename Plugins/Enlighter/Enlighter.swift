@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import PackagePlugin
@@ -129,9 +129,14 @@ struct Enlighter: BuildToolPlugin {
   fileprivate func locateConfigFile(in context: PackagePlugin.PluginContext)
                    -> URL?
   {
-    let configPath = context.package.directory
-                       .appending(subpath: configFileName)
-    let url = URL(fileURLWithPath: configPath.string)
+    #if compiler(>=6) && canImport(Foundation)
+      let url = context.package.directoryURL
+        .appending(component: configFileName, directoryHint: .notDirectory)
+    #else
+      let configPath = context.package.directory
+                         .appending(subpath: configFileName)
+      let url = URL(fileURLWithPath: configPath.string)
+    #endif
     let fm = FileManager.default
     guard fm.fileExists(atPath: url.path) else { return nil }
     return url
@@ -150,6 +155,22 @@ struct Enlighter: BuildToolPlugin {
     return dict
   }
   
+  #if compiler(>=6) && canImport(Foundation)
+  private func collectResources(in target: SwiftSourceModuleTarget,
+                                extensions: Set<String>)
+               -> Set<URL>
+  {
+    var result = Set<URL>()
+    for ext in extensions {
+      for file in target.sourceFiles(withSuffix: "." + ext)
+            where file.type == .resource
+      {
+        result.insert(file.url)
+      }
+    }
+    return result
+  }
+  #else
   private func collectResources(in target: SwiftSourceModuleTarget,
                                 extensions: Set<String>)
                -> Set<String>
@@ -164,6 +185,7 @@ struct Enlighter: BuildToolPlugin {
     }
     return result
   }
+  #endif
     
   private func generate(context       : PackagePlugin.PluginContext,
                         target        : SwiftSourceModuleTarget,
@@ -171,6 +193,19 @@ struct Enlighter: BuildToolPlugin {
                         sqlite2swift  : PluginContext.Tool) throws
                -> [ Command ]
   {
+    #if compiler(>=6) && canImport(Foundation)
+    let groups = try EnlighterGroup.load(
+      from: target.directoryURL,
+      resourcesPaths:
+        collectResources(in: target, extensions: configuration.extensions),
+      configuration: configuration
+    )
+    guard !groups.isEmpty else {
+      print("Could not find matching files in", target.directoryURL.path())
+      debugLog("Could not find matching files in", target.directoryURL.path())
+      return []
+    }
+    #else
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
       resourcesPaths:
@@ -182,6 +217,7 @@ struct Enlighter: BuildToolPlugin {
       debugLog("Could not find matching files in", target.directory)
       return []
     }
+    #endif
 
     if configuration.verbose {
       print("Generating \(groups.count) databases for:", target.name)
@@ -191,11 +227,19 @@ struct Enlighter: BuildToolPlugin {
     var buildCommands = [ Command ]()
 
     for group in groups {
-      let outputPath = configuration.outputFile.flatMap {
-        context.pluginWorkDirectory.appending(subpath: $0)
-      } ?? context.pluginWorkDirectory.appending(subpath: group.stem + ".swift")
-      
-      let outputURL = URL(fileURLWithPath: outputPath.string)
+      #if compiler(>=6) && canImport(Foundation)
+        let outputURL = configuration.outputFile.flatMap {
+          context.pluginWorkDirectoryURL.appending(component: $0)
+        } ?? context.pluginWorkDirectoryURL
+                    .appending(component: group.stem + ".swift")
+      #else
+          let outputPath = configuration.outputFile.flatMap {
+            context.pluginWorkDirectory.appending(subpath: $0)
+          } ?? context.pluginWorkDirectory
+                      .appending(subpath: group.stem + ".swift")
+          
+          let outputURL = URL(fileURLWithPath: outputPath.string)
+      #endif
 
       // sqlite2swift.path
       // configuration.configURL
@@ -215,6 +259,39 @@ struct Enlighter: BuildToolPlugin {
         return args
       }()
       
+      #if compiler(>=6) && canImport(Foundation)
+      let inputFiles : [ URL ] = {
+        var inputFiles = group.matches.map { URL(fileURLWithPath: $0.path) }
+        if let configURL = configuration.configURL {
+          inputFiles.append(configURL)
+        }
+        return inputFiles
+      }()
+      let outputFiles : [ URL ] = {
+        // Generate Lighter amalgamation if not in dependencies.
+        // Generate Lighter variadics if not in dependencies.
+        let linksLighter =
+              target.doesRecursivelyDependOnTarget(named: "Lighter")
+        if verbose {
+          if linksLighter { debugLog("Is linking Lighter.")  }
+          else            { debugLog("Not linking Lighter!") }
+        }
+        return [ outputURL ]
+      }()
+
+      if configuration.verbose {
+        debugLog("  Adding sqlite2swift for:", group.stem)
+        debugLog("    \(sqlite2swift.url.path())")
+        debugLog("    Args:", args)
+      }
+      buildCommands.append(.buildCommand(
+        displayName : "Enlighten \(group.stem) database in \(target.name)",
+        executable  : sqlite2swift.url,
+        arguments   : args,
+        inputFiles  : inputFiles,
+        outputFiles : outputFiles
+      ))
+      #else
       let inputFiles : [ Path ] = {
         var inputFiles = group.matches.map { Path($0.path) }
         if let configURL = configuration.configURL {
@@ -246,6 +323,7 @@ struct Enlighter: BuildToolPlugin {
         inputFiles  : inputFiles,
         outputFiles : outputFiles
       ))
+      #endif
     }
     debugLog("Finished target:", target.name,
              "#\(buildCommands.count) commands.")
@@ -307,27 +385,49 @@ extension Enlighter: XcodeBuildToolPlugin {
   
   
   fileprivate func locateConfigFile(in context: XcodePluginContext) -> URL? {
-    let configPath = context.package.directory
-      .appending(subpath: configFileName)
-    let url = URL(fileURLWithPath: configPath.string)
+    #if false && compiler(>=6) && canImport(Foundation) // TODO: 16 Beta 2?
+      let dirURL = URL(filePath: context.package.directory.string)
+      let url = dirURL.appending(component: configFileName,
+                                 directoryHint: .notDirectory)
+    #else
+      let configPath = context.package.directory
+        .appending(subpath: configFileName)
+      let url = URL(fileURLWithPath: configPath.string)
+    #endif
     let fm = FileManager.default
     guard fm.fileExists(atPath: url.path) else { return nil }
     return url
   }
   
+  #if compiler(>=6) && canImport(Foundation)
+  fileprivate func collectResources(in target: XcodeTarget,
+                                    extensions: Set<String>) -> Set<URL>
+  {
+    var result = Set<URL>()
+    for ext in extensions {
+      for file in target.inputFiles
+        where file.type == .resource && file.url.pathExtension == ext
+      {
+        result.insert(file.url)
+      }
+    }
+    return result
+  }
+  #else
   fileprivate func collectResources(in target: XcodeTarget,
                                     extensions: Set<String>) -> Set<String>
   {
     var result = Set<String>()
     for ext in extensions {
       for file in target.inputFiles
-      where file.type == .resource && file.path.extension == ext
+        where file.type == .resource && file.path.extension == ext
       {
         result.insert(file.path.string)
       }
     }
     return result
   }
+  #endif
   
   private func generate(context       : XcodeProjectPlugin.XcodePluginContext,
                         target        : XcodeProjectPlugin.XcodeTarget,
@@ -335,6 +435,19 @@ extension Enlighter: XcodeBuildToolPlugin {
                         sqlite2swift  : PluginContext.Tool) throws
                -> [ Command ]
   {
+    #if compiler(>=6) && canImport(Foundation)
+    let groups = try EnlighterGroup.load(
+      from: target.directoryURL,
+      resourcesPaths:
+        collectResources(in: target, extensions: configuration.extensions),
+      configuration: configuration
+    )
+    guard !groups.isEmpty else {
+      print("Could not find matching files in", target.directoryURL.path())
+      debugLog("Could not find matching files in", target.directoryURL.path())
+      return []
+    }
+    #else
     let groups = try EnlighterGroup.load(
       from: URL(fileURLWithPath: target.directory.string),
       resourcesPaths:
@@ -346,6 +459,7 @@ extension Enlighter: XcodeBuildToolPlugin {
       debugLog("Could not find matching files in", target.directory)
       return []
     }
+    #endif
 
     if configuration.verbose {
       print("Generating \(groups.count) databases for:", target.name)
@@ -355,11 +469,19 @@ extension Enlighter: XcodeBuildToolPlugin {
     var buildCommands = [ Command ]()
 
     for group in groups {
-      let outputPath = configuration.outputFile.flatMap {
-        context.pluginWorkDirectory.appending(subpath: $0)
-      } ?? context.pluginWorkDirectory.appending(subpath: group.stem + ".swift")
-      
-      let outputURL = URL(fileURLWithPath: outputPath.string)
+      #if false && compiler(>=6) && canImport(Foundation)
+        let outputURL = configuration.outputFile.flatMap {
+          context.pluginWorkDirectoryURL.appending(component: $0)
+        } ?? context.pluginWorkDirectoryURL
+                    .appending(component: group.stem + ".swift")
+      #else
+        let outputPath = configuration.outputFile.flatMap {
+          context.pluginWorkDirectory.appending(subpath: $0)
+        } ?? context.pluginWorkDirectory
+                    .appending(subpath: group.stem + ".swift")
+        
+        let outputURL = URL(fileURLWithPath: outputPath.string)
+      #endif
 
       // sqlite2swift.path
       // configuration.configURL
@@ -379,6 +501,61 @@ extension Enlighter: XcodeBuildToolPlugin {
         return args
       }()
       
+      #if compiler(>=6) && canImport(Foundation)
+      let inputFiles : [ URL ] = {
+        var inputFiles = group.matches.map { URL(fileURLWithPath: $0.path) }
+        if let configURL = configuration.configURL {
+          inputFiles.append(configURL)
+        }
+        return inputFiles
+      }()
+      let outputFiles : [ URL ] = {
+        // Generate Lighter amalgamation if not in dependencies.
+        // Generate Lighter variadics if not in dependencies.
+        let linksLighter =
+              target.doesRecursivelyDependOnTarget(named: "Lighter")
+        if verbose {
+          if linksLighter { debugLog("Is linking Lighter.")  }
+          else            { debugLog("Not linking Lighter!") }
+        }
+        return [ outputURL ]
+      }()
+
+      if configuration.verbose {
+        print("  Adding sqlite2swift for:", group.stem)
+        print("    \(sqlite2swift.url.path())")
+        print("    Args:", args)
+      }
+      buildCommands.append(.buildCommand(
+        displayName : "Enlighten \(group.stem) database in \(target.name)",
+        executable  : sqlite2swift.url,
+        arguments   : args,
+        inputFiles  : inputFiles,
+        outputFiles : outputFiles
+      ))
+      
+      // So, in Xcode, if a resource is handled by Enlighter, Xcode itself
+      // doesn't copy the resource anymore. Likely a bug.
+      // So what we do is copy them ourselves into the plugin dir. They then
+      // get bundled properly.
+      let inResourceURLs  = groups.map({ $0.resourceURLs }).reduce([], +)
+      try inResourceURLs.forEach { ( inputResource : URL ) in
+        let outResourceFile = context.pluginWorkDirectory // TODO: Xcode16b2?
+          .appending(inputResource.lastPathComponent)
+        let outResourceURL = URL(fileURLWithPath: outResourceFile.string)
+
+        buildCommands.append(.buildCommand(
+          displayName : "Copy \(group.stem) resource "
+                    + "\(inputResource.lastPathComponent) into \(target.name)",
+          executable  : try context.tool(named: "cp").url,
+          arguments   : [ "-a", 
+                          inputResource .path(percentEncoded: false),
+                          outResourceURL.path(percentEncoded: false) ],
+          inputFiles  : [ inputResource  ],
+          outputFiles : [ outResourceURL ]
+        ))
+      }
+      #else
       let inputFiles : [ Path ] = {
         var inputFiles = group.matches.map { Path($0.path) }
         if let configURL = configuration.configURL {
@@ -430,6 +607,7 @@ extension Enlighter: XcodeBuildToolPlugin {
           outputFiles : [ outResourceFile ]
         ))
       }
+      #endif
     }
     debugLog("Finished Xcode target:", target.name,
              "#\(buildCommands.count) commands.")

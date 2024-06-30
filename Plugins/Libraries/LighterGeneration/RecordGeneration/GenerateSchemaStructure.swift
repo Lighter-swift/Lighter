@@ -125,7 +125,14 @@ extension EnlighterASTGenerator {
     {
       func cleanup(_ sql: String) -> String {
         var trimmed = sql.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !trimmed.hasSuffix(";") { trimmed += ";" }
+        if !trimmed.hasSuffix(";") {
+          // The thing can end w/ a comment!
+          //            AND LighterGrade.gradeRaw = 0 -- physics;
+          if let dash = trimmed.lastIndex(of: "-"),
+             let nl   = trimmed.lastIndex(of: "\n"),
+             dash > nl { trimmed += "\n;" }
+          else { trimmed += ";" }
+        }
         return trimmed
       }
       
@@ -152,7 +159,7 @@ extension EnlighterASTGenerator {
       if !entity.triggersSQL.isEmpty {
         typeVariables.append(.let(
           "createTrigger",
-          is: .string(entity.triggersSQL.map(cleanup).joined()),
+          is: .string(entity.triggersSQL.map(cleanup).joined(separator: "\n")),
           comment:
             "The SQL used to create the triggers for `\(entity.externalName)`."
         ))

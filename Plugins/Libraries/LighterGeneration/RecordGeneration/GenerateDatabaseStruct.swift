@@ -84,7 +84,7 @@ extension EnlighterASTGenerator {
     
     // Whether SQLite3 supports returning (the user can override!)
   
-    typeVariables.append(.let(
+    typeVariables.append(.var(
       public: options.public, "useInsertReturning",
       is: .cmp(
         .call(name: "sqlite3_libversion_number"),

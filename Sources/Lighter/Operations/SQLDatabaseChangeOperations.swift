@@ -218,22 +218,85 @@ extension SQLDatabaseChangeOperations {
         .deleteFailed(record: record), ok, sqlite3_errmsg(db))
     }
   }
+}
 
+extension SQLDatabaseChangeOperations { // MARK: - Update
+  
+  /**
+   * Update a record in the given database.
+   *
+   * - Parameters:
+   *   - record: A `SQLUpdatableRecord`.
+   *   - db:     A SQLite database handle.
+   */
   @usableFromInline
   func update<T>(_ record: T, in db: OpaquePointer) throws
          where T: SQLUpdatableRecord, T.Schema: SQLKeyedTableSchema
   {
     // UPDATE table SET values WHERE pkey
-    var statement : OpaquePointer?
-    let ok = sqlite3_prepare_v2(db, T.Schema.update, -1, &statement, nil)
-    defer { sqlite3_finalize(statement) }
-    
-    guard ok == SQLITE_OK else {
-      assert(ok == SQLITE_OK)
+    // ^^^ this really needs a primary key, i.e. doesn't work on views.
+    let ( mStatement, ok ) = prepareUpdate(T.self, in: db)
+    guard let statement = mStatement else {
       throw LighterError(
         .updateFailed(record: record), ok, sqlite3_errmsg(db))
     }
+    defer { sqlite3_finalize(statement) }
+    try bindUpdateAndExecute(record, using: statement, in: db)
+  }
+  
+  /**
+   * Update a set of uniform records in the given database.
+   * This reuses the same prepared statement for all records.
+   *
+   * - Parameters:
+   *   - records: A collection of `SQLUpdatableRecord`s.
+   *   - db:      A SQLite database handle.
+   */
+  @usableFromInline
+  func update<C>(_ records: C, in db: OpaquePointer) throws
+         where C: Collection,
+               C.Element: SQLUpdatableRecord,
+               C.Element.Schema: SQLKeyedTableSchema
+  {
+    // UPDATE table SET values WHERE pkey
+    typealias T = C.Element
+    guard !records.isEmpty else { return }
+    let ( mStatement, ok ) = prepareUpdate(T.self, in: db)
+    guard let statement = mStatement else {
+      throw LighterError( // Hmmm
+        .updateFailed(record: records.first!), ok, sqlite3_errmsg(db))
+    }
+    defer { sqlite3_finalize(statement) }
     
+    for record in records {
+      try bindUpdateAndExecute(record, using: statement, in: db)
+      sqlite3_reset(statement)
+    }
+  }
+
+  private func prepareUpdate<T>(_ recordType: T.Type,
+                                in db: OpaquePointer)
+               -> ( OpaquePointer?, Int32 )
+    where T: SQLUpdatableRecord, T.Schema: SQLKeyedTableSchema
+  {
+    // UPDATE table SET values WHERE pkey
+    // ^^^ this really needs a primary key, i.e. doesn't work on views.
+    var statement : OpaquePointer?
+    let ok = sqlite3_prepare_v2(db, T.Schema.update, -1, &statement, nil)
+    
+    guard ok == SQLITE_OK else {
+      assert(ok == SQLITE_OK)
+      sqlite3_finalize(statement)
+      return ( nil, ok )
+    }
+    return ( statement, ok )
+  }
+  
+  private func bindUpdateAndExecute<T>(_ record: T,
+                                       using statement: OpaquePointer,
+                                       in db: OpaquePointer) throws
+    where T: SQLUpdatableRecord, T.Schema: SQLKeyedTableSchema
+  {
     let rok = record.bind(to: statement,
                           indices: T.Schema.updateParameterIndices)
     {
@@ -241,16 +304,96 @@ extension SQLDatabaseChangeOperations {
     }
     assert(rok == SQLITE_DONE)
     
-    // We allow 'row' results, not really and error, we just don't use them
+    // We allow 'row' results, not really an error, we just don't use them
     if rok != SQLITE_ROW && rok != SQLITE_DONE {
       throw LighterError(
-        .updateFailed(record: record), ok, sqlite3_errmsg(db))
+        .updateFailed(record: record), SQLITE_OK, sqlite3_errmsg(db))
     }
   }
+}
 
+extension SQLDatabaseChangeOperations { // MARK: - Insert
+
+  /**
+   * Insert a record into the given database.
+   *
+   * - Parameters:
+   *   - record: A `SQLInsertableRecord`.
+   *   - db:     A SQLite database handle.
+   * - Returns:  The value of the records that got inserted.
+   */
   @usableFromInline
   func insert<T>(_ record: T, into db: OpaquePointer) throws -> T
-         where T: SQLInsertableRecord
+    where T: SQLInsertableRecord
+  {
+    // "INSERT INTO table ( names ) WHERE ( ?, ?, ? ) RETURNING *"
+    // RETURNING requires SQLite3 3.35.0+ (2021-03-12)
+    let ( mStatement, fetchStatement, ok ) = prepareInsert(T.self, in: db)
+    guard ok == SQLITE_OK, let statement = mStatement else {
+      assert(ok == SQLITE_OK)
+      throw LighterError(
+        .insertFailed(record: record), ok, sqlite3_errmsg(db))
+    }
+    defer {
+      sqlite3_finalize(statement)
+      sqlite3_finalize(fetchStatement)
+    }
+
+    return try bindInsertAndExecute(
+      record,
+      using: statement, fetch: fetchStatement,
+      in: db
+    )
+  }
+  
+  /**
+   * Insert a set of uniform records into the given database.
+   * This reuses the same prepared statement for all records.
+   *
+   * - Parameters:
+   *   - records: A collection of `SQLInsertableRecord`s.
+   *   - db:      A SQLite database handle.
+   * - Returns:   The values of the records that got inserted.
+   */
+  @usableFromInline
+  func insert<C>(_ records: C, into db: OpaquePointer) throws -> [ C.Element ]
+    where C: Collection, C.Element: SQLInsertableRecord
+  {
+    // "INSERT INTO table ( names ) WHERE ( ?, ?, ? ) RETURNING *"
+    // RETURNING requires SQLite3 3.35.0+ (2021-03-12)
+    typealias T = C.Element
+    guard !records.isEmpty else { return [] }
+    
+    let ( mStatement, fetchStatement, ok ) = prepareInsert(T.self, in: db)
+    guard ok == SQLITE_OK, let statement = mStatement else {
+      assert(ok == SQLITE_OK)
+      throw LighterError(
+        .insertFailed(record: records.first!), ok, sqlite3_errmsg(db))
+    }
+    defer {
+      sqlite3_finalize(statement)
+      sqlite3_finalize(fetchStatement)
+    }
+
+    var results = [ C.Element ]()
+    results.reserveCapacity(records.count)
+    for record in records {
+      let result = try bindInsertAndExecute(
+        record,
+        using: statement, fetch: fetchStatement,
+        in: db
+      )
+      results.append(result)
+      sqlite3_reset(statement)
+      sqlite3_reset(fetchStatement)
+    }
+    return results
+  }
+
+  private func prepareInsert<T>(_ recordType: T.Type,
+                                in db: OpaquePointer)
+               -> ( OpaquePointer?, OpaquePointer?, Int32 )
+    where T: SQLInsertableRecord
   {
     // "INSERT INTO table ( names ) WHERE ( ?, ?, ? ) RETURNING *"
     // RETURNING requires SQLite3 3.35.0+ (2021-03-12)
@@ -259,13 +402,36 @@ extension SQLDatabaseChangeOperations {
     
     var statement : OpaquePointer?
     let ok = sqlite3_prepare_v2(db, sql, -1, &statement, nil)
-    defer { sqlite3_finalize(statement) }
-    
+
     guard ok == SQLITE_OK else {
       assert(ok == SQLITE_OK)
-      throw LighterError(
-        .insertFailed(record: record), ok, sqlite3_errmsg(db))
+      sqlite3_finalize(statement)
+      return ( nil, nil, ok )
     }
+    
+    var fetchStatement : OpaquePointer?
+    if !supportsReturning {
+      // Provide an own "RETURNING" implementation...
+      let sql = T.Schema.select + " WHERE ROWID = last_insert_rowid();"
+      let ok = sqlite3_prepare_v2(db, sql, -1, &fetchStatement, nil)
+      guard ok == SQLITE_OK else {
+        assert(ok == SQLITE_OK)
+        sqlite3_finalize(statement)
+        sqlite3_finalize(fetchStatement)
+        return ( nil, nil, ok )
+      }
+    }
+    
+    return ( statement, fetchStatement, ok )
+  }
+  
+  private func bindInsertAndExecute<T>(_ record: T,
+                                       using statement: OpaquePointer,
+                                       fetch fetchStatement: OpaquePointer?,
+                                       in db: OpaquePointer) throws -> T
+    where T: SQLInsertableRecord
+  {
+    let supportsReturning = fetchStatement == nil
     
     let rok = record.bind(to: statement,
                           indices: T.Schema.insertParameterIndices)
@@ -281,18 +447,8 @@ extension SQLDatabaseChangeOperations {
         assertionFailure("Expected new record to be returned")
         return record
       }
-        
-      // Provide an own "RETURNING" implementation...
-      let sql = T.Schema.select + " WHERE ROWID = last_insert_rowid();"
-      var statement : OpaquePointer?
-      let ok = sqlite3_prepare_v2(db, sql, -1, &statement, nil)
-      defer { sqlite3_finalize(statement) }
-      guard ok == SQLITE_OK else {
-        assert(ok == SQLITE_OK)
-        throw LighterError(
-          .insertFailed(record: record), ok, sqlite3_errmsg(db))
-      }
-      let rok = sqlite3_step(statement)
+
+      let rok = sqlite3_step(fetchStatement)
       if rok == SQLITE_ROW {
         return T(statement, indices: T.Schema.selectColumnIndices)
       }
@@ -306,7 +462,7 @@ extension SQLDatabaseChangeOperations {
     }
     else {
       throw LighterError(
-        .insertFailed(record: record), ok, sqlite3_errmsg(db))
+        .insertFailed(record: record), rok, sqlite3_errmsg(db))
     }
   }
 }
@@ -355,13 +511,14 @@ public extension SQLDatabaseChangeOperations {
    *   - records: The records to update.
    */
   @inlinable
-  func update<S>(_ records: S) throws
-         where S: Sequence,
-               S.Element: SQLUpdatableRecord,
-               S.Element.Schema: SQLKeyedTableSchema
+  func update<C>(_ records: C) throws
+         where C: Collection,
+               C.Element: SQLUpdatableRecord,
+               C.Element.Schema: SQLKeyedTableSchema
   {
+    guard !records.isEmpty else { return }
     try connectionHandler.withConnection(readOnly: false) { db in
-      try records.forEach { try update($0, in: db) }
+      try update(records, in: db)
     }
   }
 
@@ -389,13 +546,14 @@ public extension SQLDatabaseChangeOperations {
    */
   @inlinable
   @discardableResult
-  func insert<S>(_ records: S) throws -> [ S.Element ]
-         where S: Sequence, S.Element: SQLInsertableRecord
+  func insert<C>(_ records: C) throws -> [ C.Element ]
+         where C: Collection, C.Element: SQLInsertableRecord
   {
     // There could be an `any T` variant, but that would make the return value
     // less convenient on the consuming side.
+    guard !records.isEmpty else { return [] }
     return try connectionHandler.withConnection(readOnly: false) { db in
-      return try records.map { try insert($0, into: db) }
+      return try insert(records, into: db)
     }
   }
 }
@@ -439,12 +597,12 @@ public extension SQLDatabaseChangeOperations where Self: SQLDatabase {
    *   - records: The records to update.
    */
   @inlinable
-  func update<S>(_ records: S) throws
-         where S: Sequence,
-               S.Element: SQLUpdatableRecord,
-               S.Element.Schema: SQLKeyedTableSchema
+  func update<C>(_ records: C) throws
+         where C: Collection,
+               C.Element: SQLUpdatableRecord,
+               C.Element.Schema: SQLKeyedTableSchema
   {
-    try transaction(mode: .immediate) { try $0.update(records) }
+    try transaction(mode: .immediate) { tx in try tx.update(records) }
   }
 
   /**
@@ -471,9 +629,9 @@ public extension SQLDatabaseChangeOperations where Self: SQLDatabase {
    */
   @inlinable
   @discardableResult
-  func insert<S>(_ records: S) throws -> [ S.Element ]
-         where S: Sequence, S.Element: SQLInsertableRecord
+  func insert<C>(_ records: C) throws -> [ C.Element ]
+         where C: Collection, C.Element: SQLInsertableRecord
   {
-    try transaction(mode: .immediate) { try $0.insert(records) }
+    try transaction(mode: .immediate) { tx in try tx.insert(records) }
   }
 }

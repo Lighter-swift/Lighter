@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import PackagePlugin
@@ -149,9 +149,13 @@ struct GenerateCodeForSQLite: CommandPlugin {
   fileprivate func locateConfigFile(in context: PackagePlugin.PluginContext)
                    -> URL?
   {
+    #if compiler(>=6) && canImport(Foundation)
+    let url = context.package.directoryURL.appending(component: configFileName)
+    #else
     let configPath = context.package.directory
                        .appending(subpath: configFileName)
     let url = URL(fileURLWithPath: configPath.string)
+    #endif
     let fm = FileManager.default
     guard fm.fileExists(atPath: url.path) else { return nil }
     return url
@@ -170,6 +174,22 @@ struct GenerateCodeForSQLite: CommandPlugin {
     return dict
   }
   
+  #if compiler(>=6) && canImport(Foundation)
+  private func collectResources(in target: SwiftSourceModuleTarget,
+                                extensions: Set<String>)
+               -> Set<URL>
+  {
+    var result = Set<URL>()
+    for ext in extensions {
+      for file in target.sourceFiles(withSuffix: "." + ext)
+            where file.type == .resource
+      {
+        result.insert(file.url)
+      }
+    }
+    return result
+  }
+  #else
   private func collectResources(in target: SwiftSourceModuleTarget,
                                 extensions: Set<String>)
                -> Set<String>
@@ -184,18 +204,28 @@ struct GenerateCodeForSQLite: CommandPlugin {
     }
     return result
   }
+  #endif
   
   private func generate(context       : PackagePlugin.PluginContext,
                         target        : SwiftSourceModuleTarget,
                         configuration : EnlighterTargetConfig,
                         sqlite2swift  : PluginContext.Tool) throws
   {
-    let groups = try EnlighterGroup.load(
-      from: URL(fileURLWithPath: target.directory.string),
-      resourcesPaths:
-        collectResources(in: target, extensions: configuration.extensions),
-      configuration: configuration
-    )
+    #if compiler(>=6) && canImport(Foundation)
+      let groups = try EnlighterGroup.load(
+        from: target.directoryURL,
+        resourcesPaths:
+          collectResources(in: target, extensions: configuration.extensions),
+        configuration: configuration
+      )
+    #else
+      let groups = try EnlighterGroup.load(
+        from: URL(fileURLWithPath: target.directory.string),
+        resourcesPaths:
+          collectResources(in: target, extensions: configuration.extensions),
+        configuration: configuration
+      )
+    #endif
     guard !groups.isEmpty else {
       if configuration.verbose {
         print("Target contains not matching files:", target.name)
@@ -210,11 +240,17 @@ struct GenerateCodeForSQLite: CommandPlugin {
       
 
     for group in groups {
-      let outputPath = configuration.outputFile.flatMap {
-        target.directory.appending(subpath: $0)
-      } ?? target.directory.appending(subpath: group.stem + ".swift")
-      
-      let outputURL = URL(fileURLWithPath: outputPath.string)
+      #if compiler(>=6) && canImport(Foundation)
+        let outputURL = configuration.outputFile.flatMap {
+          target.directoryURL.appending(component: $0)
+        } ?? target.directoryURL.appending(component: group.stem + ".swift")
+      #else
+        let outputPath = configuration.outputFile.flatMap {
+          target.directory.appending(subpath: $0)
+        } ?? target.directory.appending(subpath: group.stem + ".swift")
+        
+        let outputURL = URL(fileURLWithPath: outputPath.string)
+      #endif
 
       let args : [ String ] = {
         var args = [ String ]()
@@ -233,12 +269,20 @@ struct GenerateCodeForSQLite: CommandPlugin {
       }()
 
       let process = Process()
-      process.executableURL = URL(fileURLWithPath: sqlite2swift.path.string)
+      #if compiler(>=6) && canImport(Foundation)
+        process.executableURL = sqlite2swift.url
+      #else
+        process.executableURL = URL(fileURLWithPath: sqlite2swift.path.string)
+      #endif
       process.arguments = args
       
       if configuration.verbose {
         print("  Starting sqlite2swift for:", group.stem)
-        print("    \(sqlite2swift.path.string)")
+        #if compiler(>=6) && canImport(Foundation)
+          print("    \(sqlite2swift.url.path())")
+        #else
+          print("    \(sqlite2swift.path.string)")
+        #endif
         print("    Args:", args)
       }
       try process.run()
@@ -326,14 +370,35 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
   }
   
   fileprivate func locateConfigFile(in context: XcodePluginContext) -> URL? {
-    let configPath = context.package.directory
-      .appending(subpath: configFileName)
-    let url = URL(fileURLWithPath: configPath.string)
+    #if false && compiler(>=6) && canImport(Foundation) // TODO: 16 Beta 2?
+      let url = context.package.directoryURL
+        .appending(component: configFileName)
+    #else
+      let configPath = context.package.directory
+        .appending(subpath: configFileName)
+      let url = URL(fileURLWithPath: configPath.string)
+    #endif
     let fm = FileManager.default
     guard fm.fileExists(atPath: url.path) else { return nil }
     return url
   }
 
+  #if compiler(>=6) && canImport(Foundation)
+  fileprivate func collectResources(in target: XcodeTarget,
+                                    extensions: Set<String>)
+               -> Set<URL>
+  {
+    var result = Set<URL>()
+    for ext in extensions {
+      for file in target.inputFiles
+        where file.type == .resource && file.url.pathExtension == ext
+      {
+        result.insert(file.url)
+      }
+    }
+    return result
+  }
+  #else
   fileprivate func collectResources(in target: XcodeTarget,
                                     extensions: Set<String>)
                -> Set<String>
@@ -348,18 +413,28 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
     }
     return result
   }
+  #endif
 
   private func generate(context       : XcodePluginContext,
                         target        : XcodeTarget,
                         configuration : EnlighterTargetConfig,
                         sqlite2swift  : PluginContext.Tool) throws
   {
-    let groups = try EnlighterGroup.load(
-      from: URL(fileURLWithPath: target.directory.string),
-      resourcesPaths:
-        collectResources(in: target, extensions: configuration.extensions),
-      configuration: configuration
-    )
+    #if compiler(>=6) && canImport(Foundation)
+      let groups = try EnlighterGroup.load(
+        from: target.directoryURL,
+        resourcesPaths:
+          collectResources(in: target, extensions: configuration.extensions),
+        configuration: configuration
+      )
+    #else
+      let groups = try EnlighterGroup.load(
+        from: URL(fileURLWithPath: target.directory.string),
+        resourcesPaths:
+          collectResources(in: target, extensions: configuration.extensions),
+        configuration: configuration
+      )
+    #endif
     guard !groups.isEmpty else {
       if configuration.verbose {
         print("Target contains not matching files:", target.name)
@@ -373,11 +448,17 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
     debugLog("Generate target:", target.name, "#groups=\(groups.count)", groups)
       
     for group in groups {
-      let outputPath = configuration.outputFile.flatMap {
-        target.directory.appending(subpath: $0)
-      } ?? target.directory.appending(subpath: group.stem + ".swift")
-      
-      let outputURL = URL(fileURLWithPath: outputPath.string)
+      #if compiler(>=6) && canImport(Foundation)
+        let outputURL = configuration.outputFile.flatMap {
+          target.directoryURL.appending(component: $0)
+        } ?? target.directoryURL.appending(component: group.stem + ".swift")
+      #else
+        let outputPath = configuration.outputFile.flatMap {
+          target.directory.appending(subpath: $0)
+        } ?? target.directory.appending(subpath: group.stem + ".swift")
+        
+        let outputURL = URL(fileURLWithPath: outputPath.string)
+      #endif
 
       let args : [ String ] = {
         var args = [ String ]()
@@ -396,12 +477,20 @@ extension GenerateCodeForSQLite: XcodeCommandPlugin {
       }()
 
       let process = Process()
-      process.executableURL = URL(fileURLWithPath: sqlite2swift.path.string)
+      #if compiler(>=6) && canImport(Foundation)
+        process.executableURL = sqlite2swift.url
+      #else
+        process.executableURL = URL(fileURLWithPath: sqlite2swift.path.string)
+      #endif
       process.arguments = args
       
       if configuration.verbose {
         print("  Starting sqlite2swift for:", group.stem)
-        print("    \(sqlite2swift.path.string)")
+        #if compiler(>=6) && canImport(Foundation)
+          print("    \(sqlite2swift.url.path())")
+        #else
+          print("    \(sqlite2swift.path.string)")
+        #endif
         print("    Args:", args)
       }
       try process.run()

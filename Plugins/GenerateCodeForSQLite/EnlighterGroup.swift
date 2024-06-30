@@ -40,9 +40,53 @@ struct EnlighterGroup: CustomStringConvertible {
     return nil
   }
 
-  static func load(from    baseURL : URL,
+  #if compiler(>=6) && canImport(Foundation)
+  static func load(from   baseURL : URL,
+                   resourcesPaths : Set<URL>,
+                   configuration  : EnlighterTargetConfig)
+                throws -> [ EnlighterGroup ]
+  {
+    var groups = [ String : EnlighterGroup ]()
+    
+    let fm = FileManager.default
+    let e  = fm.enumerator(atPath: baseURL.path) // TODO: convert to URL based
+    while let path = e?.nextObject() as? String {
+      guard let idx = path.lastIndex(of: ".")      else { continue } // no ext
+      let ext = String(path[path.index(after: idx)...])
+      guard configuration.extensions.contains(ext) else { continue } // diff
+      guard !path.contains("NoSQL")                else { continue } // NoSQL
+      
+      let url = baseURL.appendingPathComponent(path)
+      var isDir : ObjCBool = false
+      guard fm.fileExists(atPath: url.path, isDirectory: &isDir),
+            !isDir.boolValue else { continue }
+    
+      let stem = stemForPath(path)
+      
+      if configuration.verbose {
+        print("   Found candidate for enlightment:", url.path)
+      }
+      if groups[stem]?.matches.append(url) == nil {
+        groups[stem] = EnlighterGroup(stem: stem, matches: [ url ])
+      }
+      
+      if resourcesPaths.contains(url) {
+        groups[stem]?.resourceURLs.append(url)
+      }
+    }
+
+    var array = groups.values.filter { !$0.matches.isEmpty }
+
+    for idx in array.indices {
+      array[idx].matches.sort(by: compareGroupURLs)
+    }
+    
+    return array
+  }
+  #else
+  static func load(from   baseURL : URL,
                    resourcesPaths : Set<String>,
-                   configuration   : EnlighterTargetConfig)
+                   configuration  : EnlighterTargetConfig)
                 throws -> [ EnlighterGroup ]
   {
     var groups = [ String : EnlighterGroup ]()
@@ -82,6 +126,7 @@ struct EnlighterGroup: CustomStringConvertible {
     
     return array
   }
+  #endif
   
   // We also break at `-`
   private static let stemChars : Set<Character> = [ "-", "." ]
