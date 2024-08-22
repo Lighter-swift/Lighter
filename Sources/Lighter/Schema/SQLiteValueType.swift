@@ -14,15 +14,7 @@ import SQLite3
     extension URL     : @unchecked Sendable {}
   #endif
 #else
-  import struct Foundation.URL
-  import struct Foundation.Date
-  import struct Foundation.TimeInterval
-  import class  Foundation.DateFormatter
-  import struct Foundation.Data
-  import struct Foundation.Decimal
-  import func   Foundation.NSDecimalString
-  import struct Foundation.Locale
-  import struct Foundation.UUID
+  import Foundation
 #endif // Darwin
 #endif
 

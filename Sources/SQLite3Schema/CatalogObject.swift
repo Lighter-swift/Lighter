@@ -2,6 +2,9 @@
 //  Created by Helge Heß.
 //  Copyright © 2022-2024 ZeeZide GmbH.
 //
+#if (os(macOS) || os(iOS) || os(tvOS) || os(watchOS)) && swift(>=5.6)
+import Darwin
+#endif
 
 public extension Schema {
 

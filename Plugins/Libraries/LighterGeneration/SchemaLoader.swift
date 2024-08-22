@@ -8,8 +8,7 @@ import SQLite3Schema
 #if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS)) && swift(>=5.9)
 @preconcurrency import Foundation
 #else
-import class  Foundation.FileManager
-import struct Foundation.URL
+import Foundation
 #endif
 
 /**
