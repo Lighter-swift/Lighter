@@ -699,6 +699,13 @@ extension URL {
   }
 }
 
+#if compiler(<6) // Unavailable due to a swiftc crasher in 16b6
+  //SILFunction type mismatch for 'NSDecimalString':
+  // '$@convention(c) (UnsafePointer<Decimal>, Optional<AnyObject>)
+  // -> @autoreleased Optional<NSString>'
+  // !=
+  // '$@convention(c) (UnsafePointer<Decimal>, Optional<AnyObject>)
+  // -> @autoreleased NSString'
 extension Decimal : SQLiteValueType {
   
   public struct SQLCouldNotParseDecimal: Swift.Error, Sendable {
@@ -752,6 +759,7 @@ extension Decimal : SQLiteValueType {
       .bind(unsafeSQLite3StatementHandle: stmt, index: index, then: execute)
   }
 }
+#endif // compiler(<6) // Unavailable due to a swiftc crasher in 16b6
 
 extension UUID : SQLiteValueType {
   
@@ -847,4 +855,5 @@ extension UUID : SQLiteValueType {
     }
   }
 }
+
 #endif // canImport(Foundation)
