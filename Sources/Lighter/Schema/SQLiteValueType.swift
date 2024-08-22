@@ -14,15 +14,7 @@ import SQLite3
     extension URL     : @unchecked Sendable {}
   #endif
 #else
-  import struct Foundation.URL
-  import struct Foundation.Date
-  import struct Foundation.TimeInterval
-  import class  Foundation.DateFormatter
-  import struct Foundation.Data
-  import struct Foundation.Decimal
-  import func   Foundation.NSDecimalString
-  import struct Foundation.Locale
-  import struct Foundation.UUID
+  import Foundation
 #endif // Darwin
 #endif
 
@@ -707,6 +699,13 @@ extension URL {
   }
 }
 
+#if compiler(<6) // Unavailable due to a swiftc crasher in 16b6
+  //SILFunction type mismatch for 'NSDecimalString':
+  // '$@convention(c) (UnsafePointer<Decimal>, Optional<AnyObject>)
+  // -> @autoreleased Optional<NSString>'
+  // !=
+  // '$@convention(c) (UnsafePointer<Decimal>, Optional<AnyObject>)
+  // -> @autoreleased NSString'
 extension Decimal : SQLiteValueType {
   
   public struct SQLCouldNotParseDecimal: Swift.Error, Sendable {
@@ -760,6 +759,7 @@ extension Decimal : SQLiteValueType {
       .bind(unsafeSQLite3StatementHandle: stmt, index: index, then: execute)
   }
 }
+#endif // compiler(<6) // Unavailable due to a swiftc crasher in 16b6
 
 extension UUID : SQLiteValueType {
   
@@ -855,4 +855,5 @@ extension UUID : SQLiteValueType {
     }
   }
 }
+
 #endif // canImport(Foundation)
