@@ -13,7 +13,7 @@ jobs:
         image:
           - swift:5.9.2-focal
           - swift:5.10-jammy
-          - swift:5.10.1-noble
+          - swift:6.0-noble
     container: ${{ matrix.image }}
     steps:
       - name: Install SQLite
@@ -21,7 +21,7 @@ jobs:
           apt-get -qq update
           apt-get -y -qq install libsqlite3-dev
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Install Override Package.swift
         run: cp .github/_support/Package.swift .github/_support/Package\@swift-5.swift .
       - name: Build Swift Debug Package
@@ -38,7 +38,7 @@ jobs:
         with:
           xcode-version: latest
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
       - name: Log Swift Version
         run: swift --version
       - name: Install Override Package.swift
