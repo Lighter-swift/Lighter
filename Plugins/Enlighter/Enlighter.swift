@@ -383,10 +383,9 @@ extension Enlighter: XcodeBuildToolPlugin {
     }
   }
   
-  
   fileprivate func locateConfigFile(in context: XcodePluginContext) -> URL? {
-    #if false && compiler(>=6) && canImport(Foundation) // TODO: 16 Beta 2?
-      let dirURL = URL(filePath: context.package.directory.string)
+    #if compiler(>=6) && canImport(Foundation) // TODO: 16 Beta 2?
+      let dirURL = context.package.directoryURL
       let url = dirURL.appending(component: configFileName,
                                  directoryHint: .notDirectory)
     #else
@@ -469,7 +468,7 @@ extension Enlighter: XcodeBuildToolPlugin {
     var buildCommands = [ Command ]()
 
     for group in groups {
-      #if false && compiler(>=6) && canImport(Foundation)
+      #if compiler(>=6) && canImport(Foundation)
         let outputURL = configuration.outputFile.flatMap {
           context.pluginWorkDirectoryURL.appending(component: $0)
         } ?? context.pluginWorkDirectoryURL
@@ -540,9 +539,14 @@ extension Enlighter: XcodeBuildToolPlugin {
       // get bundled properly.
       let inResourceURLs  = groups.map({ $0.resourceURLs }).reduce([], +)
       try inResourceURLs.forEach { ( inputResource : URL ) in
+        #if compiler(>=6) && canImport(Foundation)
+        let outResourceURL = context.pluginWorkDirectoryURL
+          .appendingPathComponent(inputResource.lastPathComponent)
+        #else
         let outResourceFile = context.pluginWorkDirectory // TODO: Xcode16b2?
           .appending(inputResource.lastPathComponent)
         let outResourceURL = URL(fileURLWithPath: outResourceFile.string)
+        #endif
 
         buildCommands.append(.buildCommand(
           displayName : "Copy \(group.stem) resource "
