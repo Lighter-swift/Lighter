@@ -383,10 +383,9 @@ extension Enlighter: XcodeBuildToolPlugin {
     }
   }
   
-  
   fileprivate func locateConfigFile(in context: XcodePluginContext) -> URL? {
-    #if false && compiler(>=6) && canImport(Foundation) // TODO: 16 Beta 2?
-      let dirURL = URL(filePath: context.package.directory.string)
+    #if compiler(>=6) && canImport(Foundation) // TODO: 16 Beta 2?
+      let dirURL = context.package.directoryURL
       let url = dirURL.appending(component: configFileName,
                                  directoryHint: .notDirectory)
     #else
@@ -469,7 +468,7 @@ extension Enlighter: XcodeBuildToolPlugin {
     var buildCommands = [ Command ]()
 
     for group in groups {
-      #if false && compiler(>=6) && canImport(Foundation)
+      #if compiler(>=6) && canImport(Foundation)
         let outputURL = configuration.outputFile.flatMap {
           context.pluginWorkDirectoryURL.appending(component: $0)
         } ?? context.pluginWorkDirectoryURL
@@ -533,29 +532,7 @@ extension Enlighter: XcodeBuildToolPlugin {
         inputFiles  : inputFiles,
         outputFiles : outputFiles
       ))
-      
-      // So, in Xcode, if a resource is handled by Enlighter, Xcode itself
-      // doesn't copy the resource anymore. Likely a bug.
-      // So what we do is copy them ourselves into the plugin dir. They then
-      // get bundled properly.
-      let inResourceURLs  = groups.map({ $0.resourceURLs }).reduce([], +)
-      try inResourceURLs.forEach { ( inputResource : URL ) in
-        let outResourceFile = context.pluginWorkDirectory // TODO: Xcode16b2?
-          .appending(inputResource.lastPathComponent)
-        let outResourceURL = URL(fileURLWithPath: outResourceFile.string)
-
-        buildCommands.append(.buildCommand(
-          displayName : "Copy \(group.stem) resource "
-                    + "\(inputResource.lastPathComponent) into \(target.name)",
-          executable  : try context.tool(named: "cp").url,
-          arguments   : [ "-a", 
-                          inputResource .path(percentEncoded: false),
-                          outResourceURL.path(percentEncoded: false) ],
-          inputFiles  : [ inputResource  ],
-          outputFiles : [ outResourceURL ]
-        ))
-      }
-      #else
+      #else // Xcode <16
       let inputFiles : [ Path ] = {
         var inputFiles = group.matches.map { Path($0.path) }
         if let configURL = configuration.configURL {
@@ -588,6 +565,9 @@ extension Enlighter: XcodeBuildToolPlugin {
         outputFiles : outputFiles
       ))
       
+      // Fixed in Xcode 16, and maybe in 15.4 already.
+      // The fix resulted in this issue I think:
+      //   https://github.com/Lighter-swift/Lighter/issues/27
       // So, in Xcode, if a resource is handled by Enlighter, Xcode itself
       // doesn't copy the resource anymore. Likely a bug.
       // So what we do is copy them ourselves into the plugin dir. They then

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -89,9 +89,9 @@ extension EnlighterASTGenerator {
           
           case .bool:
             switch value {
-              case "true", "YES", "1" : return .true
-              case "false", "NO", "0" : return .false
-              default                 : return cannotConvert()
+              case "true", "YES", "1", "TRUE"  : return .true
+              case "false", "NO", "0", "FALSE" : return .false
+              default                          : return cannotConvert()
             }
 
           case .date:
@@ -139,6 +139,49 @@ extension EnlighterASTGenerator {
             return .call(name: "UUID", parameters: [
               ( "uuid", .tuple(value.map { .integer(Int($0)) }) )
             ])
+        }
+      case .currentDate, .currentTime: // YYYY-MM-DD & HH:MM:SS
+        // those only make sense for string properties?
+        switch property.propertyType {
+          case .integer, .double, .decimal, .bool, .date, .url, .uint8Array,
+               .data, .uuid, .custom:
+            return cannotConvert()
+          case .string:
+            /* TODO: https://github.com/Lighter-swift/Lighter/issues/34
+             needs to generate this:
+             var fmt = DateFormatter()
+             fmt.locale     = Locale(identifier: "en_US_POSIX")
+             fmt.dateFormat = "yyyy-MM-dd" // "HH:mm:ss"
+             fmt.timeZone   = TimeZone(secondsFromGMT: 0)
+             Date().string(from: Date())
+             */
+            return cannotConvert()
+        }
+      case .currentTimestamp:
+        switch property.propertyType {
+          case .decimal, .bool, .url, .uint8Array, .data, .uuid, .custom:
+            return cannotConvert()
+          case .date:
+            return .call(name: "Foundation.Date()")
+          case .double:
+            return .variableReference(
+              instance: "Foundation.Date()", name: "timeIntervalSince1970")
+          case .integer:
+            return .cast(
+              .variableReference(
+                instance: "Foundation.Date()", name: "timeIntervalSince1970"),
+              to: .int
+            )
+          case .string:
+            /* TODO: https://github.com/Lighter-swift/Lighter/issues/34
+             needs to generate this:
+             var fmt = DateFormatter()
+             fmt.locale     = Locale(identifier: "en_US_POSIX")
+             fmt.dateFormat = "yyyy-MM-dd HH:mm:ss"
+             fmt.timeZone   = TimeZone(secondsFromGMT: 0)
+             Date().string(from: Date())
+             */
+            return cannotConvert()
         }
     }
   }

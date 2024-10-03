@@ -28,6 +28,10 @@ extension Schema {
       case real(Double)
       case text(String)
       case blob([ UInt8 ])
+      
+      case currentTime
+      case currentDate
+      case currentTimestamp
     }
 
     /// The internal SQLite3 identifier of the column.
@@ -79,7 +83,7 @@ extension Schema {
 public extension Schema.Column.DefaultValue {
   
   /**
-   * Returns the ``Schema/TypeAffinity`` of the column.
+   * Returns the ``Schema/TypeAffinity`` of the columns default value.
    *
    * In SQLite columns can store any type, even if declared otherwise.
    * E.g. you can insert a a TEXT into an INT column, and the TEXT will be
@@ -98,6 +102,7 @@ public extension Schema.Column.DefaultValue {
       case .real    : return .real
       case .text    : return .text
       case .blob    : return .blob
+      case .currentDate, .currentTime, .currentTimestamp : return .text
     }
   }
 }
@@ -142,8 +147,8 @@ public extension Schema.Column {
       if      rc == SQLITE_DONE { break }
       else if rc != SQLITE_ROW  { return nil }
       
-      if let fkey = Schema.Column(stmt) {
-        columns.append(fkey)
+      if let columnInfo = Schema.Column(stmt) {
+        columns.append(columnInfo)
       }
       else {
         assertionFailure("Could not create foreign key?!")
@@ -234,7 +239,7 @@ fileprivate extension Schema.Column {
 
     // Distinguish between an explicit NULL (which defaultValue can't store?),
     // and just NULL (which then the default fallback is)
-    let defaultValue = DefaultValue(stmt, 4)
+    let defaultValue = DefaultValue(stmt, 4, type: type)
     self.defaultValue = defaultValue == .null ? nil : defaultValue
     
     isPrimaryKey = sqlite3_column_int64(stmt, 5) != 0
@@ -250,12 +255,106 @@ fileprivate extension Schema.Column.DefaultValue {
    *   - stmt: A SQLite API statement handle
    *   - iCol: The column in the result set, 0-based.
    */
-  init(_ stmt: OpaquePointer?, _ iCol: Int32) {
+  init(_ stmt: OpaquePointer?, _ iCol: Int32, type: Schema.ColumnType?) {
     guard iCol >= 0 && iCol < sqlite3_column_count(stmt) else {
       assertionFailure("Column out of range: \(iCol)")
       self = .null
       return
     }
+    
+    // This actually contains SQL
+    // https://www.sqlite.org/lang_createtable.html#the_default_clause
+    func buildForText(_ text: String, type: Schema.ColumnType?) -> Self {
+      switch text {
+        // This happens if the NULL is explicitly specified, like:
+        // `street VARCHAR DEFAULT NULL`
+        case "NULL"              : return .null
+        case "CURRENT_TIME"      : return .currentTime
+        case "CURRENT_DATE"      : return .currentDate
+        case "CURRENT_TIMESTAMP" : return .currentTimestamp
+        default                  : break
+      }
+      // There could be dynamic expressions, like `round(julianday('now'))`,
+      // but we can't resolve such?
+      
+      // Some shortcuts for simple constants.
+      switch type {
+        case .int, .integer:
+          if let value = Int64(text)  { return .integer(value) }
+        case .real:
+          if let value = Double(text) { return .real(value) }
+        default:
+          break
+      }
+      
+      // This is a "little" inefficient, but an easy starting point.
+      // TODO: Figure out what to do on issues
+      let sql = "SELECT \(text);"
+      var memDBMaybe: OpaquePointer?
+      guard sqlite3_open_v2(":memory:", &memDBMaybe, SQLITE_OPEN_READONLY,
+                            nil) == SQLITE_OK, let db = memDBMaybe else
+      {
+        print("WARN: Could not open in-mem DB for DEFAULT eval.") // eek
+        return .null
+      }
+      defer { sqlite3_close(db) }
+      var stmt : OpaquePointer?
+      guard sqlite3_prepare_v2(db, sql, -1, &stmt, nil) == SQLITE_OK else {
+        print("WARN: Could not parse DEFAULT value:", text) // eek
+        return .null
+      }
+      defer { sqlite3_finalize(stmt); stmt = nil }
+
+      let rc = sqlite3_step(stmt)
+      guard rc == SQLITE_ROW else {
+        print("WARN: DEFAULT value produced no row?:", text) // eek
+        return .null
+      }
+
+      switch sqlite3_column_type(stmt, 0) {
+        case SQLITE_NULL:
+          return .null
+        
+        case SQLITE_INTEGER:
+          return .integer(sqlite3_column_int64(stmt, 0))
+          
+        case SQLITE_TEXT:
+          if let cstr = sqlite3_column_text(stmt, 0) {
+            return .text(String(cString: cstr))
+          }
+          else {
+            assertionFailure("Unexpected NULL in TEXT affinity default value")
+            return .null
+          }
+          
+        case SQLITE_FLOAT:
+          return .real(sqlite3_column_double(stmt, 0))
+          
+        case SQLITE_BLOB:
+          if let blob  = sqlite3_column_blob(stmt, 0) {
+            let count  = Int(sqlite3_column_bytes(stmt, 0))
+            let buffer = UnsafeRawBufferPointer(start: blob, count: count)
+            return .blob([UInt8](buffer))
+          }
+          else {
+            assertionFailure("Unexpected NULL in BLOB affinity default value")
+            return .null
+          }
+        
+        default:
+          if let cstr = sqlite3_column_text(stmt, 0) {
+            return .text(String(cString: cstr))
+          }
+          else {
+            assertionFailure("Unexpected NULL in TEXT affinity default value")
+            return .null
+          }
+      }
+    }
+    
+    // hh(2024-10-03): This always seems to be TEXT or NULL?
+    // The column does not contain the value, but the SQL expression producing
+    // a value.
     switch sqlite3_column_type(stmt, iCol) {
       case SQLITE_NULL:
         self = .null
@@ -265,7 +364,7 @@ fileprivate extension Schema.Column.DefaultValue {
         
       case SQLITE_TEXT:
         if let cstr = sqlite3_column_text(stmt, iCol) {
-          self = .text(String(cString: cstr))
+          self = buildForText(String(cString: cstr), type: type)
         }
         else {
           assertionFailure("Unexpected NULL in TEXT affinity default value")
