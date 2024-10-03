@@ -50,11 +50,14 @@ public func generateSwiftInitForSchema(_ schema: Schema,
     if let value = column.defaultValue {
       source += ", defaultValue: "
       switch value {
-        case .null           : source += ".null"
-        case .integer(let v) : source += ".integer(\(v))"
-        case .real   (let v) : source += ".real(\(v))"
-        case .text   (let v) : source += ".text(\"\(v)\")"
-        case .blob   (let v) : source += ".blob(\(v) /* Not implemented */)"
+        case .null             : source += ".null"
+        case .integer(let v)   : source += ".integer(\(v))"
+        case .real   (let v)   : source += ".real(\(v))"
+        case .text   (let v)   : source += ".text(\"\(v)\")"
+        case .blob   (let v)   : source += ".blob(\(v) /* Not implemented */)"
+        case .currentDate      : source += ".currentDate"
+        case .currentTime      : source += ".currentTime"
+        case .currentTimestamp : source += ".currentTimestamp"
       }
     }
     if column.isPrimaryKey { source += ", isPrimaryKey: true" }
