@@ -226,7 +226,7 @@ extension EnlighterASTGenerator {
         )
       ],
       comment: .init(
-        headline: "A SQLError that can be used with SQLite",
+        headline: "A SQLError that can be used with SQLite.",
         examples: [
           .init(headline: "Setup from SQLite3 database handle",
                 code:
