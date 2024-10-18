@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -194,7 +194,9 @@ extension EnlighterASTGenerator {
   func generateSQLError(name: String = "SQLError") -> Struct {
     return Struct(
       public: options.public, name: name,
-      conformances: [.name("Swift.Error"), .name("Equatable")],
+      conformances: [
+        .name("Swift.Error"), .name("Equatable"), .name("Sendable")
+      ],
       variables: [
         .let(public: options.public, "code" , .int32,
              comment: "The SQLite3 error code (`sqlite3_errcode`)."),
