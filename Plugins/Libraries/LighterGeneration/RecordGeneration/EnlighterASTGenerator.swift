@@ -72,7 +72,7 @@ public final class EnlighterASTGenerator {
     public var asyncAwait      = true
     
     /// Whether record types should be generated as subtypes of the database
-    /// type.
+    /// type (otherwise they become top-level types).
     /// E.g.
     /// ```swift
     /// struct TestDatabase {
@@ -109,15 +109,19 @@ public final class EnlighterASTGenerator {
     /// the comments.
     public var generateSelectExamples = true
     
-    /// Whether or how to generate low-level SQLite functions
+    /// Whether or how to generate low-level SQLite functions.
     public var rawFunctions : RawFunctionStyle
-    = .globalFunctions(prefix: "sqlite3_")
+                            = .globalFunctions(prefix: "sqlite3_")
     
     /// How to adjust the names of `sqlite3_persons_update` and such.
     public var generateRawOperations = RawOperationNames.lowercaseAndPluralize
     
     /// Whether to generate functions that fetch relationships.
     public var generateRawRelationships = true
+    
+    /// Whether to generate raw functions that return SQLite errors,
+    /// or whether the generated functions should be throwing.
+    public var generateThrowingFunctions = false
     
     /// If `INSERT RETURNING` is not available, use a select fallback, like in
     /// Lighter.

@@ -93,7 +93,8 @@ extension EnlighterASTGenerator.Options {
         rawFunctions = .attachToRecordType
       }
       if let v = section[bool: "relationships"] { generateRawRelationships = v }
-      if let v = section[bool: "hashable"]      { markRawStructsAsHashable = v }
+      if let v = section[bool: "hashable"] { markRawStructsAsHashable  = v }
+      if let v = section[bool: "throwing"] { generateThrowingFunctions = v }
     }
     else if let s = section[string: "Raw"], s != "none" && s != "omit" {
       rawFunctions = s.lowercased() == "recordtype" || s == "attachToRecordType"

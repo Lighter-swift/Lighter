@@ -522,7 +522,8 @@ extension EnlighterASTGenerator {
           .init(name: "db",     type: .name("OpaquePointer!")),
           .init(name: "record", type: .inout(globalTypeRef(of: entity)))
         ],
-        returnType: .int32
+        throws: options.generateThrowingFunctions,
+        returnType: options.generateThrowingFunctions ? .void : .int32
       ),
       statements:
         //let sql = sqlite3_libversion_number() >= 30_35_000
@@ -549,7 +550,7 @@ extension EnlighterASTGenerator {
         trailing: ( [], stepAndReturnError )
       ))],
       comment: comment,
-      inlinable: true, discardableResult: true
+      inlinable: true, discardableResult: !options.generateThrowingFunctions
     )
   }
   
