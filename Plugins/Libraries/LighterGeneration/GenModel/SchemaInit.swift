@@ -11,6 +11,7 @@ public extension DatabaseInfo {
     var entities = [ EntityInfo ]()
     entities.reserveCapacity(schema.tables.count + schema.views.count)
     
+    let dbName = schema.tables.contains(where: { $0.name == name }) ? "\(name)DB" : name
     for table in schema.tables {
       let isWithoutRowID = table.isTableWithoutRowID
       let indices  = schema.indices [table.name] ?? []
@@ -56,7 +57,7 @@ public extension DatabaseInfo {
       entities.append(entity)
     }
 
-    self.init(name: name, userVersion: schema.userVersion, entities: entities)
+    self.init(name: dbName, userVersion: schema.userVersion, entities: entities)
   }
 }
 
