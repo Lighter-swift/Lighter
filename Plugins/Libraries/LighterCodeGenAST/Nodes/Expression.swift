@@ -73,7 +73,10 @@ public indirect enum Expression: Equatable {
   /// `a!`
   case forceUnwrap(Expression)
   
-  /// `{ return 46 + 2 }`
+  /// `{ return 46 + 2 }` (w/o calling it)
+  case closure([ Statement ])
+
+  /// `{ return 46 + 2 }()` (calling it)
   case inlineClosureCall([ Statement ])
 }
 
