@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -590,10 +590,10 @@ extension EnlighterASTGenerator {
             !optional // but still yields an optional if dateformatter is nil
             ? .call(name: "\(database.name).dateFormatter?.string",
                     parameters: [ ( "from", ivar(propertyName) ) ])
-            : .flatMap(expression: ivar(propertyName), map: .call(
-                    name: "\(database.name).dateFormatter?.string",
-                    parameters: [ ( "from", .raw("$0") ) ]
-              ))
+            : .flatMap(expression: ivar(propertyName), map: .closure([
+                .call(name: "\(database.name).dateFormatter?.string",
+                      parameters: [ ( "from", .closureArg0 ) ])
+              ]))
           ) ],
           trailing: ( [ "s" ], [
             .ifSwitch( (

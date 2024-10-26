@@ -15,7 +15,7 @@ public extension CodeGenerator {
       
       case .literal, .variableReference, .variablePath,
            .keyPathLookup, .keyPath, .functionCall, .selfInit, .typeInit,
-           .cast, .inlineClosureCall:
+           .cast, .inlineClosureCall, .closure:
         return string(for: expression)
     }
   }
@@ -103,6 +103,12 @@ public extension CodeGenerator {
       case .forceUnwrap(let expression):
         return "\(string(for: expression, wrapIfComplex: true))!"
       
+      case .closure(let statements):
+        return nestedGeneration {
+          indentedCodeBlock(addSpaceIfMissing: false) {
+            generateStatements(statements)
+          }
+        }
       case .inlineClosureCall(let statements):
         return nestedGeneration {
           indentedCodeBlock(endSuffix: "()", addSpaceIfMissing: false) {
@@ -142,6 +148,8 @@ public extension CodeGenerator {
       case .tuple, .array: // indent better
         append(string(for: expression))
       case .varargs: // indent better
+        append(string(for: expression))
+      case .closure: // indent better
         append(string(for: expression))
       case .inlineClosureCall: // indent better
         append(string(for: expression))

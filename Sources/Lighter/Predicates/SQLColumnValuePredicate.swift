@@ -20,7 +20,7 @@ import struct Foundation.Data
  */
 public struct SQLColumnValuePredicate<C: SQLColumn>: SQLPredicate {
   
-  public enum ComparisonOperator: String, Sendable {
+  public enum ComparisonOperator: String {
     
     /**
      * Check whether the ``SQLColumn`` is the same like the given value.
@@ -353,3 +353,7 @@ public struct SQLColumnValuePredicate<C: SQLColumn>: SQLPredicate {
 }
 
 private let specialLikeChars : Set<Character> = [ "_", "%", "'", "\"" ]
+
+#if swift(>=5.5)
+extension SQLColumnValuePredicate.ComparisonOperator : Sendable {}
+#endif

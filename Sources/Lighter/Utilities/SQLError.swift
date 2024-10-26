@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2023 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import func SQLite3.sqlite3_errcode
@@ -50,3 +50,6 @@ public struct SQLError: Swift.Error, Equatable {
     self.message = sqlite3_errmsg(db).flatMap(String.init(cString:))
   }
 }
+#if swift(>=5.5)
+extension SQLError: Sendable {}
+#endif

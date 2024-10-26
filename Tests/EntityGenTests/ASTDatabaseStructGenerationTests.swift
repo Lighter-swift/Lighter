@@ -228,4 +228,11 @@ final class ASTDatabaseStructGenerationTests: XCTestCase {
     XCTAssertTrue(source.contains(
       "[ Person.self, Address.self, AFancyTestTable.self ]"))
   }
+
+  func testResolveConflictedDatabaseName() throws {
+    let name   = try XCTUnwrap(Fixtures.addressSchema.tables.first?.name)
+    let dbInfo = DatabaseInfo(name: name, schema: Fixtures.addressSchema)
+
+    XCTAssertEqual(dbInfo.name, "\(name)DB")
+  }
 }

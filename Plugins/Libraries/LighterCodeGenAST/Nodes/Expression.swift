@@ -73,7 +73,10 @@ public indirect enum Expression: Equatable {
   /// `a!`
   case forceUnwrap(Expression)
   
-  /// `{ return 46 + 2 }`
+  /// `{ return 46 + 2 }` (w/o calling it)
+  case closure([ Statement ])
+
+  /// `{ return 46 + 2 }()` (calling it)
   case inlineClosureCall([ Statement ])
 }
 
@@ -82,12 +85,12 @@ public indirect enum Expression: Equatable {
  *
  * Used as the value for ``Expression/functionCall(_:)``.
  */
-public struct FunctionCall: Equatable, Sendable {
+public struct FunctionCall: Equatable {
   
   /**
    * A parameter passed as part of the function call.
    */
-  public struct Parameter: Equatable, Sendable {
+  public struct Parameter: Equatable {
     
     /// The keyword/label of the parameter, can be `nil` if it is a wildcard
     /// (unlabled) parameter.
@@ -105,7 +108,7 @@ public struct FunctionCall: Equatable, Sendable {
   /**
    * A trailing closure attached to a function call.
    */
-  public struct TrailingClosure: Equatable, Sendable {
+  public struct TrailingClosure: Equatable {
     
     /// The parameter list of the trailing closure (e.g. `( a, b ) in`).
     public let parameters: [ String    ]
@@ -153,20 +156,27 @@ public struct FunctionCall: Equatable, Sendable {
 public extension Expression {
   
   /// `nil`
-  static var `nil`   : Self { .literal(.nil)   }
+  static let `nil`   = Self.literal(.nil)
   /// Bool `true`
-  static var `true`  : Self { .literal(.true)  }
+  static let `true`  = Self.literal(.true)
   /// Bool `false`
-  static var `false` : Self { .literal(.false) }
-  
+  static let `false` = Self.literal(.false)
+
+  /// `$0`
+  static let closureArg0 = Self.raw("$0")
+
   /// A literal integer (`42`).
+  @inlinable
   static func integer(_ value: Int)    -> Self { .literal(.integer(value)) }
   /// A literal double (`13.37`).
+  @inlinable
   static func double (_ value: Double) -> Self { .literal(.double (value)) }
   /// A literal string (`"Them Bones"`).
+  @inlinable
   static func string (_ value: String) -> Self { .literal(.string (value)) }
 
   /// An array of `UInt8` integers (i.e. a data literal).
+  @inlinable
   static func integerArray(_ value: [ UInt8 ]) -> Self {
     .literal(.integerArray(value.map { Int($0) }))
   }
@@ -282,5 +292,8 @@ public extension Expression {
 }
 
 #if swift(>=5.5)
-extension Expression : Sendable {}
+extension Expression                   : Sendable {}
+extension FunctionCall                 : Sendable {}
+extension FunctionCall.Parameter       : Sendable {}
+extension FunctionCall.TrailingClosure : Sendable {}
 #endif

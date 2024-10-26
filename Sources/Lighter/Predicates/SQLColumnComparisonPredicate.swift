@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -20,7 +20,7 @@ public struct SQLColumnComparisonPredicate<L, R>: SQLPredicate
                       L.Value == R.Value
 {
   
-  public enum ComparisonOperator: String, Sendable {
+  public enum ComparisonOperator: String {
     
     /**
      * Check whether the ``SQLColumn`` is the same like the other column
@@ -111,3 +111,7 @@ public struct SQLColumnComparisonPredicate<L, R>: SQLPredicate
     builder.append(builder.sqlString(for: rhs))
   }
 }
+
+#if swift(>=5.5)
+extension SQLColumnComparisonPredicate.ComparisonOperator : Sendable {}
+#endif

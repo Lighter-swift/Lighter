@@ -148,7 +148,7 @@ extension EnlighterASTGenerator {
   
   // MARK: - Helpers
   
-  fileprivate static var stepAndReturnError : [ Statement ] { [
+  fileprivate static let stepAndReturnError : [ Statement ] = [
     .let("rc", is: .call(name: "sqlite3_step", .variable("statement"))),
     .return(
       .conditional(
@@ -157,7 +157,7 @@ extension EnlighterASTGenerator {
         .variable("SQLITE_OK")
       )
     )
-  ] }
+  ]
 
   private func prepareSQL(_ schemaSQLProperty: String, for entity: EntityInfo)
                -> [ Statement ]
@@ -166,13 +166,13 @@ extension EnlighterASTGenerator {
                                       schemaSQLProperty])) ]
     + Self.prepareSQL
   }
-  static var prepareSQL : [ Statement ] { [
+  static let prepareSQL : [ Statement ] = [
     // Could use `Self` for record attached funcs
     .var("handle", type: .name("OpaquePointer?")),
     .raw("guard sqlite3_prepare_v2(db, sql, -1, &handle, nil) == SQLITE_OK,"),
     .raw("      let statement = handle else { return sqlite3_errcode(db) }"),
     .raw("defer { sqlite3_finalize(statement) }")
-  ] }
+  ]
   
   func functionName(for entity: EntityInfo, operation: String) -> String {
     switch options.rawFunctions {
