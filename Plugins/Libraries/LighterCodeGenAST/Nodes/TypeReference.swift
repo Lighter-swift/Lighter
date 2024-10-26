@@ -43,38 +43,38 @@ public indirect enum TypeReference: Equatable {
 public extension TypeReference {
   
   /// Swift `Int`.
-  static var int         : TypeReference { .name("Int")       }
+  static let int         = TypeReference.name("Int")
   /// Swift `String`.
-  static var string      : TypeReference { .name("String")    }
+  static let string      = TypeReference.name("String")
   /// Swift `Double`.
-  static var double      : TypeReference { .name("Double")    }
+  static let double      = TypeReference.name("Double")
   /// Swift `Bool`.
-  static var bool        : TypeReference { .name("Bool")      }
+  static let bool        = TypeReference.name("Bool")
   
   // common in SQLite
   /// Swift `Int32`.
-  static var int32       : TypeReference { .name("Int32")     }
+  static let int32       = TypeReference.name("Int32")
   /// Swift `Int64`.
-  static var int64       : TypeReference { .name("Int64")     }
+  static let int64       = TypeReference.name("Int64")
 }
 
 public extension TypeReference {
   /// Swift `[ UInt8 ]`. Aka `Data`, w/o the need for Foundation.
-  static var uint8Array  : TypeReference { .array(.name("UInt8")) }
+  static let uint8Array  = TypeReference.array(.name("UInt8"))
 }
 
 public extension TypeReference {
 
   /// A Foundation `URL`.
-  static var url         : TypeReference { .name("URL")      }
+  static let url         = TypeReference.name("URL")
   /// A Foundation `Decimal` number.
-  static var decimal     : TypeReference { .name("Decimal")  }
+  static let decimal     = TypeReference.name("Decimal")
   /// A Foundation `Date`.
-  static var date        : TypeReference { .name("Date")     }
+  static let date        = TypeReference.name("Date")
   /// A Foundation `Data`.
-  static var data        : TypeReference { .name("Data")     }
+  static let data        = TypeReference.name("Data")
   /// A Foundation `UUID`.
-  static var uuid        : TypeReference { .name("UUID")     }
+  static let uuid        = TypeReference .name("UUID")
 }
 
 #if swift(>=5.5)

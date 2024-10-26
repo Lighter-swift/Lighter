@@ -153,20 +153,27 @@ public struct FunctionCall: Equatable {
 public extension Expression {
   
   /// `nil`
-  static var `nil`   : Self { .literal(.nil)   }
+  static let `nil`   = Self.literal(.nil)
   /// Bool `true`
-  static var `true`  : Self { .literal(.true)  }
+  static let `true`  = Self.literal(.true)
   /// Bool `false`
-  static var `false` : Self { .literal(.false) }
-  
+  static let `false` = Self.literal(.false)
+
+  /// `$0`
+  static let closureArg0 = Self.raw("$0")
+
   /// A literal integer (`42`).
+  @inlinable
   static func integer(_ value: Int)    -> Self { .literal(.integer(value)) }
   /// A literal double (`13.37`).
+  @inlinable
   static func double (_ value: Double) -> Self { .literal(.double (value)) }
   /// A literal string (`"Them Bones"`).
+  @inlinable
   static func string (_ value: String) -> Self { .literal(.string (value)) }
 
   /// An array of `UInt8` integers (i.e. a data literal).
+  @inlinable
   static func integerArray(_ value: [ UInt8 ]) -> Self {
     .literal(.integerArray(value.map { Int($0) }))
   }

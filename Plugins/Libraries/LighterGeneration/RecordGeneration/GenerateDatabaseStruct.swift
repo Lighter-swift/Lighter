@@ -603,7 +603,7 @@ extension EnlighterASTGenerator {
     }
   }
 
-  fileprivate static var defaultSQLiteDateFormatterExpression : Expression {
+  fileprivate static let defaultSQLiteDateFormatterExpression : Expression =
     Expression.inlineClosureCall([
       .let("formatter", is: .call(name: "DateFormatter")),
       .set(instance: "formatter", "dateFormat",
@@ -613,5 +613,4 @@ extension EnlighterASTGenerator {
                   [ ("identifier", .string("en_US_POSIX"))])),
       .return(.variable("formatter"))
      ])
-  }
 }
