@@ -8,8 +8,7 @@
  */
 public struct SQLTruePredicate: SQLPredicate {
 
-  @inlinable
-  static var shared : SQLTruePredicate { SQLTruePredicate() }
+  public static let shared = SQLTruePredicate()
 
   // MARK: - SQL Generation
 
@@ -34,10 +33,8 @@ extension SQLPredicate where Self == SQLTruePredicate {
  */
 public struct SQLBoolPredicate: SQLPredicate {
 
-  @inlinable
-  public static var `true`  : Self { Self(true)  }
-  @inlinable
-  public static var `false` : Self { Self(false) }
+  public static let `true`  = Self(true)
+  public static let `false` = Self(false)
   
   public let value : Bool
   
