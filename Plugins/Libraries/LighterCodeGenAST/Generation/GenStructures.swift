@@ -7,7 +7,7 @@ public extension CodeGenerator {
   
   /// public static let schema = Schema()
   /// public var personId  : Int
-  func generateInstanceVariable(_    value : Struct.InstanceVariable,
+  func generateInstanceVariable(_    value : TypeDefinition.InstanceVariable,
                                 `static`   : Bool = false,
                                 omitPublic : Bool = false)
   {
@@ -77,7 +77,7 @@ public extension CodeGenerator {
       writePlain()
     }
   }
-  
+
   /**
    * ```swift
    * public struct Person: SQLKeyedTableRecord, Identifiable {
@@ -100,7 +100,35 @@ public extension CodeGenerator {
    * }
    * ```
    */
-  func generateStruct(_ value: Struct, omitPublic: Bool = false) {
+  func generateStruct(_ value: TypeDefinition, omitPublic: Bool = false) {
+    assert(value.kind == .struct)
+    generateTypeDefinition(value, omitPublic: omitPublic)
+  }
+
+  /**
+   * ```swift
+   * public struct Person: SQLKeyedTableRecord, Identifiable {
+   *
+   *   public static let schema = Schema()
+   *
+   *   @inlinable
+   *   public var id : Int { personId }
+   *
+   *   public var personId  : Int
+   *   public var lastname  : String
+   *   public var firstname : String?
+   *
+   *   @inlinable
+   *   public init(personId: Int = 0, lastname: String, firstname: String? = nil) {
+   *     self.personId  = personId
+   *     self.lastname  = lastname
+   *     self.firstname = firstname
+   *   }
+   * }
+   * ```
+   */
+  func generateTypeDefinition(_ value: TypeDefinition, omitPublic: Bool = false)
+  {
     if !source.isEmpty { appendEOLIfMissing() }
     
     if let comment = value.comment {
@@ -114,7 +142,11 @@ public extension CodeGenerator {
     do { // header
       appendIndent()
       if value.public && !omitPublic { append("public ") }
-      append("struct ")
+      switch value.kind {
+        case .struct : append("struct ")
+        case .class  : append("class ")
+        case .enum   : append("enum ")
+      }
       append(tickedWhenReserved(value.name))
       
       if !value.conformances.isEmpty {
@@ -129,12 +161,13 @@ public extension CodeGenerator {
       
       if !value.typeAliases.isEmpty { writeln() }
       for ( name, ref ) in value.typeAliases {
-        writeln("\(pubPrefix)typealias \(tickedWhenReserved(name))\(configuration.propertyValueSeparator)\(string(for: ref))")
+        writeln("\(pubPrefix)typealias \(tickedWhenReserved(name))"
+              + "\(configuration.propertyValueSeparator)\(string(for: ref))")
       }
       
-      for structure in value.structures {
+      for nestedType in value.nestedTypes {
         writeln()
-        generateStruct(structure)
+        generateStruct(nestedType)
       }
       
       // Later: I'd really like to vertically align the colors and equals.

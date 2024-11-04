@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 /**
@@ -20,24 +20,34 @@ public struct CompilationUnit {
   public var reexports  : [ String ] = []
 
   /// The structures that are part of the unit.
-  public var structures : [ Struct ]
+  public var typeDefinitions : [ TypeDefinition ]
   /// The functions that are part of the unit.
-  public var functions  : [ FunctionDefinition ]
+  public var functions       : [ FunctionDefinition ]
   /// The extensions that are part of the unit.
-  public var extensions : [ Extension ]
+  public var extensions      : [ Extension ]
 
   /// Initialize a new CompilationUnit, only name and extensions are required.
-  public init(name       : String,
-              imports    : [ String             ] = [],
-              structures : [ Struct             ] = [],
-              functions  : [ FunctionDefinition ] = [],
-              extensions : [ Extension          ] = [])
+  public init(name            : String,
+              imports         : [ String             ] = [],
+              typeDefinitions : [ TypeDefinition     ] = [],
+              functions       : [ FunctionDefinition ] = [],
+              extensions      : [ Extension          ] = [])
   {
     self.name       = name
     self.imports    = imports
-    self.structures = structures
+    self.typeDefinitions = typeDefinitions
     self.functions  = functions
     self.extensions = extensions
+  }
+  /// Initialize a new CompilationUnit, only name and extensions are required.
+  public init(name       : String,
+              imports    : [ String             ] = [],
+              structures : [ TypeDefinition     ], // legacy compat
+              functions  : [ FunctionDefinition ] = [],
+              extensions : [ Extension          ] = [])
+  {
+    self.init(name: name, imports: imports, typeDefinitions: structures,
+              functions: functions, extensions: extensions)
   }
 }
 

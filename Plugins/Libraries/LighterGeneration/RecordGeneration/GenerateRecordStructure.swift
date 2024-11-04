@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import LighterCodeGenAST
@@ -14,9 +14,9 @@ extension EnlighterASTGenerator {
                        name: name)
   }
   
-  func generateRecordStructure(for entity: EntityInfo) -> Struct {
+  func generateRecordStructure(for entity: EntityInfo) -> TypeDefinition {
     var idProperty   : ComputedPropertyDefinition? = nil
-    var compoundPKey : Struct?
+    var compoundPKey : TypeDefinition?
     
     // MARK: - Primary Key
     
@@ -31,11 +31,10 @@ extension EnlighterASTGenerator {
       }
     }
         
-    return Struct(
-      public             : options.public,
-      name               : entity.name,
+    return TypeDefinition(
+      public: options.public, kind: .struct, name: entity.name,
       conformances       : conformancesForRecordType(entity).map { .name($0) },
-      structures         : compoundPKey.flatMap({ [ $0 ] }) ?? [],
+      nestedTypes        : compoundPKey.flatMap({ [ $0 ] }) ?? [],
       typeVariables      : [
         .let("schema", is: .call(name: "Schema"),
              comment:
@@ -186,10 +185,10 @@ extension EnlighterASTGenerator {
     )
   }
   
-  func generateCompoundIDStruct(for entity: EntityInfo) -> Struct {
+  func generateCompoundIDStruct(for entity: EntityInfo) -> TypeDefinition {
     let pkeys = entity.primaryKeyProperties
-    return Struct(
-      public: options.public, name: "ID",
+    return TypeDefinition(
+      public: options.public, kind: .struct, name: "ID",
       conformances: [ .name("Swift.Hashable") ],
       variables: pkeys.map { property in
         .let(public: options.public, property.name, type(for: property),

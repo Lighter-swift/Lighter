@@ -51,14 +51,14 @@ extension EnlighterASTGenerator {
     
     // Database Structure
 
-    unit.structures.append(
+    unit.typeDefinitions.append(
       generateDatabaseStructure(moduleFileName: moduleFileName))
     
     
     // Entity Structures
     
     if !options.nestRecordTypesInDatabase {
-      unit.structures += database.entities.map {
+      unit.typeDefinitions += database.entities.map {
         generateRecordStructure(for: $0)
       }
     }
@@ -78,7 +78,7 @@ extension EnlighterASTGenerator {
     unit.extensions += database.entities.map { entity in
       Extension(
         extendedType: globalTypeRef(of: entity),
-        structures: [ generateSchemaStructure(for: entity) ],
+        typeDefinitions: [ generateSchemaStructure(for: entity) ],
         functions: [
           generateRecordStatementInit(for: entity),
           generateRecordStatementBind(for: entity)

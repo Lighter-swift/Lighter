@@ -8,15 +8,15 @@ import LighterCodeGenAST
 extension EnlighterASTGenerator {
   
   public func generateDatabaseStructure(moduleFileName: String? = nil)
-              -> Struct
+              -> TypeDefinition
   {
     let typeAliases            = calculateClassTypeAliases()
-    var structures             = [ Struct                     ]()
-    var typeVariables          = [ Struct.InstanceVariable    ]()
-    var variables              = [ Struct.InstanceVariable    ]()
-    var computedTypeProperties = [ ComputedPropertyDefinition ]()
-    var typeFunctions          = [ FunctionDefinition         ]()
-    var functions              = [ FunctionDefinition         ]()
+    var structures             = [ TypeDefinition                  ]()
+    var typeVariables          = [ TypeDefinition.InstanceVariable ]()
+    var variables              = [ TypeDefinition.InstanceVariable ]()
+    var computedTypeProperties = [ ComputedPropertyDefinition      ]()
+    var typeFunctions          = [ FunctionDefinition              ]()
+    var functions              = [ FunctionDefinition              ]()
 
     if options.useLighter, let filename = moduleFileName,
        options.allowFoundation // needs `Bundle`
@@ -161,13 +161,14 @@ extension EnlighterASTGenerator {
     
     // Assemble the structure
     
-    return Struct(
+    return TypeDefinition(
       dynamicMemberLookup    : options.useLighter,
       public                 : options.public,
+      kind                   : .struct,
       name                   : database.name,
       conformances           : dbTypeConformances,
       typeAliases            : typeAliases,
-      structures             : structures,
+      nestedTypes            : structures,
       typeVariables          : typeVariables,
       variables              : variables,
       computedTypeProperties : computedTypeProperties,
@@ -554,11 +555,12 @@ extension EnlighterASTGenerator {
      public let addresses = Address.self
    }
    */
-  fileprivate func generateRecordTypesStruct(useAlias suffix: String?) -> Struct
+  fileprivate func generateRecordTypesStruct(useAlias suffix: String?)
+                   -> TypeDefinition
   {
     let firstEntity = database.entities.first ?? .init(name: "NoTypes")
-    return Struct(
-      public: options.public,
+    return TypeDefinition(
+      public: options.public, kind: .struct,
       name: api.recordTypeLookupTarget,
       conformances: [ .name("Swift.Sendable") ],
       variables: database.entities.map {

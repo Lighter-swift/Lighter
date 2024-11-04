@@ -21,7 +21,7 @@ public struct Extension {
   // MARK: - Types
   
   /// The structures added to the ``extendedType``.
-  public var structures          : [ Struct ]
+  public var typeDefinitions     : [ TypeDefinition ]
   
   // MARK: - Functions
   
@@ -40,7 +40,7 @@ public struct Extension {
   public init(extendedType        : TypeReference,
               `public`            : Bool                   = true,
               genericConstraints  : [ GenericConstraint ]  = [],
-              structures          : [ Struct ]             = [],
+              typeDefinitions     : [ TypeDefinition ]             = [],
               typeFunctions       : [ FunctionDefinition ] = [],
               functions           : [ FunctionDefinition ] = [],
               minimumSwiftVersion : ( major: Int, minor: Int )? = nil,
@@ -48,7 +48,7 @@ public struct Extension {
   {
     self.public              = `public`
     self.extendedType        = extendedType
-    self.structures          = structures
+    self.typeDefinitions     = typeDefinitions
     self.typeFunctions       = typeFunctions
     self.functions           = functions
     self.genericConstraints  = genericConstraints
@@ -56,8 +56,9 @@ public struct Extension {
     self.requiredImports     = requiredImports
   }
   
+  @inlinable
   public var isEmpty : Bool {
-    functions.isEmpty && structures.isEmpty && typeFunctions.isEmpty
+    functions.isEmpty && typeDefinitions.isEmpty && typeFunctions.isEmpty
   }
 }
 
