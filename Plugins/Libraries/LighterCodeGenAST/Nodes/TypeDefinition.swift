@@ -6,7 +6,11 @@
 /**
  * An AST node representing a Swift structure type.
  */
-public struct Struct {
+public struct TypeDefinition {
+  
+  public enum Kind: Int, Sendable {
+    case `struct`, `class`, `enum`
+  }
 
   /**
    * An instance variable of a ``Struct``.
@@ -64,13 +68,15 @@ public struct Struct {
   /// The types the structure conforms to, e.g. `SQLTableRecord`.
   public var conformances           : [ TypeReference ]
   
+  public var kind : Kind
+  
   // MARK: - Types
   
   /// A set of type aliases that should be declare in the structure,
   /// e.g. `typealias RecordType = Person`.
   public var typeAliases            : [ ( name: String, type: TypeReference ) ]
   /// A set of structures nested in this structure.
-  public var structures             : [ Struct ]
+  public var nestedTypes            : [ TypeDefinition ]
 
   // MARK: - Variables
   
@@ -94,11 +100,12 @@ public struct Struct {
   /// Intialize a new struct AST node. Only the `name` is required.
   public init(dynamicMemberLookup    : Bool                           = false,
               public                 : Bool                           = true,
+              kind                   : Kind,
               name                   : String,
               conformances           : [ TypeReference ]              = [],
               typeAliases            : [ ( name: String, type: TypeReference ) ]
                                      = [],
-              structures             : [ Struct ]                     = [],
+              nestedTypes            : [ TypeDefinition ]             = [],
               typeVariables          : [ InstanceVariable   ]         = [],
               variables              : [ InstanceVariable   ]         = [],
               computedTypeProperties : [ ComputedPropertyDefinition ] = [],
@@ -109,10 +116,11 @@ public struct Struct {
   {
     self.dynamicMemberLookup    = dynamicMemberLookup
     self.public                 = `public`
+    self.kind                   = kind
     self.name                   = name
     self.conformances           = conformances
     self.typeAliases            = typeAliases
-    self.structures             = structures
+    self.nestedTypes            = nestedTypes
     self.typeVariables          = typeVariables
     self.variables              = variables
     self.computedTypeProperties = computedTypeProperties
@@ -130,7 +138,7 @@ public struct Struct {
 
 // MARK: - Convenience
 
-public extension Struct.InstanceVariable {
+public extension TypeDefinition.InstanceVariable {
 
   /// Initialize a new instance variable node for a `let`.
   static func `let`(public: Bool = true, _ name: String,
@@ -176,5 +184,5 @@ public extension Struct.InstanceVariable {
 }
 
 #if swift(>=5.5)
-extension Struct : Sendable {}
+extension TypeDefinition : Sendable {}
 #endif

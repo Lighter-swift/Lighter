@@ -78,6 +78,6 @@ final class FiveThirtyEightTests: XCTestCase {
       print("  Extensions: #\(unit.extensions.count)")
     #endif
     
-    XCTAssertEqual(schema.tables.count + 1, unit.structures.count)
+    XCTAssertEqual(schema.tables.count + 1, unit.typeDefinitions.count)
   }
 }

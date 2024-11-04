@@ -93,8 +93,8 @@ enum Fixtures {
     )
   }
   
-  static let personRecordStruct = Struct(
-    public: true, name: "Person",
+  static let personRecordStruct = TypeDefinition(
+    public: true, kind: .struct, name: "Person",
     conformances: [ .name("SQLKeyedTableRecord"), .name("Identifiable") ],
     typeVariables: [
       .let("schema", is: .call(name: "Schema"),

@@ -94,8 +94,8 @@ extension EnlighterASTGenerator {
     }
   }
   
-  func generateSchemaStructure(for entity: EntityInfo) -> Struct {
-    var typeVariables = [ Struct.InstanceVariable ]()
+  func generateSchemaStructure(for entity: EntityInfo) -> TypeDefinition {
+    var typeVariables = [ TypeDefinition.InstanceVariable ]()
     
     // Type Variables
     
@@ -282,11 +282,11 @@ extension EnlighterASTGenerator {
       ))
     }
 
-    return Struct(
-      public: options.public, name: api.recordSchemaName,
-      conformances: conformancesForSchemaType(entity).map { .name($0) },
-      typeAliases: typeAliases,
-      typeVariables: typeVariables,
+    return TypeDefinition(
+      public: options.public, kind: .struct, name: api.recordSchemaName,
+      conformances  : conformancesForSchemaType(entity).map { .name($0) },
+      typeAliases   : typeAliases,
+      typeVariables : typeVariables,
       variables: !options.useLighter ? [] : entity.properties.map {
         .let($0.name, is: makeMappedColumn(for: $0, in: entity),
              comment:

@@ -143,7 +143,8 @@ extension EnlighterASTGenerator {
    * ```
    */
   func generateModuleSingleton(name propertyName: String = "module",
-                               for filename: String) -> Struct.InstanceVariable
+                               for filename: String)
+       -> TypeDefinition.InstanceVariable
   {
     let name : Expression
     let ext  : Expression
@@ -191,9 +192,9 @@ extension EnlighterASTGenerator {
   /**
    * Generate the SQLError struct, required when not used w/ Lighter.
    */
-  func generateSQLError(name: String = "SQLError") -> Struct {
-    return Struct(
-      public: options.public, name: name,
+  func generateSQLError(name: String = "SQLError") -> TypeDefinition {
+    return TypeDefinition(
+      public: options.public, kind: .struct, name: name,
       conformances: [
         .name("Swift.Error"), .name("Equatable"), .name("Sendable")
       ],

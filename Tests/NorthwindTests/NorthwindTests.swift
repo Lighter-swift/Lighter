@@ -104,7 +104,7 @@ final class NorthwindTests: XCTestCase {
     #endif
     
     XCTAssertEqual(schema.tables.count + schema.views.count + 1,
-                   unit.structures.count)
+                   unit.typeDefinitions.count)
   }
   
   func testCompoundPrimaryKeyGeneration() throws {

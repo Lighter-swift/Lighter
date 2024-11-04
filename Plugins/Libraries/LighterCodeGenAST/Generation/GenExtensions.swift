@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -42,9 +42,9 @@ public extension CodeGenerator {
     }
 
     indent {
-      for structure in value.structures {
+      for typeDefinition in value.typeDefinitions {
         writeln()
-        generateStruct(structure, omitPublic: value.public)
+        generateTypeDefinition(typeDefinition, omitPublic: value.public)
       }
 
       for function in value.typeFunctions {
