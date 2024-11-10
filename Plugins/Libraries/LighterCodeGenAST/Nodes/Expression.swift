@@ -85,12 +85,12 @@ public indirect enum Expression: Equatable {
  *
  * Used as the value for ``Expression/functionCall(_:)``.
  */
-public struct FunctionCall: Equatable, Sendable {
+public struct FunctionCall: Equatable {
   
   /**
    * A parameter passed as part of the function call.
    */
-  public struct Parameter: Equatable, Sendable {
+  public struct Parameter: Equatable {
     
     /// The keyword/label of the parameter, can be `nil` if it is a wildcard
     /// (unlabled) parameter.
@@ -108,7 +108,7 @@ public struct FunctionCall: Equatable, Sendable {
   /**
    * A trailing closure attached to a function call.
    */
-  public struct TrailingClosure: Equatable, Sendable {
+  public struct TrailingClosure: Equatable {
     
     /// The parameter list of the trailing closure (e.g. `( a, b ) in`).
     public let parameters: [ String    ]
