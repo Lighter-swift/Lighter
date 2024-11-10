@@ -135,6 +135,7 @@ public extension CodeGenerator {
            + ">"
     }()
     var preamble = ""
+    if value.override              { preamble.append("override ") }
     if value.public && !omitPublic { preamble.append("public ")   }
     if `static`                    { preamble.append("static ")   }
     if value.mutating              { preamble.append("mutating ") }
