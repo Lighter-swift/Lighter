@@ -42,6 +42,10 @@ public indirect enum TypeReference: Equatable {
 
 public extension TypeReference {
   
+
+  /// Swift `Any`.
+  static var any         : TypeReference { .name("Any")       }
+
   /// Swift `Int`.
   static let int         = TypeReference.name("Int")
   /// Swift `String`.
