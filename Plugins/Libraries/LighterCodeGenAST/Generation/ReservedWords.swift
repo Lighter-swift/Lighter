@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 // hm, this doesn't actually work:
@@ -22,9 +22,9 @@ let SwiftReservedWords : Set<String> = [
   "if", "guard", "else", "switch", "catch", "throw",
   "true", "false", "nil", "self",
   "as", "is",
-  "async", "await",
   "typealias", "associatedtype",
   "associativity", "dynamic", "convenience", "required", "final",
   "didSet", "willSet", "get", "set",
-  "weak", "unowned"
+  "weak", "unowned",
+  "actor", "async", "await", "sending"
 ]
