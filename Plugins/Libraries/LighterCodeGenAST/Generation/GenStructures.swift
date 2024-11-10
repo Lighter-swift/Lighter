@@ -141,11 +141,14 @@ public extension CodeGenerator {
     
     do { // header
       appendIndent()
+      assert(!value.final || value.kind == .class)
       if value.public && !omitPublic { append("public ") }
+      if value.final { append("final ") }
       switch value.kind {
         case .struct : append("struct ")
         case .class  : append("class ")
         case .enum   : append("enum ")
+        case .actor  : append("actor ")
       }
       append(tickedWhenReserved(value.name))
       
@@ -167,7 +170,7 @@ public extension CodeGenerator {
       
       for nestedType in value.nestedTypes {
         writeln()
-        generateStruct(nestedType)
+        generateTypeDefinition(nestedType)
       }
       
       // Later: I'd really like to vertically align the colors and equals.

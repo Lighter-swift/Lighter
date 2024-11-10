@@ -9,7 +9,7 @@
 public struct TypeDefinition {
   
   public enum Kind: Int, Sendable {
-    case `struct`, `class`, `enum`
+    case `struct`, `class`, `enum`, `actor`
   }
 
   /**
@@ -61,9 +61,11 @@ public struct TypeDefinition {
   public var dynamicMemberLookup    = false
   /// Documentation for the structure.
   public var comment                : TypeComment?
-  /// Whether the structure is public.
+  /// Whether the type is public.
   public var `public`               : Bool
-  /// The name of the structure.
+  /// Whether a class type is final.
+  public var `final`                : Bool
+  /// The name of the type.
   public var name                   : String
   /// The types the structure conforms to, e.g. `SQLTableRecord`.
   public var conformances           : [ TypeReference ]
@@ -100,6 +102,7 @@ public struct TypeDefinition {
   /// Intialize a new struct AST node. Only the `name` is required.
   public init(dynamicMemberLookup    : Bool                           = false,
               public                 : Bool                           = true,
+              final                  : Bool                           = false,
               kind                   : Kind,
               name                   : String,
               conformances           : [ TypeReference ]              = [],
@@ -114,8 +117,10 @@ public struct TypeDefinition {
               functions              : [ FunctionDefinition ]         = [],
               comment                : TypeComment?                   = nil)
   {
+    assert(!`final` || kind == .class, "final can only be used for classes?")
     self.dynamicMemberLookup    = dynamicMemberLookup
     self.public                 = `public`
+    self.final                  = kind == .class && `final`
     self.kind                   = kind
     self.name                   = name
     self.conformances           = conformances
@@ -134,6 +139,7 @@ public struct TypeDefinition {
            "Duplicate typealias names: \(typeAliases)")
   }
 }
+
 
 
 // MARK: - Convenience
