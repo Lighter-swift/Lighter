@@ -204,3 +204,28 @@ extension EnlighterASTGenerator {
     }
   }
 }
+
+// MARK: - Date Formatting Convenience
+
+fileprivate extension Expression {
+  
+  static func formattedCurrentDate(format: String) -> Self {
+    .inlineClosureCall([
+      .let("fmt", is: .call(name: "DateFormatter")),
+      .set(instance: "fmt", "locale",
+           .call(name: "Locale", parameters: [
+            ("identifier", .string("en_US_POSIX"))
+           ])),
+      .set(instance: "fmt", "timeZone",
+           .call(name: "TimeZone", parameters: [
+            ("secondsFromGMT", .integer(0))
+           ])),
+      .set(instance: "fmt", "dateFormat", .string(format)),
+      .return(.call(instance: "fmt",
+                    name: "string",
+                    parameters: [
+                      ("from", .call(name: "Date"))
+                    ]))
+    ])
+  }
+}
