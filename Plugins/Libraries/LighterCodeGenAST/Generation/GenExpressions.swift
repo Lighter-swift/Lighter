@@ -10,7 +10,7 @@ public extension CodeGenerator {
     
     switch expression {
       case .raw, .tuple, .varargs, .compare, .and, .conditional, .flatMap,
-           .nilCoalesce, .forceUnwrap, .array:
+            .arithmetic, .nilCoalesce, .forceUnwrap, .array:
         return "(\(string(for: expression)))"
       
       case .literal, .variableReference, .variablePath,
@@ -83,6 +83,9 @@ public extension CodeGenerator {
       case .compare(let lhs, let op, let rhs):
         return "\(string(for: lhs)) \(op.rawValue) \(string(for: rhs))"
 
+      case .arithmetic(let lhs, let op, let rhs):
+        return "\(string(for: lhs)) \(op.rawValue) \(string(for: rhs))"
+
       case .and(let expressions):
         return expressions.map({ "(\(string(for: $0)))" })
                           .joined(separator: " && ")
@@ -142,7 +145,7 @@ public extension CodeGenerator {
     switch expression {
       case .raw, .literal, .variableReference, .keyPathLookup, .typeInit,
            .keyPath, .compare, .cast, .and, .conditional, .variablePath,
-           .flatMap, .nilCoalesce, .forceUnwrap:
+           .arithmetic, .flatMap, .nilCoalesce, .forceUnwrap:
         append(string(for: expression))
       
       case .tuple, .array: // indent better

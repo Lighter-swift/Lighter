@@ -9,11 +9,19 @@
 public indirect enum Expression: Equatable {
   
   /// The operators for ``compare(lhs:operator:rhs:)`` expressions.
-  public enum Operator: String, Sendable {
-    case equal              = "=="
-    case notEqual           = "!="
-    case greaterThanOrEqual = ">="
-    case lessThan           = "<"
+  public enum ComparisonOperator: String, Sendable {
+      case equal              = "=="
+      case notEqual           = "!="
+      case greaterThanOrEqual = ">="
+      case lessThan           = "<"
+  }
+
+    /// The operators for ``arithmetic(lhs:operator:rhs:)`` expressions.
+  public enum ArithmeticOperator: String, Sendable {
+    case divideBy           = "/"
+    case multiplyBy         = "*"
+    case add                = "+"
+    case subtract           = "-"
   }
   
   /// Just an arbitrary string to inject
@@ -53,8 +61,11 @@ public indirect enum Expression: Equatable {
   case varargs([ Expression ])
   
   /// `strcmp("hello", s) == 0`
-  case compare(lhs: Expression, operator: Operator, rhs: Expression)
+  case compare(lhs: Expression, operator: ComparisonOperator, rhs: Expression)
   
+  /// `a + b`
+  case arithmetic(lhs: Expression, operator: ArithmeticOperator, rhs: Expression)
+
   /// `a && b && c`
   case and([ Expression ])
   
@@ -274,10 +285,10 @@ public extension Expression {
     .compare(lhs: expression, operator: .greaterThanOrEqual, rhs: .integer(0))
   }
 
-  static func cmp(_ lhs: Expression, _ op: Operator, _ rhs: Expression) -> Self {
+  static func cmp(_ lhs: Expression, _ op: ComparisonOperator, _ rhs: Expression) -> Self {
     .compare(lhs: lhs, operator: op, rhs: rhs)
   }
-  static func cmp(_ lhs: Expression, _ op: Operator, _ rhs: Int) -> Self {
+  static func cmp(_ lhs: Expression, _ op: ComparisonOperator, _ rhs: Int) -> Self {
     .compare(lhs: lhs, operator: op, rhs: .integer(rhs))
   }
   static func isNil(_ lhs: Expression) -> Self {

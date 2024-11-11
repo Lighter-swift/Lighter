@@ -158,8 +158,14 @@ extension EnlighterASTGenerator {
           case .date:
             return .call(name: "Foundation.Date")
           case .double:
-            return .variableReference(
-              instance: "Foundation.Date()", name: "timeIntervalSince1970")
+            return .arithmetic(
+                lhs: .arithmetic(
+                    lhs: .variableReference(instance: "Foundation.Date()",
+                                            name: "timeIntervalSince1970"),
+                    operator: .divideBy,
+                    rhs: .double(86400.0)),
+                operator: .add,
+                rhs: .double(2440587.5))
           case .integer:
             return .cast(
               .variableReference(
