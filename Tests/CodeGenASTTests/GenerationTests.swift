@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 import XCTest
@@ -86,7 +86,7 @@ final class GenerationTests: XCTestCase {
   }
   
   func testEmptyPublicStruct() {
-    let s = Struct(public: true, name: "RecordTypes")
+    let s = TypeDefinition(public: true, kind: .struct, name: "RecordTypes")
     
     let source : String = {
       let builder = CodeGenerator()
@@ -106,9 +106,9 @@ final class GenerationTests: XCTestCase {
   }
   
   func testExtensionWithStruct() {
-    let s   = Struct(public: true, name: "RecordTypes")
+    let s   = TypeDefinition(public: true, kind: .struct, name: "RecordTypes")
     let ext = Extension(extendedType: .name("SQLDatabaseFetchOperations"),
-                        structures: [ s ])
+                        typeDefinitions: [ s ])
     
     let source : String = {
       let builder = CodeGenerator()
@@ -264,8 +264,8 @@ final class GenerationTests: XCTestCase {
       )
     }
     
-    let schemaStruct = Struct(
-      public: true, name: "Schema",
+    let schemaStruct = TypeDefinition(
+      public: true, kind: .struct, name: "Schema",
       conformances: [ .name("SQLKeyedTableSchema"),
                       .name("SQLSwiftMatchableSchema") ],
       typeAliases: [
@@ -420,7 +420,7 @@ final class GenerationTests: XCTestCase {
     )
     
     let ext = Extension(extendedType: .name("Person"),
-                        structures: [ schemaStruct ])
+                        typeDefinitions: [ schemaStruct ])
     
     let source : String = {
       let builder = CodeGenerator()

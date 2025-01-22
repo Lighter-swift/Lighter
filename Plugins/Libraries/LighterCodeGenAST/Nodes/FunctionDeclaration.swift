@@ -21,6 +21,8 @@
  */
 public struct FunctionDeclaration: Equatable {
   
+  /// Does the function override another one (classes only).
+  public let `override`            : Bool
   /// Is the function public?
   public let `public`              : Bool
   /// Is the property mutating its associated type.
@@ -47,7 +49,8 @@ public struct FunctionDeclaration: Equatable {
   public let genericConstraints    : [ GenericConstraint ] // e.g. `C1: SQLColumn`
   
   /// Initialize a new function declaration.
-  public init(`public`              : Bool = true,
+  public init(`override`            : Bool = false,
+              `public`              : Bool = true,
               `mutating`            : Bool = false,
               name                  : String,
               genericParameterNames : [ String            ] = [],
@@ -58,6 +61,7 @@ public struct FunctionDeclaration: Equatable {
               returnType            : TypeReference         = .void,
               genericConstraints    : [ GenericConstraint ] = [])
   {
+    self.override              = `override`
     self.public                = `public`
     self.mutating              = `mutating`
     self.name                  = name

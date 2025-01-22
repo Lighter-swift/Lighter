@@ -48,7 +48,10 @@ public enum Statement: Equatable {
   
   /// A `return xyz` statement.
   case `return`(Expression)
-  
+
+  /// A `throw xyz` statement.
+  case `throw`(Expression)
+
   /// A `for` loop going over a range (`for x in 1...10`).
   case forInRange(counter: String, from: Expression, to: Expression,
                   statements: [ Statement ])
@@ -59,7 +62,11 @@ public enum Statement: Equatable {
   
   /// An `if x else if y else if z` sequence, with associated statement arrays.
   case ifElseSwitch([ ConditionStatementPair ])
-  
+
+  /// An `switch x { case ... }, with associated statement and optional
+  /// default-case arrays.
+  case `switch`(Expression, [ ConditionStatementPair ], default: [ Statement ])
+
   /// An `if let x {} else {}` statement.
   case ifLetElse(String, Expression, [ Statement ] , `else`: [ Statement ])
   
@@ -171,6 +178,15 @@ public extension Statement {
   {
     .call(try: `try`, await: `await`, instance: instance, name: name,
           parameters: parameters.map { ( nil, $0 ) })
+  }
+  
+  static func `throw`(instance: String?, _ name: String,
+                      _ parameters : Expression...) -> Self
+  {
+    .throw(.call(
+      instance: instance,
+      name: name,
+      parameters: parameters.map { ( nil, $0 ) }))
   }
 }
 

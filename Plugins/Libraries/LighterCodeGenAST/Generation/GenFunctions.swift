@@ -135,6 +135,7 @@ public extension CodeGenerator {
            + ">"
     }()
     var preamble = ""
+    if value.override              { preamble.append("override ") }
     if value.public && !omitPublic { preamble.append("public ")   }
     if `static`                    { preamble.append("static ")   }
     if value.mutating              { preamble.append("mutating ") }
@@ -271,35 +272,52 @@ public extension CodeGenerator {
     append(string(for: value.type))
         
     let allowSingleReturn = true // make an option?
-    if allowSingleReturn && value.statements.count == 1,
-       value.setStatements.isEmpty,
-       let statement = value.statements.first,
-       case .return(let expression) = statement
-    {
-      append(" { ")
-      appendExpression(expression)
-      append(" }")
-      appendEOL()
-    }
-    else {
-      if value.setStatements.isEmpty {
-        indentedCodeBlock {
-          generateStatements(value.statements, allowSingleReturn: true)
+    
+    func genStatements(_ statements: [ Statement ]) {
+      if allowSingleReturn && statements.count == 1,
+         let statement = statements.first,
+         case .return(let expression) = statement
+      {
+        append(" { ")
+        appendExpression(expression)
+        append(" }")
+        appendEOL()
+      }
+      else if statements.count == 1,
+              let statement = statements.first,
+              case .variableAssignment(let instance, let name, let value)
+                = statement
+      {
+        append(" { ")
+        if let instance = instance {
+          append(instance) // "self" can be used here
+          append(".")
         }
+        append(tickedWhenReserved(name))
+        append(configuration.propertyValueSeparator) // " = "
+        appendExpression(value)
+        append(" }")
+        appendEOL()
       }
       else {
         indentedCodeBlock {
-          appendIndent()
-          append("set")
-          indentedCodeBlock {
-            generateStatements(value.setStatements, allowSingleReturn: true)
-          }
-          appendIndent()
-          append("get")
-          indentedCodeBlock {
-            generateStatements(value.statements, allowSingleReturn: true)
-          }
+          generateStatements(statements, allowSingleReturn: allowSingleReturn)
         }
+      }
+    }
+    
+    if value.setStatements.isEmpty {
+      genStatements(value.statements)
+    }
+    else {
+      indentedCodeBlock {
+        appendIndent()
+        append("set")
+        genStatements(value.setStatements)
+        
+        appendIndent()
+        append("get")
+        genStatements(value.statements)
       }
     }
     

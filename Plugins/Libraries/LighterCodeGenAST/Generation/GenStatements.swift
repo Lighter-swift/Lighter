@@ -57,7 +57,12 @@ public extension CodeGenerator {
         append("return ")
         appendExpression(expression)
         appendEOLIfMissing()
-      
+      case .`throw`(let expression):
+        appendIndent()
+        append("throw ")
+        appendExpression(expression)
+        appendEOLIfMissing()
+
       case .forInRange(let counter, let from, let to, let stmts):
         appendIndent()
         append("for \(counter) in \(string(for: from))..<\(string(for: to))")
@@ -72,6 +77,46 @@ public extension CodeGenerator {
         }
       case .break: writeln("break")
 
+      case .`switch`(let expression, let pairs, let def):
+        assert(!pairs.isEmpty)
+        
+        func generateCaseStatements(_ statements: [ Statement ]) {
+          if statements.count == 1, let stmt = statements.first {
+            switch stmt {
+              case .return(let expression):
+                append(" return ")
+                appendExpression(expression)
+                appendEOLIfMissing()
+                return
+              case .throw(let expression):
+                append(" throw ")
+                appendExpression(expression)
+                appendEOLIfMissing()
+                return
+              default: break
+            }
+          }
+          appendEOL()
+          indent {
+            generateStatements(statements)
+          }
+        }
+        
+        appendIndent()
+        append("switch ")
+        appendExpression(expression)
+        indentedCodeBlock {
+          for pair in pairs {
+            appendIndent()
+            append("case \(string(for: pair.condition)):")
+            generateCaseStatements(pair.statements)
+          }
+          if !def.isEmpty {
+            appendIndent()
+            append("default:")
+            generateCaseStatements(def)
+          }
+        }
       case .ifElseSwitch(let pairs):
         assert(!pairs.isEmpty)
         var isFirst = true

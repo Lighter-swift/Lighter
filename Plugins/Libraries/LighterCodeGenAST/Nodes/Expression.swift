@@ -194,7 +194,16 @@ public extension Expression {
   static func variable(_ name: String) -> Self {
     .variableReference(instance: nil, name: name)
   }
-  
+
+  /// A variable (inout) reference, e.g. `&self.sql`.
+  static func variableRef(_ instance: String, _ name: String) -> Self {
+    .raw("&\(instance).\(name)") // TODO: add expr
+  }
+  /// A variable (inout) reference, e.g. `&self.sql`.
+  static func variableRef(_ name: String) -> Self {
+    .raw("&\(name)") // TODO: add expr
+  }
+
   /// A KeyPath expression.
   static func keyPath(_ baseType: TypeReference? = nil, _ property: String)
               -> Self
@@ -290,6 +299,7 @@ public extension Expression {
     .conditional(condition: condition, true: `true`, false: `false`)
   }
 }
+
 
 #if swift(>=5.5)
 extension Expression                   : Sendable {}

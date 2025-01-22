@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -18,9 +18,9 @@ public extension CodeGenerator {
       generateFunctionDefinition(function)
     }
 
-    for structure in unit.structures {
+    for typeDefinition in unit.typeDefinitions {
       writeln()
-      generateStruct(structure)
+      generateTypeDefinition(typeDefinition)
     }
 
     for ext in unit.extensions {

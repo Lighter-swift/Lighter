@@ -36,9 +36,9 @@ final class BuilderTests: XCTestCase {
   }
   
   func testExtensionWithNestedStruct() {
-    let s    = Struct(name: "RecordTypes")
+    let s    = TypeDefinition(kind: .struct, name: "RecordTypes")
     let ext  = Extension(extendedType: .name("SQLDatabaseFetchOperations"),
-                         structures: [ s ])
+                         typeDefinitions: [ s ])
     let unit =
       CompilationUnit(name: "GeneratedSelectOperations", extensions: [ ext ])
 

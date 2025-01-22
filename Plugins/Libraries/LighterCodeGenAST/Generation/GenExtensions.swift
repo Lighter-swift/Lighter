@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2024 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -23,10 +23,16 @@ public extension CodeGenerator {
     }
 
     appendIndent()
-    if value.public { append("public ") }
+    if value.public && value.conformances.isEmpty { append("public ") }
     append("extension ")
     append(string(for: value.extendedType))
     
+    if !value.conformances.isEmpty {
+      append(configuration.typeConformanceSeparator) // " : "
+      append(value.conformances.map(string(for:))
+        .joined(separator: configuration.identifierListSeparator))
+    }
+
     if !value.genericConstraints.isEmpty {
       let constraints = value.genericConstraints.map({ string(for: $0) })
         .joined(separator: configuration.identifierListSeparator)
@@ -42,9 +48,17 @@ public extension CodeGenerator {
     }
 
     indent {
-      for structure in value.structures {
+      for typeDefinition in value.typeDefinitions {
         writeln()
-        generateStruct(structure, omitPublic: value.public)
+        generateTypeDefinition(typeDefinition, omitPublic: value.public)
+      }
+      
+      var lastHadComment = false
+      if !value.typeVariables.isEmpty { writeln() }
+      for variable in value.typeVariables {
+        if lastHadComment { writeln() }
+        generateInstanceVariable(variable, static: true)
+        lastHadComment = variable.comment != nil
       }
 
       for function in value.typeFunctions {

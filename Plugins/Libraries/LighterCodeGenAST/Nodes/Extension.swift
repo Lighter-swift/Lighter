@@ -14,6 +14,8 @@ public struct Extension {
   public var `public`            : Bool
   /// What type is the extension on? E.g. `Person`.
   public var extendedType        : TypeReference
+  /// The types the structure conforms to, e.g. `SQLTableRecord`.
+  public var conformances        : [ TypeReference ]
   /// Generic constraints to make the extension apply,
   /// e.g. `where RecordTypes == MyDatabase.RecordTypes`
   public var genericConstraints  : [ GenericConstraint ]
@@ -21,8 +23,13 @@ public struct Extension {
   // MARK: - Types
   
   /// The structures added to the ``extendedType``.
-  public var structures          : [ Struct ]
+  public var typeDefinitions     : [ TypeDefinition ]
   
+  // MARK: - Variables
+  
+  /// The type variables of the structure (i.e. `static let xyz` etc).
+  public var typeVariables          : [ TypeDefinition.InstanceVariable ]
+
   // MARK: - Functions
   
   /// Type functions, i.e. `static` ones, added by the extension.
@@ -38,17 +45,21 @@ public struct Extension {
 
   /// Initialize a new extension AST node.
   public init(extendedType        : TypeReference,
+              conformances        : [ TypeReference ]      = [],
               `public`            : Bool                   = true,
               genericConstraints  : [ GenericConstraint ]  = [],
-              structures          : [ Struct ]             = [],
+              typeDefinitions     : [ TypeDefinition ]                  = [],
+              typeVariables       : [ TypeDefinition.InstanceVariable ] = [],
               typeFunctions       : [ FunctionDefinition ] = [],
               functions           : [ FunctionDefinition ] = [],
               minimumSwiftVersion : ( major: Int, minor: Int )? = nil,
               requiredImports     : [ String ] = [])
   {
-    self.public              = `public`
+    self.public              = `public` && conformances.isEmpty
     self.extendedType        = extendedType
-    self.structures          = structures
+    self.conformances        = conformances
+    self.typeDefinitions     = typeDefinitions
+    self.typeVariables       = typeVariables
     self.typeFunctions       = typeFunctions
     self.functions           = functions
     self.genericConstraints  = genericConstraints
@@ -56,8 +67,9 @@ public struct Extension {
     self.requiredImports     = requiredImports
   }
   
+  @inlinable
   public var isEmpty : Bool {
-    functions.isEmpty && structures.isEmpty && typeFunctions.isEmpty
+    functions.isEmpty && typeDefinitions.isEmpty && typeFunctions.isEmpty
   }
 }
 
