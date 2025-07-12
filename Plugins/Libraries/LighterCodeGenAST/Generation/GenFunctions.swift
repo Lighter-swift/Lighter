@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -135,10 +135,19 @@ public extension CodeGenerator {
            + ">"
     }()
     var preamble = ""
-    if value.override              { preamble.append("override ") }
-    if value.public && !omitPublic { preamble.append("public ")   }
-    if `static`                    { preamble.append("static ")   }
-    if value.mutating              { preamble.append("mutating ") }
+    if value.flags.contains(.override) { preamble.append("override ") }
+    if value.flags.contains(.required) { preamble.append("required ") }
+
+    switch value.visibility {
+      case .public: if !omitPublic { preamble.append("public ") }
+      case .fileprivate, .private:
+        preamble.append("\(value.visibility.rawValue) ")
+      case .internal: break // default
+    }
+
+    if `static`                        { preamble.append("static ")   }
+    if value.flags.contains(.mutating) { preamble.append("mutating ") }
+    if value.flags.contains(.convenience) { preamble.append("convenience ") }
     if value.name != "init" && value.name != "deinit" {
       preamble.append("func ")
       preamble.append(tickedWhenReserved(value.name))
@@ -153,10 +162,14 @@ public extension CodeGenerator {
     let returnSuffix   : String = {
       var s = ""
       
-      if value.async  { s += "async" }
+      if value.flags.contains(.async)  { s += "async" }
       
-      if      value.throws   { if !s.isEmpty { s += " " }; s += "throws"   }
-      else if value.rethrows { if !s.isEmpty { s += " " }; s += "rethrows" }
+      if      value.flags.contains(.throws)   {
+        if !s.isEmpty { s += " " }; s += "throws"
+      }
+      else if value.flags.contains(.rethrows) {
+        if !s.isEmpty { s += " " }; s += "rethrows"
+      }
       
       if value.returnType != .void {
         if !s.isEmpty { s += " " }
@@ -231,7 +244,8 @@ public extension CodeGenerator {
     if let comment = value.comment {
       generateFunctionComment(comment)
     }
-    if value.inlinable && !configuration.neverInline && value.declaration.public
+    if value.inlinable && !configuration.neverInline &&
+       value.declaration.visibility == .public
     {
       writeln("@inlinable")
     }
@@ -259,13 +273,30 @@ public extension CodeGenerator {
     }
     
     writePropertyComment(value.comment)
-    if value.inlinable && !configuration.neverInline && value.public {
+    if value.flags.contains(.inlinable) && !configuration.neverInline &&
+       value.visibility == .public
+    {
       writeln("@inlinable")
     }
     
     appendIndent()
-    if value.public && !omitPublic { append("public ") }
+    if value.flags.contains(.override) { append("override ") }
+    switch value.visibility {
+      case .public: if !omitPublic { append("public ") }
+      case .fileprivate, .private: append("\(value.visibility.rawValue) ")
+      case .internal: break // default
+    }
+
     if `static` { append("static ") }
+    
+    func appendExtraFlags() {
+      if value.flags.contains(.mutating) { append("mutating ") }
+      if value.flags.contains(.async)    { append("async ")    }
+      if value.flags.contains(.throws)   { append("throwing ") }
+    }
+    
+    if value.setStatements.isEmpty { appendExtraFlags() }
+    
     append("var ")
     append(tickedWhenReserved(value.name))
     append(configuration.propertyTypeSeparator) // " : "
@@ -312,10 +343,12 @@ public extension CodeGenerator {
     else {
       indentedCodeBlock {
         appendIndent()
+        appendExtraFlags()
         append("set")
         genStatements(value.setStatements)
         
         appendIndent()
+        appendExtraFlags()
         append("get")
         genStatements(value.statements)
       }

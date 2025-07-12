@@ -1,7 +1,15 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
+
+public enum Visibility: String, Sendable {
+  // TBD: move even higher?
+  case `public`
+  case `fileprivate`
+  case `internal`
+  case `private`
+}
 
 /**
  * An AST node representing a Swift structure type.
@@ -11,47 +19,76 @@ public struct TypeDefinition {
   public enum Kind: Int, Sendable {
     case `struct`, `class`, `enum`, `actor`
   }
+  
+  public struct Case: Sendable, Equatable {
+    
+    public var name  : String
+    public var value : Expression?
+    
+    @inlinable
+    public init(name: String, value: Expression? = nil) {
+      self.name  = name
+      self.value = value
+    }
+  }
 
   /**
-   * An instance variable of a ``Struct``.
+   * An instance variable of a ``TypeDefinition``.
    */
   public struct InstanceVariable: Sendable {
-        
+    
+    public struct Flags: OptionSet, Sendable {
+      public let rawValue: UInt16
+
+      @inlinable
+      public init(rawValue: UInt16) { self.rawValue = rawValue }
+      
+      public static let `nonIsolatedUnsafe`   = Self(rawValue: 1 << 14)
+    }
+
     /// Whether the definition is `nonisolated(unsafe)`, requires Swift 5.10+
-    public var nonIsolatedUnsafe      : Bool
+    public var flags      : Flags
     /// Is the property public?
-    public var `public` : Bool
+    public var visibility : Visibility
     /// Is the property readonly.
-    public var `let`    : Bool
+    public var `let`      : Bool
     /// The name of the property.
-    public var name     : String
+    public var name       : String
     /// The type of the property, e.g. `.integer`, if it can't be derived from
     /// the ``value``. Either must be set.
-    public var type     : TypeReference?
+    public var type       : TypeReference?
     /// The value of the property, if set.
-    public var value    : Expression?
+    public var value      : Expression?
     /// A comment for the property.
-    public var comment  : String?
+    public var comment    : String?
 
     /// If set, the property is wrapped in an `#if swift(>=major.minor)`.
     public var minimumSwiftVersion : ( major: Int, minor: Int )?
 
     /// Initialize a new instance variable node.
     public init(nonIsolatedUnsafe: Bool = false,
+                override   : Bool = false,
+                async      : Bool = false,
+                mutating   : Bool = false,
+                throwing   : Bool = false,
+                visibility : Visibility? = nil,
                 public: Bool = true, `let`: Bool = true,
                 _ name: String,
                 type: TypeReference? = nil, value: Expression? = nil,
                 minimumSwiftVersion : ( major: Int, minor: Int )? = nil,
                 comment: String? = nil)
     {
-      self.public              = `public`
+      var flags = Flags()
+      if nonIsolatedUnsafe  { flags.insert(.nonIsolatedUnsafe)    }
+      
+      self.flags               = flags
+      self.visibility          = visibility ?? (`public` ? .public : .internal)
       self.let                 = `let`
       self.name                = name
       self.type                = type
       self.value               = value
       self.minimumSwiftVersion = minimumSwiftVersion
       self.comment             = comment
-      self.nonIsolatedUnsafe   = nonIsolatedUnsafe
     }
   }
 
@@ -97,6 +134,10 @@ public struct TypeDefinition {
   public var typeFunctions          : [ FunctionDefinition ]
   /// The instance functions of the structure (i.e. `func xyz()`).
   public var functions              : [ FunctionDefinition ]
+  
+  // MARK: - Enums
+  
+  public var cases : [ Case ]
 
   
   /// Intialize a new struct AST node. Only the `name` is required.
@@ -108,7 +149,8 @@ public struct TypeDefinition {
               conformances           : [ TypeReference ]              = [],
               typeAliases            : [ ( name: String, type: TypeReference ) ]
                                      = [],
-              nestedTypes            : [ TypeDefinition ]             = [],
+              nestedTypes            : [ TypeDefinition     ]         = [],
+              cases                  : [ Case               ]         = [],
               typeVariables          : [ InstanceVariable   ]         = [],
               variables              : [ InstanceVariable   ]         = [],
               computedTypeProperties : [ ComputedPropertyDefinition ] = [],
@@ -117,7 +159,9 @@ public struct TypeDefinition {
               functions              : [ FunctionDefinition ]         = [],
               comment                : TypeComment?                   = nil)
   {
-    assert(!`final` || kind == .class, "final can only be used for classes?")
+    assert(kind == .enum  || cases.isEmpty)
+    assert(kind == .class || final == false,
+           "final can only be used for classes?")
     self.dynamicMemberLookup    = dynamicMemberLookup
     self.public                 = `public`
     self.final                  = kind == .class && `final`
@@ -133,6 +177,7 @@ public struct TypeDefinition {
     self.typeFunctions          = typeFunctions
     self.functions              = functions
     self.comment                = comment
+    self.cases                  = kind == .enum ? cases : []
     
     // Note: We do not use a Dictionary to keep the sorting stable.
     assert(Set(typeAliases.map(\.name)).count == typeAliases.count,
@@ -167,13 +212,22 @@ public extension TypeDefinition.InstanceVariable {
   }
 
   /// Initialize a new instance variable node for a `var`.
-  static func `var`(public: Bool = true, _ name: String,
+  static func `var`(nonIsolatedUnsafe: Bool = false,
+                    override   : Bool = false,
+                    async      : Bool = false,
+                    mutating   : Bool = false,
+                    throwing   : Bool = false,
+                    visibility : Visibility? = nil,
+                    public: Bool = true, _ name: String,
                     type: TypeReference? = nil,
                     is value: Expression,
                     comment: String? = nil)
               -> Self
   {
-    .init(public: `public`, let: false, name, type: type, value: value,
+    .init(nonIsolatedUnsafe: nonIsolatedUnsafe,
+          override: override, async: async, mutating: mutating,
+          throwing: throwing, visibility: visibility,
+          public: `public`, let: false, name, type: type, value: value,
           comment: comment)
   }
   

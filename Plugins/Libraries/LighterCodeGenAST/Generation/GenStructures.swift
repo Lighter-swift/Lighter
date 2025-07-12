@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -14,8 +14,14 @@ public extension CodeGenerator {
     assert(value.type != nil || value.value != nil)
     
     func writeBody() {
-      if value.public && !omitPublic { append("public ") }
+      switch value.visibility {
+        case .public: if !omitPublic { append("public ") }
+        case .fileprivate, .private: append("\(value.visibility.rawValue) ")
+        case .internal: break // default
+      }
+      
       if `static` { append("static ") }
+            
       append(value.let ? "let " : "var ")
       append(tickedWhenReserved(value.name))
       if let type = value.type {
@@ -45,7 +51,7 @@ public extension CodeGenerator {
       }
     }
     
-    if value.nonIsolatedUnsafe {
+    if value.flags.contains(.nonIsolatedUnsafe) {
       if let ( major, minor ) = value.minimumSwiftVersion,
          (major > 5) || (major >= 5 && minor >= 10)
       {
@@ -171,6 +177,17 @@ public extension CodeGenerator {
       for nestedType in value.nestedTypes {
         writeln()
         generateTypeDefinition(nestedType)
+      }
+      
+      if !value.cases.isEmpty { writeln() }
+      for theCase in value.cases {
+        let name = theCase.name
+        if let value = theCase.value {
+          writeln("case \(tickedWhenReserved(name)) = \(string(for: value))")
+        }
+        else {
+          writeln("case \(tickedWhenReserved(name))")
+        }
       }
       
       // Later: I'd really like to vertically align the colors and equals.
