@@ -1,9 +1,15 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
+  
+  static func generateUnit(_ unit: CompilationUnit) -> String {
+    let builder = Self()
+    builder.generateUnit(unit)
+    return builder.source
+  }
   
   func generateUnit(_ unit: CompilationUnit) {
     for imp in unit.reexports {
