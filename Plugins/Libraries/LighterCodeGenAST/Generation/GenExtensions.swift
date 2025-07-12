@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -57,7 +57,8 @@ public extension CodeGenerator {
       if !value.typeVariables.isEmpty { writeln() }
       for variable in value.typeVariables {
         if lastHadComment { writeln() }
-        generateInstanceVariable(variable, static: true)
+        generateInstanceVariable(variable, static: true,
+                                 omitPublic: value.public)
         lastHadComment = variable.comment != nil
       }
 
