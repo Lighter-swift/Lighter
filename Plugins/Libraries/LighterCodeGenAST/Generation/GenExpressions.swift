@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 public extension CodeGenerator {
@@ -10,7 +10,7 @@ public extension CodeGenerator {
     
     switch expression {
       case .raw, .tuple, .varargs, .compare, .and, .conditional, .flatMap,
-           .nilCoalesce, .forceUnwrap, .array:
+           .nilCoalesce, .forceUnwrap, .array, .dictionary:
         return "(\(string(for: expression)))"
       
       case .literal, .variableReference, .variablePath,
@@ -56,6 +56,12 @@ public extension CodeGenerator {
         if expressions.isEmpty { return "[]" }
         return "[ "
              + expressions.map({ string(for: $0) }).joined(separator: ", ")
+             + " ]"
+      case .dictionary(let pairs):
+        if pairs.isEmpty { return "[:]" }
+        return "[ "
+             + pairs.map({ string(for: $0.lhs) + " : " + string(for: $0.rhs) })
+                    .joined(separator: ", ")
              + " ]"
       case .varargs(let expressions):
         return expressions.map({ string(for: $0) }).joined(separator: ", ")
@@ -145,7 +151,7 @@ public extension CodeGenerator {
            .flatMap, .nilCoalesce, .forceUnwrap:
         append(string(for: expression))
       
-      case .tuple, .array: // indent better
+      case .tuple, .array, .dictionary: // indent better
         append(string(for: expression))
       case .varargs: // indent better
         append(string(for: expression))

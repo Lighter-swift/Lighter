@@ -81,7 +81,7 @@ public final class CodeGenerator {
   }
   
   /// The configuration of the code generation.
-  public let configuration : Configuration
+  public       let configuration    : Configuration
   
   /// The generated Swift source code.
   public       var source           = ""
