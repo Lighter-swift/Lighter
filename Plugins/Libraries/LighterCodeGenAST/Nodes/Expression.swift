@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 /**
@@ -175,6 +175,13 @@ public extension Expression {
   @inlinable
   static func string (_ value: String) -> Self { .literal(.string (value)) }
 
+  /// A literal string (`"Them Bones"`).
+  @inlinable
+  static func string(_ value: String?) -> Self {
+    if let value = value { return string(value) }
+    else { return .nil }
+  }
+
   /// An array of `UInt8` integers (i.e. a data literal).
   @inlinable
   static func integerArray(_ value: [ UInt8 ]) -> Self {
@@ -299,7 +306,6 @@ public extension Expression {
     .conditional(condition: condition, true: `true`, false: `false`)
   }
 }
-
 
 #if swift(>=5.5)
 extension Expression                   : Sendable {}
