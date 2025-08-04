@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 /**
@@ -14,6 +14,20 @@ public indirect enum Expression: Equatable {
     case notEqual           = "!="
     case greaterThanOrEqual = ">="
     case lessThan           = "<"
+  }
+  
+  public struct Pair<T1, T2>: Equatable, Sendable
+    where T1: Equatable & Sendable, T2: Equatable & Sendable
+  {
+    // Just exists because tuples do not conform to Equatable?
+    public var lhs : T1
+    public var rhs : T2
+    
+    @inlinable
+    public init(_ lhs: T1, _ rhs: T2) {
+      self.lhs = lhs
+      self.rhs = rhs
+    }
   }
   
   /// Just an arbitrary string to inject
@@ -48,6 +62,9 @@ public indirect enum Expression: Equatable {
 
   /// `[ 10, 20 ]`
   case array([ Expression ])
+
+  /// `[ 10: "hello", 20: "world" ]`
+  case dictionary([ Pair<Expression, Expression> ])
 
   /// `10, 20, 30`
   case varargs([ Expression ])
@@ -175,6 +192,13 @@ public extension Expression {
   @inlinable
   static func string (_ value: String) -> Self { .literal(.string (value)) }
 
+  /// A literal string (`"Them Bones"`).
+  @inlinable
+  static func string(_ value: String?) -> Self {
+    if let value = value { return string(value) }
+    else { return .nil }
+  }
+
   /// An array of `UInt8` integers (i.e. a data literal).
   @inlinable
   static func integerArray(_ value: [ UInt8 ]) -> Self {
@@ -299,7 +323,6 @@ public extension Expression {
     .conditional(condition: condition, true: `true`, false: `false`)
   }
 }
-
 
 #if swift(>=5.5)
 extension Expression                   : Sendable {}

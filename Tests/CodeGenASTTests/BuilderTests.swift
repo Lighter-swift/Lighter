@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 import XCTest
@@ -14,13 +14,13 @@ final class BuilderTests: XCTestCase {
     XCTAssertEqual(f.name, "select")
     XCTAssertEqual(f.genericParameterNames.count, 3)
     XCTAssertEqual(f.parameters.count, 5)
-    XCTAssertTrue (f.throws)
+    XCTAssertTrue (f.flags.contains(.throws))
     XCTAssertEqual(f.genericConstraints.count, 4)
   }
   
   func testFunctionDefinition() {
     let f = Fixtures.makeSelectDefinition()
-    XCTAssertTrue(f.declaration.throws)
+    XCTAssertTrue(f.declaration.flags.contains(.throws))
   }
   
   func testUnitWithExtension() {

@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 /**
@@ -12,7 +12,7 @@
 public struct CompilationUnit {
   
   /// The (file)name of the unit.
-  public let name       : String
+  public let name       : String?
   
   /// A set of imports, e.g. `[ Foundation, SQLite3 ]`
   public var imports    : [ String ]
@@ -27,7 +27,7 @@ public struct CompilationUnit {
   public var extensions      : [ Extension ]
 
   /// Initialize a new CompilationUnit, only name and extensions are required.
-  public init(name            : String,
+  public init(name            : String?                = nil,
               imports         : [ String             ] = [],
               typeDefinitions : [ TypeDefinition     ] = [],
               functions       : [ FunctionDefinition ] = [],
