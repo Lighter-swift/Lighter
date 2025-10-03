@@ -13,7 +13,7 @@ jobs:
         image:
           - swift:5.9.2-focal
           - swift:5.10-jammy
-          - swift:6.0-noble
+          - swift:6.2-jammy
     container: ${{ matrix.image }}
     steps:
       - name: Install SQLite
