@@ -22,8 +22,6 @@ jobs:
           apt-get -y -qq install libsqlite3-dev
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Install Override Package.swift
-        run: cp .github/_support/Package.swift .github/_support/Package\@swift-5.swift .
       - name: Build Swift Debug Package
         run: swift build -c debug
       - name: Build Swift Release Package
@@ -41,8 +39,6 @@ jobs:
         uses: actions/checkout@v4
       - name: Log Swift Version
         run: swift --version
-      - name: Install Override Package.swift
-        run: cp .github/_support/Package.swift .github/_support/Package\@swift-5.swift .
       - name: Build Swift Debug Package
         run: swift build -c debug
       - name: Build Swift Release Package
