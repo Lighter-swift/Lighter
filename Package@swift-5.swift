@@ -1,37 +1,36 @@
-// swift-tools-version:6.0
+// swift-tools-version:5.9
 
 import PackageDescription
 
-#if swift(>=5.10)
-let settings = [ SwiftSetting.enableExperimentalFeature("StrictConcurrency") ]
-#else
-let settings = [ SwiftSetting ]()
-#endif
+let settings: [ SwiftSetting ] = [
+  .enableExperimentalFeature("StrictConcurrency")
+]
 
 var package = Package(
   name: "Lighter",
 
-  platforms: [ 
+  platforms: [
     .macOS(.v10_15), .iOS(.v13), .visionOS(.v1), .watchOS(.v7), .tvOS(.v12)
   ],
-  
+
   products: [
     .library(name: "Lighter",         targets: [ "Lighter"       ]),
     .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
 
     .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ]),
-    
+
     .plugin(name: "Enlighter",        targets: [ "Enlighter"     ]),
     .plugin(name: "Generate Code for SQLite",
             targets: [ "Generate Code for SQLite" ])
   ],
-  
+
   targets: [
     .systemLibrary(name: "SQLite3",
                    path: "Sources/SQLite3-Linux",
                    providers: [ .apt(["libsqlite3-dev"]) ]),
-    
-    // A small library used to fetch schema information from SQLite3 databases.
+
+    // A small library used to fetch schema information from SQLite3
+    // databases.
     .target(name: "SQLite3Schema",
             dependencies: [
               .target(name: "SQLite3",
@@ -40,12 +39,12 @@ var package = Package(
                       ])),
             ],
             exclude: [ "README.md" ]),
-    
+
     // Lighter is a shared lib providing common protocols used by Enlighter
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter", 
+    .target(name: "Lighter",
             dependencies: [
               .target(name: "SQLite3",
                       condition: .when(platforms: [
@@ -56,13 +55,13 @@ var package = Package(
 
 
     // MARK: - Plugin Support
-    
+
     // The CodeGenAST is a small and hacky helper lib that can format/render
     // Swift source code.
     .target(name    : "LighterCodeGenAST",
             path    : "Plugins/Libraries/LighterCodeGenAST",
             exclude : [ "README.md" ], swiftSettings: settings),
-    
+
     // This library contains all the code generation, to be used by different
     // clients.
     .target(name         : "LighterGeneration",
@@ -71,17 +70,19 @@ var package = Package(
             exclude      : [ "README.md", "LighterConfiguration/README.md" ],
             swiftSettings: settings),
 
-    
+
     // MARK: - Tests
-    
-    .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ]),
-    .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
+
+    .testTarget(name: "CodeGenASTTests",
+                dependencies: [ "LighterCodeGenAST" ]),
+    .testTarget(name: "EntityGenTests",
+                dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "ContactsDatabaseTests", dependencies: [ "Lighter" ],
                 exclude: [ "contacts-create.sql" ]),
 
-    
+
     // MARK: - Plugins and supporting Tools
 
     .executableTarget(name         : "sqlite2swift",
@@ -91,7 +92,7 @@ var package = Package(
 
     .plugin(name: "Enlighter", capability: .buildTool(),
             dependencies: [ "sqlite2swift" ]),
-    
+
     .plugin(
       name: "Generate Code for SQLite",
       capability: .command(
@@ -109,9 +110,9 @@ var package = Package(
         path: "Plugins/GenerateCodeForSQLite"
     ),
 
-    
+
     // MARK: - Internal Plugin for Generating Variadics
-    
+
     .executableTarget(name         : "GenerateInternalVariadics",
                       dependencies : [ "LighterCodeGenAST",
                                        "LighterGeneration" ],
@@ -133,8 +134,8 @@ var package = Package(
       dependencies: [ "GenerateInternalVariadics" ],
       path: "Plugins/WriteInternalVariadics"
     ),
-    
-    
+
+
     // MARK: - Environment specific tests
     .testTarget(name: "FiveThirtyEightTests",
                 dependencies: [ "LighterGeneration" ]),

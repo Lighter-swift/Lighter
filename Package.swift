@@ -1,13 +1,6 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 
 import PackageDescription
-
-#if swift(>=5.10)
-// Enable strict concurrency for Swift 5.10+.
-let settings = [ SwiftSetting.enableExperimentalFeature("StrictConcurrency") ]
-#else
-let settings = [ SwiftSetting ]()
-#endif
 
 var package = Package(
   name: "Lighter",
@@ -32,7 +25,8 @@ var package = Package(
                    path: "Sources/SQLite3-Linux",
                    providers: [ .apt(["libsqlite3-dev"]) ]),
 
-    // A small library used to fetch schema information from SQLite3 databases.
+    // A small library used to fetch schema information from SQLite3
+    // databases.
     .target(name: "SQLite3Schema",
             dependencies: [
               .target(name: "SQLite3",
@@ -52,8 +46,7 @@ var package = Package(
                       condition: .when(platforms: [
                         .linux, .android, .windows, .openbsd
                       ])),
-            ],
-            swiftSettings: settings),
+            ]),
 
 
     // MARK: - Plugin Support
@@ -62,15 +55,14 @@ var package = Package(
     // Swift source code.
     .target(name    : "LighterCodeGenAST",
             path    : "Plugins/Libraries/LighterCodeGenAST",
-            exclude : [ "README.md" ], swiftSettings: settings),
+            exclude : [ "README.md" ]),
 
     // This library contains all the code generation, to be used by different
     // clients.
     .target(name         : "LighterGeneration",
             dependencies : [ "LighterCodeGenAST", "SQLite3Schema" ],
             path         : "Plugins/Libraries/LighterGeneration",
-            exclude      : [ "README.md", "LighterConfiguration/README.md" ],
-            swiftSettings: settings),
+            exclude      : [ "README.md", "LighterConfiguration/README.md" ]),
 
 
     // MARK: - Tests
