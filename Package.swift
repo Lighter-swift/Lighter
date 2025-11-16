@@ -1,60 +1,90 @@
-// swift-tools-version:5.6
+// swift-tools-version:5.10
 
 import PackageDescription
+
+#if swift(>=5.10)
+// Enable strict concurrency for Swift 5.10+.
+let settings = [ SwiftSetting.enableExperimentalFeature("StrictConcurrency") ]
+#else
+let settings = [ SwiftSetting ]()
+#endif
 
 var package = Package(
   name: "Lighter",
 
-  platforms: [ .macOS(.v10_15), .iOS(.v13) ],
-  
+  platforms: [
+    .macOS(.v10_15), .iOS(.v13), .visionOS(.v1), .watchOS(.v7), .tvOS(.v12)
+  ],
+
   products: [
     .library(name: "Lighter",         targets: [ "Lighter"       ]),
     .library(name: "SQLite3Schema",   targets: [ "SQLite3Schema" ]),
 
     .executable(name: "sqlite2swift", targets: [ "sqlite2swift"  ]),
-    
+
     .plugin(name: "Enlighter",        targets: [ "Enlighter"     ]),
     .plugin(name: "Generate Code for SQLite",
             targets: [ "Generate Code for SQLite" ])
   ],
-  
+
   targets: [
+    .systemLibrary(name: "SQLite3",
+                   path: "Sources/SQLite3-Linux",
+                   providers: [ .apt(["libsqlite3-dev"]) ]),
+
     // A small library used to fetch schema information from SQLite3 databases.
-    .target(name: "SQLite3Schema", exclude: [ "README.md" ]),
-    
+    .target(name: "SQLite3Schema",
+            dependencies: [
+              .target(name: "SQLite3",
+                      condition: .when(platforms: [
+                        .linux, .android, .windows, .openbsd
+                      ])),
+            ],
+            exclude: [ "README.md" ]),
+
     // Lighter is a shared lib providing common protocols used by Enlighter
     // generated models and such.
     // Note that Lighter isn't that useful w/o code generation (i.e. as a
     // standalone lib).
-    .target(name: "Lighter"),
+    .target(name: "Lighter",
+            dependencies: [
+              .target(name: "SQLite3",
+                      condition: .when(platforms: [
+                        .linux, .android, .windows, .openbsd
+                      ])),
+            ],
+            swiftSettings: settings),
 
 
     // MARK: - Plugin Support
-    
+
     // The CodeGenAST is a small and hacky helper lib that can format/render
     // Swift source code.
     .target(name    : "LighterCodeGenAST",
             path    : "Plugins/Libraries/LighterCodeGenAST",
-            exclude : [ "README.md" ]),
-    
+            exclude : [ "README.md" ], swiftSettings: settings),
+
     // This library contains all the code generation, to be used by different
     // clients.
     .target(name         : "LighterGeneration",
             dependencies : [ "LighterCodeGenAST", "SQLite3Schema" ],
             path         : "Plugins/Libraries/LighterGeneration",
-            exclude      : [ "README.md", "LighterConfiguration/README.md" ]),
+            exclude      : [ "README.md", "LighterConfiguration/README.md" ],
+            swiftSettings: settings),
 
-    
+
     // MARK: - Tests
-    
-    .testTarget(name: "CodeGenASTTests", dependencies: [ "LighterCodeGenAST" ]),
-    .testTarget(name: "EntityGenTests",  dependencies: [ "LighterGeneration" ]),
+
+    .testTarget(name: "CodeGenASTTests",
+                dependencies: [ "LighterCodeGenAST" ]),
+    .testTarget(name: "EntityGenTests",
+                dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "LighterOperationGenTests",
                 dependencies: [ "LighterGeneration" ]),
     .testTarget(name: "ContactsDatabaseTests", dependencies: [ "Lighter" ],
                 exclude: [ "contacts-create.sql" ]),
 
-    
+
     // MARK: - Plugins and supporting Tools
 
     .executableTarget(name         : "sqlite2swift",
@@ -64,7 +94,7 @@ var package = Package(
 
     .plugin(name: "Enlighter", capability: .buildTool(),
             dependencies: [ "sqlite2swift" ]),
-    
+
     .plugin(
       name: "Generate Code for SQLite",
       capability: .command(
@@ -77,16 +107,17 @@ var package = Package(
             .writeToPackageDirectory(reason:
               "The plugin needs access to generate the source file.")
           ]
-      ),
-      dependencies: [ "sqlite2swift" ],
-      path: "Plugins/GenerateCodeForSQLite"
+        ),
+        dependencies: [ "sqlite2swift" ],
+        path: "Plugins/GenerateCodeForSQLite"
     ),
 
-    
+
     // MARK: - Internal Plugin for Generating Variadics
-    
+
     .executableTarget(name         : "GenerateInternalVariadics",
-                      dependencies : [ "LighterGeneration" ],
+                      dependencies : [ "LighterCodeGenAST",
+                                       "LighterGeneration" ],
                       path         : "Plugins/Tools/GenerateInternalVariadics",
                       exclude      : [ "README.md" ]),
     .plugin(
@@ -105,8 +136,8 @@ var package = Package(
       dependencies: [ "GenerateInternalVariadics" ],
       path: "Plugins/WriteInternalVariadics"
     ),
-    
-    
+
+
     // MARK: - Environment specific tests
     .testTarget(name: "FiveThirtyEightTests",
                 dependencies: [ "LighterGeneration" ]),
@@ -114,18 +145,3 @@ var package = Package(
                 dependencies: [ "LighterGeneration" ])
   ]
 )
-
-#if !(os(macOS) || os(iOS) || os(watchOS) || os(tvOS))
-package.products += [ .library(name: "SQLite3", targets: [ "SQLite3" ]) ]
-package.targets += [
-  .systemLibrary(name: "SQLite3",
-                 path: "Sources/SQLite3-Linux",
-                 providers: [ .apt(["libsqlite3-dev"]) ])
-]
-package.targets
-  .first(where: { $0.name == "SQLite3Schema" })?
-  .dependencies.append("SQLite3")
-package.targets
-  .first(where: { $0.name == "Lighter" })?
-  .dependencies.append("SQLite3")
-#endif // not-Darwin

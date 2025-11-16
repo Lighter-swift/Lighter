@@ -1,10 +1,12 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2025 ZeeZide GmbH.
 //
 
 import PackagePlugin
+#if canImport(Foundation)
 import Foundation
+#endif
 // Note: Plugins cannot use libs in the same package!
 
 /**

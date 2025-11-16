@@ -13,7 +13,7 @@ jobs:
         image:
           - swift:5.9.2-focal
           - swift:5.10-jammy
-          - swift:6.2-jammy
+          - swift:6.2.1-jammy
     container: ${{ matrix.image }}
     steps:
       - name: Install SQLite
@@ -34,7 +34,7 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Select latest available Xcode
-        uses: maxim-lobanov/setup-xcode@v1.5.1
+        uses: maxim-lobanov/setup-xcode@v1.6.0
         with:
           xcode-version: latest
       - name: Checkout Repository
