@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022-2024 ZeeZide GmbH.
+//  Copyright © 2022-2026 ZeeZide GmbH.
 //
 
 /**
@@ -16,19 +16,26 @@
  */
 public enum SQLTransactionType: String, Sendable {
   
-  /// Start a read transaction on the first SELECT and upgrade to a write
-  /// transaction on the first modification.
-  /// Careful: When transactions are upgraded by writes and the database is
-  ///          locked already, a `SQLITE_BUSY` error will be issued immediately
-  ///          (i.e. it won't wait for the lock becoming available).
+  /**
+   * Start a read transaction on the first SELECT and upgrade to a write
+   * transaction on the first modification.
+   *
+   * Careful: When transactions are upgraded by writes and the database is
+   * locked already, a `SQLITE_BUSY` error will be issued immediately
+   * (i.e. it won't wait for the lock becoming available).
+   */
   case deferred  = "DEFERRED"
 
-  /// Immediatly start a writable transaction. This will acquire (and possibly
-  /// wait) for the database write lock.
+  /**
+   * Immediately start a writable transaction. This will acquire (and possibly
+   * wait) for the database write lock.
+   */
   case immediate = "IMMEDIATE"
   
-  /// The same like ``immediate`` in WAL mode, but protects against concurrent
-  /// reads in others.
+  /**
+   * The same like ``immediate`` in WAL mode, but protects against concurrent
+   * reads in others.
+   */
   case exclusive = "EXCLUSIVE"
   
   @inlinable

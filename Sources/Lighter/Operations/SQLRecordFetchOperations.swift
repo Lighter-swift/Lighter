@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2026 ZeeZide GmbH.
 //
 
 import func SQLite3.sqlite3_column_int64
@@ -21,8 +21,10 @@ public struct SQLRecordFetchOperations<Ops, T: SQLRecord>
   @inlinable
   public static var recordTypes : Ops.RecordTypes { Ops.recordTypes }
 
-  /// The ``SQLConnectionHandler`` use for the specific
-  /// ``SQLDatabaseOperations`` (either database or transaction specific).
+  /**
+   * The ``SQLConnectionHandler`` use for the specific
+   * ``SQLDatabaseOperations`` (either database or transaction specific).
+   */
   @inlinable
   public var connectionHandler : SQLConnectionHandler {
     operations.connectionHandler

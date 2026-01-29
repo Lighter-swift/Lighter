@@ -1,6 +1,6 @@
 //
 //  Created by Helge Heß.
-//  Copyright © 2022 ZeeZide GmbH.
+//  Copyright © 2022-2026 ZeeZide GmbH.
 //
 
 #if canImport(Foundation) // could drop this dep if required
@@ -27,8 +27,10 @@ extension SQLConnectionHandler {
     /// The maximum age of a pooled connection (after that it will be closed).
     public let maxAge              : TimeInterval
     
-    /// The maximum number of pooled connections per configuration (r/o, r/w).
-    /// If more connections are opened, they will be closed and not get pooled.
+    /**
+     * The maximum number of pooled connections per configuration (r/o, r/w).
+     * If more connections are opened, they will be closed and not get pooled.
+     */
     public let maxPerConfiguration : Int
     
     private struct Entry {
