@@ -158,7 +158,7 @@ extension SQLConnectionHandler {
       // Proper pools are hard ™️
       let now              = Date()
       var hasContents      = false
-      var handlesToRelease : Array<OpaquePointer> = []
+      var handlesToRelease = [ OpaquePointer ]()
       
       lock.lock()
       

@@ -111,7 +111,7 @@ public struct FunctionCall: Equatable {
     
     /// The keyword/label of the parameter, can be `nil` if it is a wildcard
     /// (unlabled) parameter.
-    public let name  : String? // FIXME:this is `label`
+    public let name  : String? // FIXME: this is `label`
     /// The value passed to the parameter.
     public let value : Expression
     
