@@ -306,7 +306,9 @@ extension EnlighterASTGenerator {
                     info: "A `URL` pointing to the database to be used."),
               .init(name: "readOnly",
                     info:
-                      "For protocol conformance, only allowed value: `true`.")
+                      "For protocol conformance, only allowed value: `true`."),
+              .init(name: "bootstrapSQL",
+                    info: "SQLite pragmas/SQL to apply to each connection."),
             ]
           ),
           inlinable: options.inlinable
@@ -318,11 +320,13 @@ extension EnlighterASTGenerator {
         .init(
           declaration: .makeInit(public: options.public,
             .init(keywordArg: "url", .name("URL")),
-            .init(keywordArg: "readOnly", .bool, .false)
+            .init(keywordArg: "readOnly", .bool, .false),
+            .init(keywordArg: "bootstrapSQL",
+                  .name("String? = nil")),
           ),
           statements: [
             .raw(
-              "self.\(api.connectionHandler) = .simplePool(url: url, readOnly: readOnly)"
+              "self.\(api.connectionHandler) = .simplePool(url: url, readOnly: readOnly, bootstrapSQL: bootstrapSQL)"
             )
           ],
           comment: .init(
@@ -348,7 +352,9 @@ extension EnlighterASTGenerator {
                     info: "A `URL` pointing to the database to be used."),
               .init(name: "readOnly",
                     info: "Whether the database should be opened "
-                        + "readonly (default: `false`).")
+                        + "readonly (default: `false`)."),
+              .init(name: "bootstrapSQL",
+                    info: "SQLite pragmas/SQL to apply to each connection."),
             ]
           ),
           inlinable: options.inlinable

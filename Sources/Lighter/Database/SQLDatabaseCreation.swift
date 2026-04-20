@@ -45,7 +45,9 @@ public extension SQLDatabase {
    *   - databaseFileURL: The URL of the database to be copied.
    * - Returns:           The initialized database if successful.
    */
-  static func bootstrap(at url: URL, readOnly: Bool = false,
+  static func bootstrap(at url: URL, 
+                        readOnly: Bool = false,
+                        bootstrapSQL: String?,
                         overwrite: Bool = false,
                         copying databaseFileURL: URL) throws -> Self
   {
@@ -56,7 +58,7 @@ public extension SQLDatabase {
         try fm.removeItem(at: url)
       }
       else {
-        return Self.init(url: url, readOnly: readOnly)
+        return Self.init(url: url, readOnly: readOnly, bootstrapSQL: bootstrapSQL)
       }
     }
     
@@ -66,7 +68,7 @@ public extension SQLDatabase {
     }
     
     try fm.copyItem(at: databaseFileURL, to: url)
-    return Self.init(url: url, readOnly: readOnly)
+    return Self.init(url: url, readOnly: readOnly, bootstrapSQL: bootstrapSQL)
   }
   
   /**
@@ -97,6 +99,7 @@ public extension SQLDatabase {
                         domains        : FileManager.SearchPathDomainMask
                                        = .userDomainMask,
                         readOnly       : Bool = false,
+                        bootstrapSQL   : String? = nil,
                         overwrite      : Bool = false,
                         copying databaseFileURL: URL) throws -> Self
   {
@@ -106,7 +109,10 @@ public extension SQLDatabase {
     }
     
     let url = dir.appendingPathComponent(databaseFileURL.lastPathComponent)
-    return try bootstrap(at: url, readOnly: readOnly, overwrite: overwrite,
+    return try bootstrap(at: url, 
+                         readOnly: readOnly,
+                         bootstrapSQL: bootstrapSQL,
+                         overwrite: overwrite,
                          copying: databaseFileURL)
   }
 }
@@ -139,7 +145,9 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
    *                exists already (useful during development).
    * - Returns:     The initialized database if successful.
    */
-  static func bootstrap(at url: URL, readOnly: Bool = false,
+  static func bootstrap(at url: URL, 
+                        readOnly: Bool = false, 
+                        bootstrapSQL: String? = nil,
                         overwrite: Bool = false) throws -> Self
   {
     let fm = FileManager.default
@@ -148,7 +156,7 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
         try fm.removeItem(at: url)
       }
       else {
-        return Self.init(url: url, readOnly: readOnly)
+        return Self.init(url: url, readOnly: readOnly, bootstrapSQL: bootstrapSQL)
       }
     }
     
@@ -170,7 +178,7 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
       throw SQLError(db)
     }
     
-    return Self(url: url, readOnly: readOnly)
+    return Self(url: url, readOnly: readOnly, bootstrapSQL: bootstrapSQL)
   }
   
   /**
@@ -206,6 +214,7 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
                                        = .userDomainMask,
                         filename       : String? = nil,
                         readOnly       : Bool = false,
+                        bootstrapSQL   : String?,
                         overwrite      : Bool = false) throws -> Self
   {
     guard let dir = FileManager.default.urls(for: directory, in: domains).first
@@ -216,7 +225,12 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder {
     let filename = filename ?? String(describing: self) + ".sqlite3"
     let url = dir.appendingPathComponent(filename)
     
-    return try bootstrap(at: url, readOnly: readOnly, overwrite: overwrite)
+    return try bootstrap(
+      at: url,
+      readOnly: readOnly,
+      bootstrapSQL: bootstrapSQL,
+      overwrite: overwrite
+    )
   }
 }
 #endif // canImport(Foundation)
@@ -254,14 +268,18 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
    *                      exists already (useful during development).
    *   - databaseFileURL: The "source" database to be copied.
    */
-  static func bootstrap(at url: URL, readOnly: Bool = false,
+  static func bootstrap(at url: URL, 
+                        readOnly: Bool = false,
+                        bootstrapSQL: String?,
                         overwrite: Bool = false,
                         copying databaseFileURL: URL) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.bootstrap(at: url, readOnly: readOnly,
+          let db = try self.bootstrap(at: url, 
+                                      readOnly: readOnly, 
+                                      bootstrapSQL: bootstrapSQL,
                                       overwrite: overwrite,
                                       copying: databaseFileURL)
           continuation.resume(returning: db)
@@ -299,14 +317,18 @@ public extension SQLDatabase where Self: SQLDatabaseAsyncOperations {
                         domains        : FileManager.SearchPathDomainMask
                                        = .userDomainMask,
                         readOnly       : Bool = false,
+                        bootstrapSQL   : String? = nil,
                         overwrite      : Bool = false,
                         copying databaseFileURL: URL) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.bootstrap(into: directory, domains: domains,
-                                      readOnly: readOnly, overwrite: overwrite,
+          let db = try self.bootstrap(into: directory,
+                                      domains: domains,
+                                      readOnly: readOnly,
+                                      bootstrapSQL: bootstrapSQL,
+                                      overwrite: overwrite,
                                       copying: databaseFileURL)
           continuation.resume(returning: db)
         }
@@ -345,14 +367,18 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder,
    *                exists already (useful during development).
    * - Returns:     The initialized database if successful.
    */
-  static func bootstrap(at url: URL, readOnly: Bool = false,
+  static func bootstrap(at url: URL, 
+                        readOnly: Bool = false, 
+                        bootstrapSQL: String? = nil,
                         overwrite: Bool = false)
                 async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.bootstrap(at: url, readOnly: readOnly,
+          let db = try self.bootstrap(at: url,
+                                      readOnly: readOnly,
+                                      bootstrapSQL: bootstrapSQL,
                                       overwrite: overwrite)
           continuation.resume(returning: db)
         }
@@ -394,13 +420,17 @@ public extension SQLDatabase where Self: SQLCreationStatementsHolder,
                                        = .userDomainMask,
                         filename       : String? = nil,
                         readOnly       : Bool = false,
+                        bootstrapSQL   : String? = nil,
                         overwrite      : Bool = false) async throws -> Self
   {
     return try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global().async {
         do {
-          let db = try self.bootstrap(into: directory, domains: domains,
-                                      filename: filename, readOnly: readOnly,
+          let db = try self.bootstrap(into: directory,
+                                      domains: domains,
+                                      filename: filename,
+                                      readOnly: readOnly,
+                                      bootstrapSQL: bootstrapSQL,
                                       overwrite: overwrite)
           continuation.resume(returning: db)
         }
