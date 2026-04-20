@@ -49,12 +49,16 @@ extension SQLConnectionHandler {
     public init(url: URL, readOnly: Bool,
                 maxAge: TimeInterval = 3.0,
                 maximumPoolSizePerConfiguration: Int = 8,
-                writeTimeout: TimeInterval)
+                writeTimeout: TimeInterval,
+                bootstrapSQL: String? = nil)
     {
       self.maxAge              = maxAge
       self.maxPerConfiguration = maximumPoolSizePerConfiguration
       
-      super.init(url: url, readOnly: readOnly, writeTimeout: writeTimeout)
+      super.init(url: url, 
+                 readOnly: readOnly, 
+                 writeTimeout: writeTimeout,
+                 bootstrapSQL: bootstrapSQL)
       
       #if os(iOS)
         lifecycle = AppLifecycleHandler(owner: self)

@@ -22,22 +22,27 @@ open class SQLConnectionHandler: @unchecked Sendable {
    * a lot of async calls.
    */
   public static func reopen(url: URL, readOnly: Bool = false,
-                            writeTimeout: TimeInterval = 10.0)
-                     -> SQLConnectionHandler
+                            writeTimeout: TimeInterval = 10.0,
+                            bootstrapSQL: String? = nil) -> SQLConnectionHandler
   {
-    SQLConnectionHandler(url: url, readOnly: readOnly,
-                         writeTimeout: writeTimeout)
+    SQLConnectionHandler(url: url, 
+                         readOnly: readOnly,
+                         writeTimeout: writeTimeout, 
+                         bootstrapSQL: bootstrapSQL)
   }
   
   public static func simplePool(url: URL, readOnly: Bool,
                                 maxAge: TimeInterval = 3.0,
                                 maximumPoolSizePerConfiguration: Int = 8,
-                                writeTimeout: TimeInterval = 10.0)
-                     -> SimplePool
+                                writeTimeout: TimeInterval = 10.0,
+                                bootstrapSQL: String? = nil) -> SimplePool
   {
-    SimplePool(url: url, readOnly: readOnly, maxAge: maxAge,
+    SimplePool(url: url, 
+               readOnly: readOnly, 
+               maxAge: maxAge,
                maximumPoolSizePerConfiguration: maximumPoolSizePerConfiguration,
-               writeTimeout: writeTimeout)
+               writeTimeout: writeTimeout, 
+               bootstrapSQL: bootstrapSQL)
   }
   
   /**
@@ -72,14 +77,18 @@ open class SQLConnectionHandler: @unchecked Sendable {
   public let url          : URL
   public let readOnly     : Bool
   public let writeTimeout : TimeInterval
+  public let bootstrapSQL : String?
   
   @inlinable
-  public init(url: URL, readOnly: Bool = false,
-              writeTimeout: TimeInterval = 10.0)
+  public init(url          : URL, 
+              readOnly     : Bool = false,
+              writeTimeout : TimeInterval = 10.0,
+              bootstrapSQL : String? = nil)
   {
     self.url          = url
     self.readOnly     = readOnly
     self.writeTimeout = writeTimeout
+    self.bootstrapSQL = bootstrapSQL
   }
 
   
@@ -139,6 +148,7 @@ open class SQLConnectionHandler: @unchecked Sendable {
     }
     
     sqlite3_busy_timeout(db, Int32(writeTimeout * 1000 /* ms */))
+    sqlite3_exec(db, bootstrapSQL, nil, nil, nil)
     
     return db
   }

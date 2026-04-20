@@ -54,8 +54,9 @@ public protocol SQLDatabase: SQLDatabaseOperations {
    * - Parameters:
    *   - url: The filesystem `URL` to a SQLite3 database file.
    *   - readOnly: Whether the database should be opened read-only.
+   *   - pragmas: SQLite pragmas to apply to each connection.
    */
-  init(url: URL, readOnly: Bool)
+  init(url: URL, readOnly: Bool, bootstrapSQL: String?)
   
   /**
    * Create or open the SQL database at the given URL.
@@ -80,7 +81,11 @@ public protocol SQLDatabase: SQLDatabaseOperations {
    *   - overwrite:       Whether the database should be deleted if it
    *                      exists already (useful during development).
    *   - databaseFileURL: The "source" database to be copied.
+   *   - pragmas:         SQLite pragmas to apply to each connection.
    */
-  static func bootstrap(at url: URL, readOnly: Bool, overwrite: Bool,
+  static func bootstrap(at url: URL, 
+                        readOnly: Bool,
+                        bootstrapSQL: String?,
+                        overwrite: Bool,
                         copying databaseFileURL: URL) throws -> Self
 }
